@@ -10,8 +10,8 @@
   <meta property="og:title" content="المشويات الدمشقية" />
   <meta property="og:description" content="المنيو، الطلب، واتساب وجميع حساباتنا الرسمية في مكان واحد" />
   <meta property="og:url" content="https://damascene-links.vercel.app/" />
-  <meta property="og:image" content="https://damascene-links.vercel.app/api/og" />
-  <meta property="og:image:secure_url" content="https://damascene-links.vercel.app/api/og" />
+  <meta property="og:image" content="https://damascene-links.vercel.app/api/og-image-v2.jpg?wa=3" />
+  <meta property="og:image:secure_url" content="https://damascene-links.vercel.app/api/og-image-v2.jpg?wa=3" />
   <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="1600" />
   <meta property="og:image:height" content="650" />
@@ -21,7 +21,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="المشويات الدمشقية" />
   <meta name="twitter:description" content="المنيو، الطلب، واتساب وجميع حساباتنا الرسمية في مكان واحد" />
-  <meta name="twitter:image" content="https://damascene-links.vercel.app/api/og" />
+  <meta name="twitter:image" content="https://damascene-links.vercel.app/api/og-image-v2.jpg?wa=3" />
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
@@ -102,7 +102,7 @@
     }
     .split-actions{
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns:minmax(0,3fr) minmax(0,2fr);
       gap:10px;
       direction:rtl;
     }
@@ -191,7 +191,7 @@
     @media (max-width:390px){
       .page{padding-left:9px;padding-right:9px}
       .shell{padding:12px;border-radius:22px}
-      .split-actions{gap:8px}
+      .split-actions{gap:8px;grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
       .cta.compact{min-height:86px;padding:9px 9px;grid-template-columns:28px 1fr;gap:6px}
       .cta.compact .icon i{font-size:20px}
       .cta.compact strong{font-size:13px}
