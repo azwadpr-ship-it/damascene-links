@@ -37,26 +37,64 @@
     html{min-height:100%;background:var(--bg)}
     body{margin:0;min-height:100vh;color:var(--text);font-family:Tahoma,Arial,"Segoe UI",sans-serif;background:radial-gradient(circle at 12% 0%,rgba(185,138,47,.11),transparent 27%),radial-gradient(circle at 100% 38%,rgba(185,138,47,.08),transparent 25%),linear-gradient(180deg,#f8eedf 0%,#efe2ca 100%)}
     body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.10;background-image:linear-gradient(45deg,transparent 48%,rgba(185,138,47,.13) 49%,transparent 50%),linear-gradient(-45deg,transparent 48%,rgba(185,138,47,.08) 49%,transparent 50%);background-size:32px 32px;mask-image:linear-gradient(to bottom,#000,transparent 30%,transparent 72%,#000)}
-    .page{width:min(100%,620px);margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))}
+    body.modal-open{overflow:hidden}
+    .page{width:min(100%,620px);margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom))}
     .shell{position:relative;overflow:hidden;border:1px solid rgba(190,146,70,.50);border-radius:26px;background:rgba(247,238,224,.78);backdrop-filter:blur(12px);box-shadow:0 14px 34px rgba(120,88,33,.12);padding:15px}
     .shell::before{content:"";position:absolute;inset:7px;border:1px solid rgba(185,138,47,.16);border-radius:20px;pointer-events:none}
-    .brand{position:relative;z-index:1;margin:2px 2px 14px;border-radius:18px;overflow:hidden;border:1px solid rgba(190,146,70,.28);background:#f1e3ca}
+    .brand{position:relative;z-index:1;margin:2px 2px 12px;border-radius:18px;overflow:hidden;border:1px solid rgba(190,146,70,.28);background:#f1e3ca}
     .brand img{width:100%;height:auto;display:block}
     .primary-actions{position:relative;z-index:1;display:grid;gap:8px;margin-top:4px}
     .split-actions{display:grid;grid-template-columns:minmax(0,13fr) minmax(0,7fr);gap:8px;direction:rtl}
-    .cta,.social{text-decoration:none;-webkit-tap-highlight-color:transparent;user-select:none}
+    .cta,.social,.utility{text-decoration:none;-webkit-tap-highlight-color:transparent;user-select:none}
     .cta{height:62px;min-height:62px;border-radius:16px;display:grid;grid-template-columns:42px 1fr;align-items:center;gap:10px;padding:6px 13px;border:1px solid rgba(185,138,47,.58);color:var(--text);background:rgba(247,239,226,.95);box-shadow:0 7px 20px rgba(75,49,6,.06);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
     .cta.compact{height:62px;min-height:62px;grid-template-columns:30px 1fr;gap:7px;padding:6px 10px}
-    .cta .icon,.social .icon{display:grid;place-items:center;color:var(--gold)}
+    .cta .icon,.social .icon,.utility .icon{display:grid;place-items:center;color:var(--gold)}
     .cta .icon i{font-size:22px}.cta strong{display:block;font-size:13px;margin-bottom:0;line-height:1.35}.cta small{opacity:.78;font-size:11px}.cta.compact .icon i{font-size:20px}.cta.compact strong{font-size:13px;line-height:1.35}.cta.compact small{font-size:10px}
     .cta strong.menu-label{font-size:16px;font-weight:700;white-space:nowrap}
     .cta strong.app-label{font-size:15px;font-weight:700;white-space:nowrap}
-    .section-title{position:relative;z-index:1;display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:16px 3px 10px}.section-title h2{margin:0;font-size:15px;color:var(--gold-dark)}
-    .social-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-    .social{min-height:74px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;padding:9px 7px;color:var(--text);border:1px solid rgba(190,146,70,.30);border-radius:16px;background:var(--card);box-shadow:0 6px 16px rgba(85,56,7,.05);transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}.social .icon i{font-size:25px;color:var(--gold)!important}.social .name{font-size:12px;font-weight:700}.cta:active,.social:active{transform:scale(.985)}
-    @media(hover:hover){.cta:hover,.social:hover{transform:translateY(-2px);border-color:rgba(185,138,47,.74);box-shadow:0 11px 24px rgba(90,61,11,.09)}}
-    .footer{position:relative;z-index:1;text-align:center;margin-top:16px;padding:8px 0 3px;color:var(--gold-dark);font-size:11px}
-    @media(max-width:360px){.page{padding-left:9px;padding-right:9px}.shell{padding:12px;border-radius:22px}.split-actions{gap:7px}.cta,.cta.compact{height:64px;min-height:64px}.cta{grid-template-columns:38px 1fr;padding:6px 10px}.cta.compact{padding:6px 8px;grid-template-columns:26px 1fr;gap:5px}.cta.compact .icon i{font-size:18px}.cta strong,.cta.compact strong{font-size:12px}.cta strong.menu-label{font-size:14px}.cta strong.app-label{font-size:14px}.social-grid{gap:8px}}
+    .section-title{position:relative;z-index:1;display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:12px 3px 8px}.section-title h2{margin:0;font-size:15px;color:var(--gold-dark)}
+    .social-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .social{min-height:68px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:7px 7px;color:var(--text);border:1px solid rgba(190,146,70,.30);border-radius:16px;background:var(--card);box-shadow:0 6px 16px rgba(85,56,7,.05);transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}.social .icon i{font-size:24px;color:var(--gold)!important}.social .name{font-size:12px;font-weight:700}
+    .utility-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+    .utility{height:46px;border:1px solid rgba(185,138,47,.42);border-radius:15px;background:rgba(247,239,226,.95);box-shadow:0 5px 14px rgba(85,56,7,.05);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+    .utility .icon i{font-size:18px;color:var(--gold)}
+    .cta:active,.social:active,.utility:active{transform:scale(.985)}
+    @media(hover:hover){.cta:hover,.social:hover,.utility:hover{transform:translateY(-2px);border-color:rgba(185,138,47,.74);box-shadow:0 11px 24px rgba(90,61,11,.09)}}
+
+    .modal{position:fixed;z-index:100;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(31,25,17,.58);backdrop-filter:blur(5px)}
+    .modal.open{display:flex}
+    .bank-card{position:relative;width:min(100%,430px);border:1px solid rgba(190,146,70,.60);border-radius:22px;background:#f8efe1;box-shadow:0 24px 60px rgba(28,19,5,.24);padding:22px 18px 18px;color:var(--text)}
+    .bank-card h3{margin:0 0 16px;text-align:center;color:var(--gold-dark);font-size:18px}
+    .close-modal{position:absolute;top:10px;left:10px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(185,138,47,.10);color:var(--gold-dark);font-size:18px;cursor:pointer}
+    .bank-row{padding:10px 0;border-bottom:1px solid rgba(185,138,47,.18)}
+    .bank-row:last-of-type{border-bottom:0}
+    .bank-label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+    .bank-value{display:block;font-size:14px;font-weight:700}
+    .iban{direction:ltr;text-align:center;letter-spacing:.35px;word-break:break-all;font-size:15px}
+    .bank-note{margin:14px 0 0;padding:11px 12px;border-radius:13px;background:rgba(185,138,47,.08);font-size:12px;line-height:1.7;text-align:center;color:#5f513d}
+    .copy-btn{width:100%;height:42px;margin-top:12px;border:1px solid rgba(185,138,47,.48);border-radius:13px;background:#f4e5ca;color:var(--gold-dark);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+    .copy-status{text-align:center;height:17px;margin-top:6px;font-size:11px;color:var(--gold-dark)}
+
+    @media(max-width:360px){
+      .page{padding-left:9px;padding-right:9px;padding-bottom:max(14px,env(safe-area-inset-bottom))}
+      .shell{padding:11px;border-radius:22px}
+      .brand{margin-bottom:10px}
+      .split-actions{gap:7px}
+      .cta,.cta.compact{height:60px;min-height:60px}
+      .cta{grid-template-columns:38px 1fr;padding:6px 10px}
+      .cta.compact{padding:6px 8px;grid-template-columns:26px 1fr;gap:5px}
+      .cta.compact .icon i{font-size:18px}
+      .cta strong,.cta.compact strong{font-size:12px}
+      .cta strong.menu-label{font-size:14px}
+      .cta strong.app-label{font-size:14px}
+      .section-title{margin:10px 3px 7px}
+      .social-grid{gap:7px}
+      .social{min-height:62px;padding:6px 6px}
+      .social .icon i{font-size:22px}
+      .utility-grid{gap:7px;margin-top:7px}
+      .utility{height:42px;font-size:12px}
+      .utility .icon i{font-size:16px}
+    }
   </style>
 </head>
 <body>
@@ -94,8 +132,80 @@
         <a class="social" href="https://www.facebook.com/share/1JMKi6Br8y/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><span class="icon"><i class="fa-brands fa-facebook-f"></i></span><span class="name">Facebook</span></a>
       </div>
 
-      <div class="footer">تذوق الفرق</div>
+      <div class="utility-grid">
+        <a class="utility" href="https://maps.app.goo.gl/N7xxrKyKTvWnfd5VA" target="_blank" rel="noopener noreferrer" aria-label="موقعنا على خرائط Google">
+          <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
+          <span>موقعنا</span>
+        </a>
+        <button class="utility" type="button" id="bankButton" aria-haspopup="dialog" aria-controls="bankModal">
+          <span class="icon"><i class="fa-solid fa-building-columns"></i></span>
+          <span>الحساب البنكي</span>
+        </button>
+      </div>
     </section>
   </main>
+
+  <div class="modal" id="bankModal" role="dialog" aria-modal="true" aria-labelledby="bankTitle">
+    <div class="bank-card">
+      <button class="close-modal" type="button" id="closeBank" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+      <h3 id="bankTitle">بيانات التحويل البنكي</h3>
+      <div class="bank-row">
+        <span class="bank-label">البنك</span>
+        <span class="bank-value">بنك الجزيرة</span>
+      </div>
+      <div class="bank-row">
+        <span class="bank-label">اسم الحساب</span>
+        <span class="bank-value">مطاعم مشويات الدمشقية</span>
+      </div>
+      <div class="bank-row">
+        <span class="bank-label">الآيبان</span>
+        <span class="bank-value iban" id="ibanValue">SA6360100013395002546014</span>
+      </div>
+      <button class="copy-btn" type="button" id="copyIban"><i class="fa-regular fa-copy"></i>&nbsp; نسخ الآيبان</button>
+      <div class="copy-status" id="copyStatus" aria-live="polite"></div>
+      <p class="bank-note">فضلاً، يرجى إرسال صورة الإيصال بعد التحويل لتأكيد الطلب. شكراً لك!</p>
+    </div>
+  </div>
+
+  <script>
+    const bankModal = document.getElementById('bankModal');
+    const bankButton = document.getElementById('bankButton');
+    const closeBank = document.getElementById('closeBank');
+    const copyIban = document.getElementById('copyIban');
+    const copyStatus = document.getElementById('copyStatus');
+    const iban = 'SA6360100013395002546014';
+
+    function openBankModal(){
+      bankModal.classList.add('open');
+      document.body.classList.add('modal-open');
+      closeBank.focus();
+    }
+    function closeBankModal(){
+      bankModal.classList.remove('open');
+      document.body.classList.remove('modal-open');
+      copyStatus.textContent = '';
+      bankButton.focus();
+    }
+
+    bankButton.addEventListener('click', openBankModal);
+    closeBank.addEventListener('click', closeBankModal);
+    bankModal.addEventListener('click', (e)=>{ if(e.target === bankModal) closeBankModal(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && bankModal.classList.contains('open')) closeBankModal(); });
+
+    copyIban.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(iban);
+        copyStatus.textContent = 'تم نسخ الآيبان';
+      }catch(_){
+        const area = document.createElement('textarea');
+        area.value = iban;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+        copyStatus.textContent = 'تم نسخ الآيبان';
+      }
+    });
+  </script>
 </body>
 </html>
