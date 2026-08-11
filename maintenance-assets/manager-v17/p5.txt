@@ -1,0 +1,106 @@
+nsole.warn(e);}
+    const files=[...document.getElementById('requestFiles').files];
+    let failedUploads=0;
+    for(const file of files){try{await uploadAttachment(req,file,'request',null);}catch{failedUploads++;}}
+    showShareModal(req,failedUploads);
+    if(failedUploads) toast(`تم حفظ الطلب، لكن تعذر رفع ${failedUploads} مرفق. لا تعِد إرسال الطلب.`);
+  } catch(ex) { toast(`تعذر إنشاء الطلب: ${ex.message}`); }
+  finally { btn.disabled=false; btn.textContent='حفظ الطلب والمتابعة للمشاركة'; }
+}
+async function uploadAttachment(req,file,kind='request',updateId=null) {
+  const safe=(file.name||'image.jpg').replace(/[^a-zA-Z0-9._-]+/g,'_');
+  const path=`${req.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safe}`;
+  await api(`/storage/v1/object/maintenance-images/${path}`,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream','x-upsert':'false'},body:file});
+  await api('/rest/v1/request_attachments',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({request_id:req.id,update_id:updateId,uploaded_by:state.user.id,kind,storage_path:path,file_name:file.name||null,mime_type:file.type||null})});
+}
+function shareText(req) {
+  const p=PRIORITY[req.priority]||{label:req.priority,icon:''};
+  return `${p.icon} *طلب صيانة ${req.priority==='emergency'?'طارئ':req.priority==='urgent'?'عاجل':'جديد'}*\n\nرقم الطلب: ${ticketNumber(req.ticket_code)}\nالقسم: ${req.department}\n${req.location?`الموقع: ${req.location}\n`:''}المشكلة: ${req.description}\nالأولوية: ${p.label}\nوقت البلاغ: ${fmtDate(req.created_at)}\nمقدم الطلب: ${state.profile.full_name}\n\nمتابعة الطلب:\nhttps://azwad-m.vercel.app/${ticketNumber(req.ticket_code)}`;
+}
+function showShareModal(req,failedUploads=0) {
+  const d=document.createElement('div'); d.className='modal-backdrop'; d.id='shareModal';
+  d.innerHTML=`<div class="modal"><h3>تم تسجيل الطلب رقم ${esc(ticketNumber(req.ticket_code))} ✅</h3><p>الخطوة الأخيرة: شارك الطلب في مجموعة الصيانة على واتساب حتى يصل التنبيه فورًا.</p>${failedUploads?`<div class="alert error">تم حفظ الطلب بنجاح، لكن تعذر رفع ${failedUploads} مرفق. لا تعِد إنشاء الطلب.</div>`:''}${priorityBadge(req.priority)}<div class="actions"><a id="waShare" class="btn whatsapp block" target="_blank" rel="noopener">مشاركة الطلب على واتساب</a><button id="afterShare" class="btn ghost block" disabled>تمت المشاركة — العودة للنموذج</button></div></div>`;
+  document.body.appendChild(d);
+  const wa=document.getElementById('waShare'); wa.href=`https://wa.me/?text=${encodeURIComponent(shareText(req))}`;
+  wa.addEventListener('click',()=>{ const b=document.getElementById('afterShare'); b.disabled=false; b.classList.remove('ghost'); b.classList.add('soft'); });
+  document.getElementById('afterShare').addEventListener('click',()=>{d.remove(); renderRequestPage();});
+}
+function sortMaintenanceRows(rows=[]){
+  const rank={emergency:0,urgent:1,normal:2,improvement:3};
+  return [...rows].sort((a,b)=>{
+    const ac=['completed','cancelled'].includes(a.status)?1:0, bc=['completed','cancelled'].includes(b.status)?1:0;
+    if(ac!==bc) return ac-bc;
+    const p=(rank[a.priority]??9)-(rank[b.priority]??9);
+    return p || new Date(a.created_at)-new Date(b.created_at);
+  });
+}
+function ticketList(rows=[]) {
+  if(!rows?.length) return '<div class="empty">لا توجد طلبات حتى الآن.</div>';
+  return `<div class="ticket-list">${rows.map(r=>{
+    const cls=r.priority==='emergency'?' ticket-emergency':r.priority==='urgent'?' ticket-urgent':'';
+    const att=r.priority==='emergency'?'<span class="attention-label emergency-attention">اهتمام فوري</span>':r.priority==='urgent'?'<span class="attention-label urgent-attention">عاجل</span>':'';
+    const name=r.requester_name || (r.requested_by===state.user?.id ? state.profile?.full_name : '—');
+    return `<a href="/ticket/${r.id}" data-nav class="ticket${cls}">
+      <div class="ticket-main">
+        <h4 class="ticket-requester">رقم الطلب: ${esc(ticketNumber(r.ticket_code||''))} — مقدم الطلب: ${esc(name||'—')}</h4>
+        <p class="ticket-department"><strong>القسم:</strong> ${esc(r.department)}${r.location?` — <strong>الموقع:</strong> ${esc(r.location)}`:''}</p>
+        <p class="ticket-problem"><strong>المشكلة:</strong> ${esc(r.description)}</p>
+        <p class="ticket-date">${fmtDate(r.created_at)}</p>
+      </div>
+      <div class="ticket-meta">${att}${priorityBadge(r.priority)} ${statusBadge(r.status)}</div>
+    </a>`;
+  }).join('')}</div>`;
+}
+function maintenanceListHtml(rows=[]){
+  if(!rows?.length) return '<div class="empty">لا توجد طلبات حتى الآن.</div>';
+  const hot=rows.filter(r=>!['completed','cancelled'].includes(r.status)&&['emergency','urgent'].includes(r.priority));
+  if(!hot.length) return ticketList(rows);
+  const ids=new Set(hot.map(r=>r.id)), rest=rows.filter(r=>!ids.has(r.id));
+  return `<div class="priority-section"><div class="priority-section-title">⚠️ طلبات تحتاج اهتمام مباشر</div>${ticketList(hot)}</div>${rest.length?`<div><div class="regular-section-title">باقي الطلبات</div>${ticketList(rest)}</div>`:''}`;
+}
+function bindTicketClicks(){}
+
+
+async function renderMyRequests() {
+  if(state.profile.role!=='supervisor'){ document.getElementById('app').innerHTML=deny(); return bindCommon(); }
+  loading();
+  try{
+    const rows=await api(`/rest/v1/maintenance_requests_enriched?requested_by=eq.${state.user.id}&select=*&order=created_at.desc`);
+    const open=rows.filter(r=>!['completed','cancelled'].includes(r.status)).length;
+    const completed=rows.filter(r=>r.status==='completed').length;
+    document.getElementById('app').innerHTML=layout(`
+      <div class="page-head"><div><h2>طلباتي</h2><p>جميع طلبات الصيانة التي قمت بتسجيلها، من الأحدث إلى الأقدم.</p></div><div class="actions"><span class="badge normal">${rows.length} طلب</span><span class="badge in_progress">${open} مفتوح</span><span class="badge completed">${completed} تم التنفيذ</span></div></div>
+      <div class="actions" style="margin-bottom:14px"><a data-nav href="/request" class="btn gold">＋ طلب صيانة جديد</a></div>
+      <section class="card"><h3 class="card-title">كل طلباتي</h3>${ticketList(rows)}</section>`);
+    bindCommon();
+  }catch(e){
+    document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();
+  }
+}
+
+
+let deferredInstallPrompt=null;
+const MAINTENANCE_VAPID_PUBLIC_KEY='BIgeqHk1a0UkimLlKLJn0OWEyASbTaE5ykjw36HIvnm6hW7COzXBvODsn8nW0leEVvKBZV_sw4eiV0r8aKurEiw';
+function isStandaloneApp(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;}
+function refreshInstallButton(){const b=document.getElementById('installMaintenanceApp');if(!b)return;if(isStandaloneApp()){b.closest('.tool-panel')?.remove();return;}b.textContent=deferredInstallPrompt?'📲 تثبيت تطبيق إدارة الصيانة':'📲 تثبيت تطبيق إدارة الصيانة';}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;refreshInstallButton();});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;toast('تم تثبيت تطبيق إدارة الصيانة');refreshInstallButton();});
+function installPanelHtml(){if(state.profile?.role!=='maintenance'||isStandaloneApp())return'';return `<div class="tool-panel" id="installPanel"><div><strong>📲 تطبيق إدارة الصيانة</strong><p>ثبّته على شاشة الجوال لفتح متابعة الصيانة مباشرة مثل أي تطبيق.</p></div><div class="tool-panel-actions"><button class="btn gold" id="installMaintenanceApp">📲 تثبيت تطبيق إدارة الصيانة</button></div></div>`;}
+async function registerMaintenanceServiceWorker(){if(!('serviceWorker'in navigator))return null;try{return await navigator.serviceWorker.register('/manager-sw.js',{scope:'/'});}catch(e){console.warn(e);return null;}}
+async function installMaintenanceApp(){
+  await registerMaintenanceServiceWorker();
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice.catch(()=>null);
+    if(choice?.outcome==='accepted') toast('جاري تثبيت إدارة الصيانة');
+    deferredInstallPrompt=null;
+    refreshInstallButton();
+    return;
+  }
+  const android=/Android/i.test(navigator.userAgent);
+  const chrome=/Chrome\//i.test(navigator.userAgent) && !/EdgA|OPR\//i.test(navigator.userAgent);
+  const msg=android&&chrome?'إذا لم تفتح نافذة التثبيت: اضغط ⋮ أعلى Chrome ثم «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».':'من قائمة المتصفح اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».';
+  const panel=document.getElementById('installPanel');
+  if(panel&&!panel.querySelector('.install-help')) panel.insertAdjacentHTML('beforeend',`<div class="alert info install-help" style="width:100%">${msg}</div>`);
+  toast('ظهرت لك طريقة التثبيت داخل الصفحة');
+}
