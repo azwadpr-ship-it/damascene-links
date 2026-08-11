@@ -1,0 +1,279 @@
+0,.12); }
+.small-link { display:block; text-align:center; margin-top:14px; color:#856422; font-size:13px; }
+.alert { border-radius:13px; padding:11px 13px; margin:10px 0; font-size:13px; line-height:1.6; }
+.alert.info { background:var(--blue-soft); color:#2b5f8a; border:1px solid #cfe1ef; }
+.alert.error { background:var(--danger-soft); color:#90251f; border:1px solid #efcac7; }
+.alert.success { background:var(--green-soft); color:#246c49; border:1px solid #ccebd9; }
+.empty { padding:28px 16px; text-align:center; color:var(--muted); }
+.timeline { position:relative; padding-right:22px; display:grid; gap:15px; }
+.timeline:before { content:""; position:absolute; right:7px; top:6px; bottom:6px; width:2px; background:#e6d8ba; }
+.timeline-item { position:relative; }
+.timeline-item:before { content:""; position:absolute; right:-20px; top:6px; width:9px; height:9px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px #f8f1df; }
+.timeline-item h5 { margin:0 0 4px; font-size:14px; }
+.timeline-item p { margin:0; font-size:13px; color:var(--muted); line-height:1.55; }
+.timeline-item time { display:block; margin-top:4px; font-size:11px; color:#948979; }
+.photos { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+.photo { aspect-ratio:1; border-radius:12px; overflow:hidden; background:#eee; border:1px solid var(--line); }
+.photo img, .photo video { width:100%; height:100%; object-fit:cover; display:block; }
+.report-box { background:linear-gradient(180deg,#fff,#fdf9f0); border:1px solid #e3d2ad; border-radius:16px; padding:16px; white-space:pre-wrap; font-size:14px; line-height:1.85; }
+.table-wrap { overflow:auto; }
+table { width:100%; border-collapse:collapse; min-width:700px; }
+th,td { padding:11px; text-align:right; border-bottom:1px solid #eee4d3; font-size:13px; }
+th { color:#72551d; background:#fbf6eb; position:sticky; top:0; }
+.status-dot { width:8px; height:8px; display:inline-block; border-radius:50%; background:#aaa; margin-left:5px; }
+.modal-backdrop { position:fixed; inset:0; z-index:60; background:rgba(27,23,16,.48); display:grid; place-items:center; padding:18px; }
+.modal { width:min(520px,100%); background:white; border-radius:20px; border:1px solid #ddc99f; box-shadow:0 28px 80px rgba(28,21,10,.25); padding:22px; }
+.modal h3 { margin:0 0 8px; color:#694d18; }
+.modal p { color:var(--muted); line-height:1.7; }
+.loader { width:28px; height:28px; border:3px solid #eadbbd; border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; margin:20px auto; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.toast { position:fixed; left:18px; bottom:18px; z-index:100; background:#2d2a25; color:#fff; padding:11px 14px; border-radius:12px; opacity:0; transform:translateY(10px); pointer-events:none; transition:.2s; max-width:360px; }
+.toast.show { opacity:1; transform:translateY(0); }
+.footer { text-align:center; color:#958a79; font-size:12px; padding:28px 0 10px; }
+@media (max-width: 860px) {
+  .grid.four, .grid.three { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .topbar-inner { align-items:flex-start; }
+  .nav { justify-content:flex-end; }
+  .photos { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 640px) {
+  .container { width:min(100% - 20px,1180px); }
+  .hero { margin:10px; border-radius:17px; min-height:128px; }
+  .hero-fallback { min-height:128px; padding:17px; }
+  .hero-fallback h1 { font-size:26px; }
+  .topbar-inner { padding:8px 10px; align-items:center; }
+  .brand-mini span:last-child { display:none; }
+  .nav a, .nav button { padding:7px 8px; font-size:12px; }
+  .grid.two, .grid.three, .grid.four, .form-grid { grid-template-columns:1fr; }
+  .field.full { grid-column:auto; }
+  .page-head { align-items:flex-start; flex-direction:column; }
+  .ticket { grid-template-columns:1fr; }
+  .ticket-meta { text-align:right; display:flex; gap:6px; flex-wrap:wrap; }
+  .card { padding:14px; border-radius:15px; }
+  .photos { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .actions .btn { flex:1 1 auto; }
+}
+
+.ticket.ticket-urgent{border:2px solid #eea34e;background:linear-gradient(90deg,#fff9ef,#fff)}
+.ticket.ticket-emergency{border:2px solid #df625a;background:linear-gradient(90deg,#fff3f2,#fff)}
+.ticket-requester{margin:0 0 7px!important;font-size:15px!important;color:#4f3b18;font-weight:900}
+.ticket-department{margin:0 0 5px!important;color:#6b5a3d!important}
+.ticket-problem{margin:0 0 5px!important}.ticket-date{font-size:11px!important;color:#9a8d79!important}
+.attention-label{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;white-space:nowrap}
+.urgent-attention{background:#fff0dd;color:#ad5d12;border:1px solid #f1c587}
+.emergency-attention{background:#fde8e6;color:#a42c26;border:1px solid #efaaa5;animation:ap 1.7s ease-in-out infinite}
+@keyframes ap{50%{box-shadow:0 0 0 5px rgba(184,51,44,.10)}}
+.priority-section{margin-bottom:18px}.priority-section-title{margin:0 0 10px;padding:10px 13px;border-radius:12px;background:#fff2e3;border:1px solid #f0c28b;color:#9a5413;font-weight:900}.regular-section-title{margin:15px 0 10px;color:#786a55;font-weight:800}
+.critical-summary{margin:0 0 14px;padding:12px 15px;border:1px solid #efb36d;background:#fff7e9;color:#95500f;border-radius:14px}
+.tool-panel{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 14px;padding:14px 16px;border-radius:15px;border:1px solid #d9c38f;background:linear-gradient(135deg,#fffdf8,#f8edd2)}
+.tool-panel strong{color:#6d5018}.tool-panel p{margin:4px 0 0;color:#81735f;font-size:12px}.tool-panel-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:640px){.tool-panel{align-items:stretch;flex-direction:column}.tool-panel-actions{display:grid;grid-template-columns:1fr}.tool-panel .btn{width:100%}}
+</style></head><body><div id="app"></div><div id="toast" class="toast" aria-live="polite"></div><script>const SUPABASE_URL = 'https://vvkrladsjicbvopvszsb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_--CowMEeq8KL2dLwB3ctwg_Sz4sc8S6';
+const SESSION_KEY = 'damascene_maintenance_session_v1';
+const BOOTSTRAP_FN = `${SUPABASE_URL}/functions/v1/bootstrap-admin`;
+const MANAGE_USER_FN = `${SUPABASE_URL}/functions/v1/manage-maintenance-user`;
+
+const PRIORITY = {
+  emergency: { label: 'طارئ الآن', icon: '🔴' },
+  urgent: { label: 'عاجل اليوم', icon: '🟠' },
+  normal: { label: 'عادي', icon: '🟡' },
+  improvement: { label: 'تحسين / تجميل', icon: '🔵' },
+};
+const STATUS = {
+  new: 'طلب جديد',
+  received: 'تم استلام الطلب',
+  in_progress: 'تحت الإجراء',
+  waiting_part: 'بانتظار قطعة',
+  waiting_external: 'بانتظار فني / مورد خارجي',
+  postponed: 'مؤجل',
+  completed: 'تم التنفيذ',
+  cancelled: 'ملغي',
+};
+const ROLE = { supervisor: 'مشرف قسم', maintenance: 'مسؤول الصيانة', admin: 'إدارة النظام' };
+
+let state = {
+  session: readSession(),
+  user: null,
+  profile: null,
+  departments: [],
+  categories: [],
+};
+
+function readSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
+}
+function saveSession(session) {
+  state.session = session;
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  else localStorage.removeItem(SESSION_KEY);
+}
+function toast(message) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => el.classList.remove('show'), 2600);
+}
+function esc(v = '') {
+  return String(v).replace(/[&<>'"]/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[s]));
+}
+function ticketNumber(v = '') { const n=String(v).replace(/^ص-?/,'').replace(/\D/g,''); return n ? String(Number(n)) : ''; }
+function toRiyadhDateTimeInput(v=''){if(!v)return'';const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(v));const o=Object.fromEntries(parts.map(x=>[x.type,x.value]));return `${o.year}-${o.month}-${o.day}T${o.hour}:${o.minute}`}
+function riyadhDateTimeToIso(v=''){return v?new Date(`${v}:00+03:00`).toISOString():null}
+function fmtDate(v, withTime = true) {
+  if (!v) return '—';
+  const d = new Date(v);
+  return new Intl.DateTimeFormat('ar-SA-u-ca-gregory', withTime ? {
+    timeZone: 'Asia/Riyadh', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+  } : { timeZone:'Asia/Riyadh', year:'numeric', month:'2-digit', day:'2-digit' }).format(d);
+}
+function todayRiyadhRange() {
+  const parts = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const o = Object.fromEntries(parts.map(p => [p.type,p.value]));
+  const y=Number(o.year), m=Number(o.month), d=Number(o.day);
+  const start = `${o.year}-${o.month}-${o.day}T00:00:00+03:00`;
+  const next = new Date(Date.UTC(y, m-1, d+1));
+  const ny = next.getUTCFullYear(), nm = String(next.getUTCMonth()+1).padStart(2,'0'), nd = String(next.getUTCDate()).padStart(2,'0');
+  const end = `${ny}-${nm}-${nd}T00:00:00+03:00`;
+  return { start, end, label:`${o.year}-${o.month}-${o.day}` };
+}
+
+async function refreshSession() {
+  if (!state.session?.refresh_token) return false;
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method:'POST', headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({refresh_token:state.session.refresh_token})
+  });
+  if (!r.ok) { saveSession(null); return false; }
+  const s = await r.json(); saveSession(s); return true;
+}
+async function api(path, opts = {}, retry = true) {
+  const headers = new Headers(opts.headers || {});
+  headers.set('apikey', SUPABASE_KEY);
+  if (state.session?.access_token) headers.set('Authorization', `Bearer ${state.session.access_token}`);
+  if (!(opts.body instanceof Blob) && !(opts.body instanceof File) && opts.body !== undefined && !headers.has('Content-Type')) headers.set('Content-Type','application/json');
+  const res = await fetch(`${SUPABASE_URL}${path}`, { ...opts, headers });
+  if (res.status === 401 && retry && await refreshSession()) return api(path, opts, false);
+  if (!res.ok) {
+    let detail = '';
+    try { const j = await res.json(); detail = j.message || j.error_description || j.error || JSON.stringify(j); } catch { detail = await res.text(); }
+    throw new Error(detail || `HTTP ${res.status}`);
+  }
+  if (res.status === 204) return null;
+  const type = res.headers.get('content-type') || '';
+  return type.includes('application/json') ? res.json() : res.text();
+}
+async function apiBlob(path) {
+  const headers = { apikey:SUPABASE_KEY, Authorization:`Bearer ${state.session.access_token}` };
+  let res = await fetch(`${SUPABASE_URL}${path}`, {headers});
+  if (res.status === 401 && await refreshSession()) res = await fetch(`${SUPABASE_URL}${path}`, {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${state.session.access_token}`}});
+  if (!res.ok) throw new Error('تعذر تحميل الصورة');
+  return res.blob();
+}
+async function login(email, password) {
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method:'POST', headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email,password})
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error_description || data.msg || 'بيانات الدخول غير صحيحة');
+  saveSession(data);
+  await hydrateIdentity();
+}
+async function logout() {
+  try { await api('/auth/v1/logout',{method:'POST'}); } catch {}
+  saveSession(null); state.user=null; state.profile=null; navigate('/login');
+}
+async function hydrateIdentity() {
+  if (!state.session?.access_token) return false;
+  try {
+    state.user = await api('/auth/v1/user');
+    const profiles = await api(`/rest/v1/profiles?id=eq.${encodeURIComponent(state.user.id)}&select=*`);
+    state.profile = profiles?.[0] || null;
+    if (!state.profile?.is_active) throw new Error('الحساب غير فعال');
+    return true;
+  } catch (e) {
+    if (!(await refreshSession())) { saveSession(null); state.user=null; state.profile=null; return false; }
+    try {
+      state.user = await api('/auth/v1/user');
+      const profiles = await api(`/rest/v1/profiles?id=eq.${encodeURIComponent(state.user.id)}&select=*`);
+      state.profile = profiles?.[0] || null;
+      return Boolean(state.profile?.is_active);
+    } catch { saveSession(null); return false; }
+  }
+}
+async function loadMasterData() {
+  if (state.departments.length && state.categories.length) return;
+  const [d,c] = await Promise.all([
+    api('/rest/v1/departments?is_active=eq.true&select=name&order=sort_order.asc'),
+    api('/rest/v1/maintenance_categories?is_active=eq.true&select=name&order=sort_order.asc')
+  ]);
+  state.departments=d||[]; state.categories=c||[];
+}
+
+function navigate(path) {
+  history.pushState({},'',path); render();
+}
+window.addEventListener('popstate', render);
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-nav]');
+  if (a) { e.preventDefault(); navigate(a.getAttribute('href')); }
+});
+
+function hero() {
+  return `<section class="hero">
+    <img src="/maintenance-banner.jpg" alt="طلبات الصيانة" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+    <div class="hero-fallback" style="display:none">
+      <div><h1>طلبات الصيانة</h1><p>منصة استقبال ومتابعة طلبات الصيانة</p><div class="line"></div></div>
+    </div>
+  </section>`;
+}
+function navActive(path, target) { return path.startsWith(target) ? 'active' : ''; }
+function layout(content) {
+  const path=location.pathname;
+  const p=state.profile;
+  const nav=[];
+  if (p?.role==='supervisor' || p?.role==='maintenance' || p?.role==='admin') nav.push(`<a data-nav href="/request" class="${navActive(path,'/request') || navActive(path,'/my-requests') ? 'active':''}">طلب صيانة</a>`);
+  if (p?.role==='maintenance' || p?.role==='admin') nav.push(`<a data-nav href="/maintenance" class="${navActive(path,'/maintenance') || navActive(path,'/ticket') ? 'active':''}">متابعة الصيانة</a>`);
+  if (p?.role==='maintenance' || p?.role==='admin') nav.push(`<a data-nav href="/dashboard" class="${navActive(path,'/dashboard')}">التقرير اليومي</a>`);
+  if (p?.role==='admin') nav.push(`<a data-nav href="/users" class="${navActive(path,'/users')}">المستخدمون</a>`);
+  return `<div class="shell">
+    <header class="topbar"><div class="topbar-inner">
+      <div class="brand-mini"><div class="brand-mark">🔧</div><span>نظام الصيانة</span></div>
+      <nav class="nav">${nav.join('')}<button class="logout" id="logoutBtn">خروج</button></nav>
+    </div></header>
+    ${hero()}
+    <main class="container">${content}<div class="footer">نظام متابعة طلبات الصيانة</div></main>
+  </div>`;
+}
+function priorityBadge(v) { const p=PRIORITY[v]||{label:v||'—',icon:''}; return `<span class="badge ${esc(v)}">${p.icon} ${esc(p.label)}</span>`; }
+function statusBadge(v) { return `<span class="badge ${esc(v)}">${esc(STATUS[v]||v||'—')}</span>`; }
+function loading() { document.getElementById('app').innerHTML = `<div class="login-wrap"><div><div class="loader"></div><div class="hint">جاري التحميل...</div></div></div>`; }
+function deny(message='ليس لديك صلاحية لفتح هذه الصفحة') { return layout(`<div class="card"><div class="alert error">${esc(message)}</div></div>`); }
+
+async function render() {
+  const app=document.getElementById('app');
+  const path=location.pathname;
+  if (path==='/login') return renderLogin();
+  if (path==='/setup') return navigate('/login');
+  if (!state.profile) {
+    loading();
+    const ok=await hydrateIdentity();
+    if (!ok) { if(path!='/login') sessionStorage.setItem('maintenance_after_login',path); return navigate('/login'); }
+  }
+  if (path==='/' || path==='') {
+    return navigate(state.profile.role==='supervisor' ? '/request' : state.profile.role==='maintenance' ? '/maintenance' : '/dashboard');
+  }
+  if (path==='/request') return renderRequestPage();
+  if (path==='/my-requests') return renderMyRequests();
+  if (path==='/maintenance') return renderMaintenancePage();
+  if (path==='/dashboard') return renderDashboard();
+  if (path==='/users') return renderUsers();
+  if (path.startsWith('/t/')) return renderTicketByCode(path.split('/')[2]);
+  if (path.startsWith('/ticket/')) return renderTicket(path.split('/')[2]);
+  app.innerHTML=layout(`<div class="card"><div class="empty">الصفحة غير موجودة.</div></div>`);
+  bindCommon();
+}
+function bindCommon() { document.getElementById('logoutBtn')?.addEventListener('click',logout); }
