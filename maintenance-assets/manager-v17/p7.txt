@@ -1,0 +1,96 @@
+g>وصف المشكلة:</strong><div class="alert info">${esc(r.description)}</div></div>${r.external_party?`<div><strong>الجهة الخارجية:</strong> ${esc(r.external_party)}</div>`:''}${r.expected_completion_at?`<div><strong>الموعد المتوقع:</strong> ${fmtDate(r.expected_completion_at)}</div>`:''}</div>
+          ${media.length?`<h3 class="card-title" style="margin-top:18px">المرفقات</h3><div class="photos">${media.map(p=>{const isVideo=(p.mime_type||'').startsWith('video/');return isVideo?`<div class="photo"><video src="${p.url}" controls playsinline preload="metadata"></video></div>`:`<a class="photo" href="${p.url}" target="_blank"><img src="${p.url}" alt="صورة صيانة" /></a>`}).join('')}</div>`:''}
+        </section>
+        <section class="card"><h3 class="card-title">سجل المتابعة</h3>${updates.length?`<div class="timeline">${updates.map(u=>`<div class="timeline-item"><h5>${u.to_status?esc(STATUS[u.to_status]||u.to_status):'تحديث'}</h5><p>${esc(u.note)}</p><time>${fmtDate(u.created_at)}</time></div>`).join('')}</div>`:'<div class="empty">لم تتم إضافة تحديثات بعد.</div>'}</section>
+      </div>
+      ${manage?`<section class="card" style="margin-top:16px"><h3 class="card-title">إضافة تحديث للصيانة</h3><form id="updateForm" class="form-grid">
+        <div class="field"><label>الحالة الجديدة *</label><select id="newStatus">${Object.entries(STATUS).map(([v,l])=>`<option value="${v}" ${v===r.status?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+        <div class="field"><label>موعد متوقع للإنجاز</label><input id="expectedAt" type="datetime-local" value="${esc(toRiyadhDateTimeInput(r.expected_completion_at))}" /></div>
+        <div class="field full" id="updateNoteField"><label id="updateNoteLabel">ملاحظة المتابعة *</label><textarea id="updateNote" placeholder="ماذا تم اليوم؟ وما الخطوة القادمة؟"></textarea><div class="hint" id="updateNoteHint"></div></div>
+        <div class="field"><label>فني / مورد خارجي</label><input id="externalParty" value="${esc(r.external_party||'')}" /></div>
+        <div class="field"><label>نوع الصور</label><select id="attachmentKind"><option value="update">صور متابعة</option><option value="before">قبل الإصلاح</option><option value="after">بعد الإصلاح</option></select></div>
+        <div class="field full"><label>صور التحديث</label><input id="updateFiles" type="file" accept="image/*,video/*" multiple /></div>
+        <div class="field full"><button class="btn gold block" type="submit">حفظ تحديث الصيانة</button></div>
+      </form></section>`:''}`);
+    bindCommon();
+    if(manage) {
+      const form=document.getElementById('updateForm');
+      const statusSelect=document.getElementById('newStatus');
+      const syncReceiptMode=()=>{
+        const quickReceive=statusSelect.value==='received' && r.status!=='received';
+        const note=document.getElementById('updateNote');
+        const label=document.getElementById('updateNoteLabel');
+        const hint=document.getElementById('updateNoteHint');
+        const button=form.querySelector('button[type="submit"]');
+        note.required=!quickReceive;
+        label.textContent=quickReceive?'ملاحظة المتابعة (اختيارية)':'ملاحظة المتابعة *';
+        hint.textContent=quickReceive?'يمكن تأكيد الاستلام مباشرة بدون كتابة ملاحظة. سيظهر لصاحب الطلب أن الصيانة استلمت الطلب.':'';
+        note.placeholder=quickReceive?'اختياري — مثال: تم الاستلام وجاري المعاينة':'ماذا تم اليوم؟ وما الخطوة القادمة؟';
+        button.textContent=quickReceive?'تأكيد استلام الطلب':'حفظ تحديث الصيانة';
+      };
+      statusSelect.addEventListener('change',syncReceiptMode);
+      syncReceiptMode();
+      form.addEventListener('submit',e=>submitUpdate(e,r));
+    }
+  }catch(e){document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();}
+}
+async function submitUpdate(e,r){
+  e.preventDefault();const btn=e.submitter;btn.disabled=true;btn.textContent='جاري الحفظ...';
+  try{
+    const status=document.getElementById('newStatus').value;
+    const noteEl=document.getElementById('updateNote');
+    let note=noteEl.value.trim();
+    const quickReceive=status==='received' && r.status!=='received';
+    if(quickReceive && !note) note='تم استلام الطلب وجاري مراجعته.';
+    if(!quickReceive && !note){ toast('اكتب ملاحظة المتابعة قبل الحفظ'); noteEl.focus(); return; }
+    const expected=document.getElementById('expectedAt').value;
+    const external=document.getElementById('externalParty').value.trim();
+    const patch=quickReceive ? {status} : {status,external_party:external||null,expected_completion_at:expected?riyadhDateTimeToIso(expected):(r.expected_completion_at||null)};
+    if(status==='completed' && r.status!=='completed') patch.completed_at=new Date().toISOString();
+    else if(r.status==='completed' && status!=='completed') patch.completed_at=null;
+    await api(`/rest/v1/maintenance_requests?id=eq.${r.id}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(patch)});
+    const us=await api('/rest/v1/request_updates?select=*',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({request_id:r.id,created_by:state.user.id,note,from_status:r.status,to_status:status})});
+    const update=us[0]; const files=[...document.getElementById('updateFiles').files]; const kind=document.getElementById('attachmentKind').value;
+    let failedUploads=0;
+    for(const f of files){try{await uploadAttachment(r,f,kind,update.id);}catch{failedUploads++;}}
+    if(failedUploads) toast(`تم حفظ التحديث، لكن تعذر رفع ${failedUploads} مرفق. لا تعِد حفظ نفس التحديث.`);
+    else toast(quickReceive?'تم تأكيد استلام الطلب':'تم حفظ تحديث الصيانة');
+    renderTicket(r.id);
+  }catch(ex){toast(`تعذر حفظ التحديث: ${ex.message}`);}finally{btn.disabled=false;btn.textContent='حفظ تحديث الصيانة';}
+}
+
+
+
+async function renderDashboard(){
+  if(!['maintenance','admin'].includes(state.profile.role)){document.getElementById('app').innerHTML=deny();return bindCommon();}
+  loading();
+  try{
+    const range=todayRiyadhRange();
+    const [requests,activity]=await Promise.all([
+      api('/rest/v1/maintenance_requests_enriched?select=*&order=created_at.desc'),
+      api(`/rest/v1/daily_maintenance_activity?created_at=gte.${encodeURIComponent(range.start)}&created_at=lt.${encodeURIComponent(range.end)}&select=*&order=created_at.desc`)
+    ]);
+    const open=requests.filter(r=>!['completed','cancelled'].includes(r.status));
+    const emergencies=open.filter(r=>r.priority==='emergency');
+    const waiting=open.filter(r=>['waiting_part','waiting_external'].includes(r.status));
+    const todayNew=requests.filter(r=>new Date(r.created_at)>=new Date(range.start)&&new Date(r.created_at)<new Date(range.end));
+    const completedIds=new Set(activity.filter(a=>a.to_status==='completed').map(a=>a.request_id));
+    const completedToday=requests.filter(r=>completedIds.has(r.id));
+    const report=buildDailyReport({requests,activity,open,emergencies,waiting,todayNew,completedToday});
+    document.getElementById('app').innerHTML=layout(`
+      <div class="page-head"><div><h2>التقرير اليومي للصيانة</h2><p>ملخص سير العمل حسب التحديثات التي حصلت اليوم.</p></div><span class="badge normal">${fmtDate(new Date(),false)}</span></div>
+      <div class="grid four">
+        <div class="kpi"><div class="value">${todayNew.length}</div><div class="label">طلبات جديدة اليوم</div></div>
+        <div class="kpi green"><div class="value">${completedToday.length}</div><div class="label">تم التنفيذ اليوم</div></div>
+        <div class="kpi"><div class="value">${open.length}</div><div class="label">طلبات مفتوحة</div></div>
+        <div class="kpi danger"><div class="value">${emergencies.length}</div><div class="label">طلبات طارئة مفتوحة</div></div>
+      </div>
+      <div class="grid two" style="margin-top:16px">
+        <section class="card"><h3 class="card-title">نص التقرير الجاهز للواتساب</h3><div class="report-box" id="reportText">${esc(report)}</div><div class="actions"><button class="btn soft" id="copyReport">نسخ التقرير</button><a class="btn whatsapp" id="shareReport" target="_blank">مشاركة على واتساب</a></div></section>
+        <section class="card"><h3 class="card-title">طلبات تحتاج متابعة</h3>${maintenanceListHtml(sortMaintenanceRows(open).slice(0,12))}</section>
+      </div>`);
+    bindCommon();
+    document.getElementById('copyReport').addEventListener('click',async()=>{await navigator.clipboard.writeText(report);toast('تم نسخ التقرير');});
+    document.getElementById('shareReport').href=`https://wa.me/?text=${encodeURIComponent(report)}`;
+  }catch(e){document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();}
+}
