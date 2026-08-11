@@ -1,0 +1,95 @@
+دارة الصيانة');
+    deferredInstallPrompt=null;
+    return;
+  }
+  const isAndroid=/Android/i.test(navigator.userAgent);
+  const msg=isAndroid?'إذا لم تظهر نافذة التثبيت تلقائيًا: من قائمة ⋮ في Chrome اختر «إضافة إلى الشاشة الرئيسية» ثم «تثبيت».':'من قائمة المشاركة في المتصفح اختر «إضافة إلى الشاشة الرئيسية».';
+  toast(msg);
+  const panel=document.getElementById('installPanel');
+  if(panel && !panel.querySelector('.install-help')) panel.insertAdjacentHTML('beforeend',`<div class="install-help" style="width:100%;font-size:12px;color:#6d5d42;line-height:1.7">${msg}</div>`);
+}
+function notificationPanelHtml(){if(state.profile?.role!=='maintenance')return'';if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))return'<div class="tool-panel"><div><strong>🔕 إشعارات الجوال غير مدعومة</strong><p>استخدم Chrome أو Edge محدثًا.</p></div></div>';const denied=Notification.permission==='denied';return `<div class="tool-panel"><div><strong>🔔 إشعارات طلبات الصيانة</strong><p>${denied?'الإشعارات محظورة من إعدادات المتصفح.':'فعّلها مرة واحدة ليصلك تنبيه عند وصول طلب جديد.'}</p></div><div class="tool-panel-actions"><button class="btn ${denied?'ghost':'gold'}" id="enableNotifications" ${denied?'disabled':''}>${denied?'الإشعارات محظورة':'تفعيل إشعارات الجوال'}</button></div></div>`;}
+function urlBase64ToUint8Array(s){const p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b);return Uint8Array.from([...r].map(c=>c.charCodeAt(0)));}
+function arrayBufferToBase64Url(buffer){let x='';new Uint8Array(buffer).forEach(v=>x+=String.fromCharCode(v));return btoa(x).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+async function savePushSubscription(subscription){const j=subscription.toJSON(),p=j.keys?.p256dh||arrayBufferToBase64Url(subscription.getKey('p256dh')),a=j.keys?.auth||arrayBufferToBase64Url(subscription.getKey('auth'));await api('/rest/v1/maintenance_push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:state.user.id,endpoint:subscription.endpoint,p256dh:p,auth:a,user_agent:navigator.userAgent})});}
+async function enableMaintenancePush(){const btn=document.getElementById('enableNotifications');try{await registerMaintenanceServiceWorker();if(await Notification.requestPermission()!=='granted')throw Error('لم يتم السماح بالإشعارات');const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(MAINTENANCE_VAPID_PUBLIC_KEY)});await savePushSubscription(sub);if(btn){btn.textContent='الإشعارات مفعّلة';btn.disabled=true;btn.className='btn soft';}toast('تم تفعيل إشعارات الصيانة');}catch(e){toast('تعذر تفعيل الإشعارات');}}
+function bindMaintenanceTools(){document.getElementById('installMaintenanceApp')?.addEventListener('click',installMaintenanceApp);const n=document.getElementById('enableNotifications');if(n&&!n.disabled)n.addEventListener('click',enableMaintenancePush);refreshInstallButton();}
+async function notifyMaintenanceNewRequest(requestId){if(!requestId||!state.session?.access_token)return;const res=await fetch(`${SUPABASE_URL}/functions/v1/send-maintenance-push`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${state.session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId})});if(!res.ok)throw Error(`Push HTTP ${res.status}`);return res.json();}
+
+
+async function renderMaintenancePage() {
+  if(!['maintenance','admin'].includes(state.profile.role)){ document.getElementById('app').innerHTML=deny(); return bindCommon(); }
+  loading();
+  try{
+    const rows=sortMaintenanceRows(await api('/rest/v1/maintenance_requests_enriched?select=*&order=created_at.asc'));
+    const counts={all:rows.length}; Object.keys(STATUS).forEach(st=>counts[st]=rows.filter(r=>r.status===st).length);
+    const hot=rows.filter(r=>!['completed','cancelled'].includes(r.status)&&['emergency','urgent'].includes(r.priority));
+    document.getElementById('app').innerHTML=layout(`
+      <div class="page-head"><div><h2>متابعة أعمال الصيانة</h2><p>الطلبات الطارئة والعاجلة تظهر أولاً، ثم الأقدم.</p></div><span class="badge normal">${rows.filter(r=>!['completed','cancelled'].includes(r.status)).length} طلب مفتوح</span></div>
+      ${installPanelHtml()}
+      ${notificationPanelHtml()}
+      ${hot.length?`<div class="critical-summary">⚠️ يوجد <strong>${hot.length}</strong> طلب عاجل/طارئ يحتاج اهتمام مباشر.</div>`:''}
+      <div class="filters" id="statusFilters"><button class="filter active" data-status="all">الكل (${rows.length})</button>${['new','received','in_progress','waiting_part','waiting_external','postponed','completed'].map(st=>`<button class="filter" data-status="${st}">${STATUS[st]} (${counts[st]||0})</button>`).join('')}</div>
+      <section class="card"><div id="maintenanceList">${maintenanceListHtml(rows)}</div></section>`);
+    bindCommon(); bindMaintenanceTools();
+    document.querySelectorAll('#statusFilters .filter').forEach(b=>b.addEventListener('click',()=>{
+      document.querySelectorAll('#statusFilters .filter').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+      const st=b.dataset.status; const filtered=st==='all'?rows:rows.filter(r=>r.status===st);
+      document.getElementById('maintenanceList').innerHTML=maintenanceListHtml(filtered);
+    }));
+  }catch(e){document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();}
+}
+
+async function loadAttachments(requestId) {
+  const at=await api(`/rest/v1/request_attachments?request_id=eq.${requestId}&select=*&order=created_at.asc`);
+  const out=[];
+  for(const a of at||[]){
+    try { const blob=await apiBlob(`/storage/v1/object/authenticated/maintenance-images/${a.storage_path}`); out.push({...a,url:URL.createObjectURL(blob)}); } catch { out.push({...a,url:null}); }
+  }
+  return out;
+}
+async function renderTicketByCode(code) {
+  loading();
+  try {
+    const id=await api('/rest/v1/rpc/get_maintenance_ticket_id',{method:'POST',body:JSON.stringify({p_ticket_code:String(code||'')})});
+    if(!id) throw new Error('رقم الطلب غير موجود أو لا تملك صلاحية عرضه.');
+    return renderTicket(id);
+  } catch(e) {
+    document.getElementById('app').innerHTML=layout(`<div class="card"><div class="alert error">${esc(e.message)}</div></div>`);
+    bindCommon();
+  }
+}
+
+async function renderTicket(id) {
+  loading();
+  try{
+    const [rows,updates,attachments] = await Promise.all([
+      api(`/rest/v1/maintenance_requests_enriched?id=eq.${encodeURIComponent(id)}&select=*`),
+      api(`/rest/v1/request_updates?request_id=eq.${encodeURIComponent(id)}&select=*&order=created_at.asc`),
+      loadAttachments(id)
+    ]);
+    const r=rows?.[0]; if(!r) throw new Error('الطلب غير موجود أو لا تملك صلاحية عرضه.');
+    const manage=['maintenance','admin'].includes(state.profile.role);
+    const media=attachments.filter(a=>a.url);
+    document.getElementById('app').innerHTML=layout(`
+      <div class="page-head"><div><h2>رقم الطلب: ${esc(ticketNumber(r.ticket_code))} — ${esc(r.department)}</h2><p>${fmtDate(r.created_at)}</p></div><div>${priorityBadge(r.priority)} ${statusBadge(r.status)}</div></div>
+      ${state.profile.role==='supervisor' && r.requested_by===state.user.id ? `<div class="actions" style="margin:0 0 14px"><a data-nav href="/my-requests" class="btn soft">📋 مشاهدة كل طلباتي</a><a data-nav href="/request" class="btn gold">＋ طلب صيانة جديد</a></div>` : ''}
+      <div class="grid two">
+        <section class="card"><h3 class="card-title">تفاصيل الطلب</h3>
+          <div class="grid"><div><strong>مقدم الطلب:</strong> ${esc(r.requester_name||'—')}</div><div><strong>القسم:</strong> ${esc(r.department)}</div><div><strong>الموقع:</strong> ${esc(r.location||'—')}</div><div><strong>نوع الطلب:</strong> ${esc(r.category||'—')}</div><div><strong>وصف المشكلة:</strong><div class="alert info">${esc(r.description)}</div></div></div>
+          ${media.length?`<div class="photos">${media.map(p=>(p.mime_type||'').startsWith('video/')?`<div class="photo"><video src="${p.url}" controls playsinline></video></div>`:`<a class="photo" href="${p.url}" target="_blank"><img src="${p.url}" alt="مرفق"></a>`).join('')}</div>`:''}
+        </section>
+        <section class="card"><h3 class="card-title">سجل المتابعة</h3>
+          ${updates.length?`<div class="timeline">${updates.map(u=>`<div class="timeline-item"><h5>${esc(STATUS[u.to_status]||u.to_status||'تحديث')}</h5><p>${esc(u.note)}</p><time>${fmtDate(u.created_at)}</time></div>`).join('')}</div>`:'<div class="empty">لم تتم إضافة تحديثات بعد.</div>'}
+        </section>
+      </div>
+      ${manage?`<section class="card" style="margin-top:16px"><h3 class="card-title">إضافة تحديث للصيانة</h3>
+        <form id="updateForm" class="form-grid"><div class="field"><label>الحالة الجديدة *</label><select id="newStatus">${Object.entries(STATUS).map(([v,l])=>`<option value="${v}" ${v===r.status?'selected':''}>${l}</option>`).join('')}</select></div>
+        <div class="field"><label>موعد متوقع للإنجاز</label><input id="expectedAt" type="datetime-local" value="${toRiyadhDateTimeInput(r.expected_completion_at)}" /></div>
+        <div class="field full"><label>ملاحظة المتابعة *</label><textarea id="updateNote" placeholder="ماذا تم اليوم؟ وما الخطوة القادمة؟"></textarea></div>
+        <div class="field"><label>فني / مورد خارجي</label><input id="externalParty" value="${esc(r.external_party||'')}" /></div>
+        <div class="field full"><button class="btn gold block" type="submit">حفظ تحديث الصيانة</button></div></form></section>`:''}
+    `);
+    bindCommon(); if(manage) document.getElementById('updateForm').addEventListener('submit',e=>submitUpdate(e,r));
+  }catch(e){document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();}
+}
