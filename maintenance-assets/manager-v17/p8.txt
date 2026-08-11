@@ -1,0 +1,52 @@
+>نسخ التقرير</button><a class="btn whatsapp" id="shareReport" target="_blank">مشاركة على واتساب</a></div></section>
+        <section class="card"><h3 class="card-title">طلبات تحتاج متابعة</h3>${maintenanceListHtml(sortMaintenanceRows(open).slice(0,12))}</section>
+      </div>`);
+    bindCommon();
+    document.getElementById('copyReport').addEventListener('click',async()=>{await navigator.clipboard.writeText(report);toast('تم نسخ التقرير');});
+    document.getElementById('shareReport').href=`https://wa.me/?text=${encodeURIComponent(report)}`;
+  }catch(e){document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();}
+}
+function buildDailyReport(x){
+  const {activity,open,emergencies,waiting,todayNew,completedToday}=x;
+  const date=fmtDate(new Date(),false);
+  const lines=[`*تقرير سير أعمال الصيانة – ${date}*`,'',`الطلبات الجديدة اليوم: ${todayNew.length}`,`تم التنفيذ اليوم: ${completedToday.length}`,`الطلبات المفتوحة: ${open.length}`,`الطلبات الطارئة المفتوحة: ${emergencies.length}`,`بانتظار قطعة / جهة خارجية: ${waiting.length}`];
+  if(completedToday.length){lines.push('','*أعمال تم تنفيذها اليوم:*');completedToday.slice(0,12).forEach((r,i)=>lines.push(`${i+1}. رقم الطلب: ${ticketNumber(r.ticket_code)} | ${r.department} | ${r.description} ✅`));}
+  const meaningful=activity.filter(a=>a.to_status && a.to_status!=='completed');
+  if(meaningful.length){lines.push('','*تحديثات اليوم:*');meaningful.slice(0,15).forEach((a,i)=>lines.push(`${i+1}. رقم الطلب: ${ticketNumber(a.ticket_code)} | ${a.department} | ${STATUS[a.to_status]||a.to_status} — ${a.note}`));}
+  if(emergencies.length){lines.push('','*طلبات طارئة ما زالت مفتوحة:*');emergencies.slice(0,10).forEach((r,i)=>lines.push(`${i+1}. رقم الطلب: ${ticketNumber(r.ticket_code)} | ${r.department} | ${r.description}`));}
+  lines.push('','— نظام متابعة الصيانة');
+  return lines.join('\n');
+}
+
+async function renderUsers(){
+  if(state.profile.role!=='admin'){document.getElementById('app').innerHTML=deny();return bindCommon();}
+  loading();
+  try{await loadMasterData();const users=await api('/rest/v1/profiles?select=*&order=created_at.asc');
+    document.getElementById('app').innerHTML=layout(`
+      <div class="page-head"><div><h2>المستخدمون والصلاحيات</h2><p>إنشاء حسابات المشرفين ومسؤول الصيانة.</p></div></div>
+      <div class="grid two">
+        <section class="card"><h3 class="card-title">إضافة مستخدم</h3><form id="createUserForm" class="form-grid">
+          <div class="field full"><label>الاسم *</label><input id="uName" required /></div>
+          <div class="field"><label>البريد الإلكتروني *</label><input id="uEmail" type="email" required /></div>
+          <div class="field"><label>كلمة مرور مؤقتة *</label><input id="uPassword" type="password" minlength="8" required /></div>
+          <div class="field"><label>الصلاحية *</label><select id="uRole"><option value="supervisor">مشرف قسم</option><option value="maintenance">مسؤول الصيانة</option><option value="admin">إدارة النظام</option></select></div>
+          <div class="field"><label>القسم</label><select id="uDepartment"><option value="">بدون قسم محدد</option>${state.departments.map(x=>`<option>${esc(x.name)}</option>`).join('')}</select></div>
+          <div class="field full"><button class="btn gold block" type="submit">إنشاء الحساب</button></div>
+        </form></section>
+        <section class="card"><h3 class="card-title">الحسابات الحالية</h3><div class="table-wrap"><table><thead><tr><th>الاسم</th><th>الصلاحية</th><th>القسم</th><th>الحالة</th></tr></thead><tbody>${users.map(u=>`<tr><td>${esc(u.full_name)}</td><td>${esc(ROLE[u.role]||u.role)}</td><td>${esc(u.department||'—')}</td><td>${u.is_active?'<span class="badge completed">فعال</span>':'<span class="badge cancelled">موقوف</span>'}</td></tr>`).join('')}</tbody></table></div></section>
+      </div>`);
+    bindCommon();document.getElementById('createUserForm').addEventListener('submit',createUser);
+  }catch(e){document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`);bindCommon();}
+}
+async function createUser(e){
+  e.preventDefault();const btn=e.submitter;btn.disabled=true;btn.textContent='جاري إنشاء الحساب...';
+  try{
+    const r=await fetch(MANAGE_USER_FN,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${state.session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({action:'create',email:document.getElementById('uEmail').value.trim(),password:document.getElementById('uPassword').value,full_name:document.getElementById('uName').value.trim(),role:document.getElementById('uRole').value,department:document.getElementById('uDepartment').value||null})});
+    const d=await r.json();if(!r.ok) throw new Error(d?.detail?.msg||d?.detail?.message||d.error||'تعذر إنشاء المستخدم');toast('تم إنشاء الحساب');renderUsers();
+  }catch(ex){toast(ex.message);}finally{btn.disabled=false;btn.textContent='إنشاء الحساب';}
+}
+
+registerMaintenanceServiceWorker();
+render();
+
+</script></body></html>
