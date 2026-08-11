@@ -1,0 +1,138 @@
+t') return renderRequestPage();
+  if (path==='/my-requests') return renderMyRequests();
+  if (path==='/maintenance') return renderMaintenancePage();
+  if (path==='/dashboard') return renderDashboard();
+  if (path==='/users') return renderUsers();
+  if (path.startsWith('/t/')) return renderTicketByCode(path.split('/')[2]);
+  if (path.startsWith('/ticket/')) return renderTicket(path.split('/')[2]);
+  app.innerHTML=layout(`<div class="card"><div class="empty">الصفحة غير موجودة.</div></div>`);
+  bindCommon();
+}
+function bindCommon(){ document.getElementById('logoutBtn')?.addEventListener('click',logout); }
+
+
+
+function renderLogin() {
+  if (state.session?.access_token && state.profile) return navigate('/');
+  document.getElementById('app').innerHTML = `<div class="login-wrap"><div class="login-box">
+    <div class="login-brand"><div class="brand-mark">🔧</div><h1>طلبات الصيانة</h1><p>تسجيل الدخول إلى النظام</p></div>
+    <div class="login-card">
+      <form id="loginForm" class="grid">
+        <div class="field"><label>البريد الإلكتروني</label><input id="loginEmail" type="email" autocomplete="username" required /></div>
+        <div class="field"><label>كلمة المرور</label><input id="loginPassword" type="password" autocomplete="current-password" required /></div>
+        <div id="loginError"></div>
+        <button class="btn gold block" type="submit">دخول</button>
+      </form>
+    </div>
+  </div></div>`;
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault(); const err=document.getElementById('loginError'); err.innerHTML='';
+    const btn=e.submitter; btn.disabled=true; btn.textContent='جاري الدخول...';
+    try { await login(document.getElementById('loginEmail').value.trim(),document.getElementById('loginPassword').value); const next=sessionStorage.getItem('maintenance_after_login'); sessionStorage.removeItem('maintenance_after_login'); navigate(next&&next!='/login'?next:'/'); }
+    catch(ex){ err.innerHTML=`<div class="alert error">${esc(ex.message)}</div>`; }
+    finally { btn.disabled=false; btn.textContent='دخول'; }
+  });
+}
+
+function renderSetup() {
+  document.getElementById('app').innerHTML = `<div class="login-wrap"><div class="login-box">
+    <div class="login-brand"><div class="brand-mark">⚙️</div><h1>الإعداد الأول</h1><p>إنشاء أول حساب إدارة للنظام</p></div>
+    <div class="login-card">
+      <div class="alert info">هذه الصفحة تعمل لأول مرة فقط. بعد إنشاء أول حساب إدارة، يتوقف الإعداد الأول تلقائيًا.</div>
+      <form id="setupForm" class="grid">
+        <div class="field"><label>كود الإعداد</label><input id="setupCode" required autocomplete="off" /></div>
+        <div class="field"><label>اسم المدير</label><input id="setupName" required /></div>
+        <div class="field"><label>البريد الإلكتروني</label><input id="setupEmail" type="email" required /></div>
+        <div class="field"><label>كلمة المرور</label><input id="setupPassword" type="password" minlength="8" required /></div>
+        <div id="setupResult"></div>
+        <button class="btn gold block" type="submit">إنشاء حساب الإدارة</button>
+      </form>
+      <a class="small-link" data-nav href="/login">العودة لتسجيل الدخول</a>
+    </div>
+  </div></div>`;
+  document.getElementById('setupForm').addEventListener('submit',async e=>{
+    e.preventDefault(); const result=document.getElementById('setupResult'); const btn=e.submitter;
+    btn.disabled=true; btn.textContent='جاري إنشاء الحساب...';
+    try{
+      const r=await fetch(BOOTSTRAP_FN,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({
+        code:document.getElementById('setupCode').value.trim(),
+        full_name:document.getElementById('setupName').value.trim(),
+        email:document.getElementById('setupEmail').value.trim(),
+        password:document.getElementById('setupPassword').value
+      })});
+      const d=await r.json();
+      if(!r.ok) throw new Error(d.error==='setup_already_completed'?'تم تنفيذ الإعداد الأول مسبقًا.':d.error==='invalid_setup_code'?'كود الإعداد غير صحيح.':'تعذر إنشاء الحساب.');
+      result.innerHTML='<div class="alert success">تم إنشاء حساب الإدارة بنجاح. سيتم تسجيل الدخول الآن.</div>';
+      await login(document.getElementById('setupEmail').value.trim(),document.getElementById('setupPassword').value);
+      setTimeout(()=>navigate('/dashboard'),600);
+    }catch(ex){ result.innerHTML=`<div class="alert error">${esc(ex.message)}</div>`; }
+    finally{btn.disabled=false;btn.textContent='إنشاء حساب الإدارة';}
+  });
+}
+
+async function renderRequestPage() {
+  if (!['supervisor','maintenance','admin'].includes(state.profile.role)) { document.getElementById('app').innerHTML=deny(); return bindCommon(); }
+  loading();
+  try { await loadMasterData();
+    const own = await api(`/rest/v1/maintenance_requests_enriched?requested_by=eq.${state.user.id}&select=*&order=created_at.desc&limit=12`);
+    document.getElementById('app').innerHTML = layout(`
+      <div class="page-head"><div><h2>تسجيل طلب صيانة</h2><p>سجّل المشكلة وارفع الصور، ثم شارك الطلب على واتساب.</p></div>${state.profile.department?`<span class="badge normal">${esc(state.profile.department)}</span>`:''}</div>
+      <div class="grid two">
+        <section class="card">
+          <h3 class="card-title">بيانات الطلب</h3>
+          <form id="requestForm" class="form-grid">
+            <div class="field"><label>القسم *</label><select id="department" required ${state.profile.department?'disabled':''}><option value="">اختر القسم</option>${state.departments.map(x=>`<option ${x.name===state.profile.department?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+            <div class="field"><label>الموقع داخل القسم</label><input id="locationField" placeholder="مثال: المطبخ، الصالة، غرفة..." /></div>
+            <div class="field"><label>نوع الطلب *</label><select id="category" required><option value="">اختر النوع</option>${state.categories.map(x=>`<option>${esc(x.name)}</option>`).join('')}</select></div>
+            <div class="field"><label>الأولوية *</label><select id="priority" required><option value="emergency">🔴 طارئ الآن</option><option value="urgent">🟠 عاجل اليوم</option><option value="normal" selected>🟡 عادي</option><option value="improvement">🔵 تحسين / تجميل</option></select></div>
+            <div class="field full"><label>وصف المشكلة *</label><textarea id="description" required placeholder="اكتب المشكلة بشكل واضح ومختصر"></textarea></div>
+            <div class="field full"><label>صور المشكلة</label><input id="requestFiles" type="file" accept="image/*" multiple capture="environment" /><div class="hint">يمكن رفع أكثر من صورة. الأفضل تصوير مكان العطل بوضوح.</div></div>
+            <div class="field full"><button class="btn gold block" type="submit">حفظ الطلب والمتابعة للمشاركة</button></div>
+          </form>
+        </section>
+        <section class="card"><h3 class="card-title">آخر طلباتي</h3>${ticketList(own)}</section>
+      </div>`);
+    bindCommon(); bindTicketClicks();
+    document.getElementById('requestForm').addEventListener('submit', submitRequest);
+  } catch(e) { document.getElementById('app').innerHTML=layout(`<div class="alert error">${esc(e.message)}</div>`); bindCommon(); }
+}
+async function submitRequest(e) {
+  e.preventDefault(); const btn=e.submitter; btn.disabled=true; btn.textContent='جاري حفظ الطلب...';
+  try {
+    const payload={
+      department:document.getElementById('department').value,
+      location:document.getElementById('locationField').value.trim()||null,
+      category:document.getElementById('category').value,
+      description:document.getElementById('description').value.trim(),
+      priority:document.getElementById('priority').value,
+      requested_by:state.user.id
+    };
+    const rows=await api('/rest/v1/maintenance_requests?select=*',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)});
+    const req=rows[0];
+    try{await notifyMaintenanceNewRequest(req.id);}catch(e){console.warn(e);}
+    const files=[...document.getElementById('requestFiles').files];
+    let failedUploads=0;
+    for(const file of files){try{await uploadAttachment(req,file,'request',null);}catch{failedUploads++;}}
+    showShareModal(req,failedUploads);
+    if(failedUploads) toast(`تم حفظ الطلب، لكن تعذر رفع ${failedUploads} مرفق. لا تعِد إرسال الطلب.`);
+  } catch(ex) { toast(`تعذر إنشاء الطلب: ${ex.message}`); }
+  finally { btn.disabled=false; btn.textContent='حفظ الطلب والمتابعة للمشاركة'; }
+}
+async function uploadAttachment(req,file,kind='request',updateId=null) {
+  const safe=(file.name||'image.jpg').replace(/[^a-zA-Z0-9._-]+/g,'_');
+  const path=`${req.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safe}`;
+  await api(`/storage/v1/object/maintenance-images/${path}`,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream','x-upsert':'false'},body:file});
+  await api('/rest/v1/request_attachments',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({request_id:req.id,update_id:updateId,uploaded_by:state.user.id,kind,storage_path:path,file_name:file.name||null,mime_type:file.type||null})});
+}
+function shareText(req) {
+  const p=PRIORITY[req.priority]||{label:req.priority,icon:''};
+  return `${p.icon} *طلب صيانة ${req.priority==='emergency'?'طارئ':req.priority==='urgent'?'عاجل':'جديد'}*\n\nرقم الطلب: ${ticketNumber(req.ticket_code)}\nالقسم: ${req.department}\n${req.location?`الموقع: ${req.location}\n`:''}المشكلة: ${req.description}\nالأولوية: ${p.label}\nوقت البلاغ: ${fmtDate(req.created_at)}\nمقدم الطلب: ${state.profile.full_name}\n\nمتابعة الطلب:\nhttps://azwad-m.vercel.app/${ticketNumber(req.ticket_code)}`;
+}
+function showShareModal(req,failedUploads=0) {
+  const d=document.createElement('div'); d.className='modal-backdrop'; d.id='shareModal';
+  d.innerHTML=`<div class="modal"><h3>تم تسجيل الطلب رقم ${esc(ticketNumber(req.ticket_code))} ✅</h3><p>الخطوة الأخيرة: شارك الطلب في مجموعة الصيانة على واتساب حتى يصل التنبيه فورياً.</p>${failedUploads?`<div class="alert error">تم حفظ الطلب بنجاح، لكن تعذر رفع ${failedUploads} مرفق. لا تعِد إرسال الطلب.</div>`:''}${priorityBadge(req.priority)}<div class="actions"><a id="waShare" class="btn whatsapp block" target="_blank" rel="noopener">مشاركة الطلب على واتساب</a><button id="afterShare" class="btn ghost block" disabled>تمت المشاركة — العودة للنموذج</button></div></div>`;
+  document.body.appendChild(d);
+  const wa=document.getElementById('waShare'); wa.href=`https://wa.me/?text=${encodeURIComponent(shareText(req))}`;
+  wa.addEventListener('click',()=>{setTimeout(()=>{const b=document.getElementById('afterShare');if(b)b.disabled=false;},900);});
+  document.getElementById('afterShare').addEventListener('click',()=>{d.remove();renderRequestPage();});
+}
