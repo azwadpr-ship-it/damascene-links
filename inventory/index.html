@@ -46,9 +46,9 @@
  const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
  const KEY='inventory_token';
  const loginScreen=document.getElementById('loginScreen'),systemScreen=document.getElementById('systemScreen'),frame=document.getElementById('inventoryApp'),form=document.getElementById('loginForm'),btn=document.getElementById('loginBtn'),err=document.getElementById('err');
- function applySmooth(){try{const d=frame.contentDocument;if(!d||d.getElementById('smooth-v11'))return;const old=d.getElementById('smooth-v10');if(old)old.remove();const l=d.createElement('link');l.id='smooth-v11';l.rel='stylesheet';l.href='/inventory/smooth-v10.css?v=11';d.head.appendChild(l)}catch(e){}}
+ function applySmooth(){try{const d=frame.contentDocument;if(!d||d.getElementById('smooth-v12'))return;const old11=d.getElementById('smooth-v11');if(old11)old11.remove();const old10=d.getElementById('smooth-v10');if(old10)old10.remove();const l=d.createElement('link');l.id='smooth-v12';l.rel='stylesheet';l.href='/inventory/smooth-v10.css?v=12';d.head.appendChild(l)}catch(e){}}
  frame.addEventListener('load',()=>{applySmooth();setTimeout(applySmooth,150)});
- function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=11'}
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=12'}
  function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
  if(localStorage.getItem(KEY))showSystem();else showLogin();
  form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x.message||'تعذر تسجيل الدخول'}finally{btn.disabled=false;btn.textContent='دخول'}});
