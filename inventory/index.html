@@ -6,54 +6,68 @@
 <meta name="theme-color" content="#b78b42">
 <title>الجرد اليومي | مطاعم الدمشقية</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f6f1e8}
-#inventoryApp{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f6f1e8}
+:root{--gold:#b78b42;--gold2:#916a2f;--ink:#2e281f;--muted:#786f63;--line:#e5d9c4;--bg:#f6f1e8;--card:#fffdfa}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:var(--ink)}
+.hidden{display:none!important}
+#loginScreen{position:fixed;inset:0;display:grid;place-items:center;padding:14px;background:radial-gradient(circle at 50% 44%,#fffaf1 0,#f6f1e8 48%,#efe7d8 100%)}
+.loginCard{width:min(300px,91vw);background:rgba(255,253,250,.98);border:1px solid var(--line);border-radius:17px;padding:13px 14px 14px;box-shadow:0 18px 50px rgba(62,45,21,.12)}
+.loginBrands{height:78px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden}
+.loginBrands img{display:block;width:250px;max-width:100%;height:78px;object-fit:contain}
+.loginCard h1{font-size:18px;text-align:center;margin:1px 0 3px;font-weight:900}.loginCard p{text-align:center;margin:0 0 10px;color:var(--muted);font-size:11px}
+.field{margin-bottom:8px}.field label{display:block;font-size:11px;font-weight:800;margin:0 2px 4px}.field input{width:100%;height:37px;border:1px solid #d8c9b1;border-radius:9px;background:#fff;padding:7px 9px;outline:none;font:inherit;font-size:13px;color:var(--ink)}.field input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(183,139,66,.12)}
+.loginBtn{width:100%;height:39px;border:0;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font:inherit;font-size:14px;font-weight:900;cursor:pointer}.loginBtn:disabled{opacity:.6;cursor:wait}.err{min-height:16px;text-align:center;font-size:11px;color:#a33;margin:5px 0 0}
+#systemScreen{position:fixed;inset:0;background:var(--bg)}
+.brandBar{height:96px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:5px 14px;box-shadow:0 5px 18px rgba(57,43,23,.05);position:relative;z-index:3}
+.brandBar img{display:block;width:min(760px,78vw);height:84px;object-fit:contain}.brandTitle{position:absolute;right:18px;top:50%;transform:translateY(-50%);text-align:right}.brandTitle b{display:block;font-size:15px}.brandTitle span{font-size:11px;color:var(--muted)}
+#inventoryApp{position:absolute;top:96px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 96px);border:0;background:var(--bg)}
+@media(max-width:720px){.brandBar{height:72px;padding:4px 7px}.brandBar img{width:min(520px,92vw);height:62px}.brandTitle{display:none}#inventoryApp{top:72px;height:calc(100% - 72px)}.loginCard{width:min(286px,92vw);padding:12px}.loginBrands,.loginBrands img{height:70px}.loginBrands img{width:232px}}
 </style>
 </head>
 <body>
-<iframe id="inventoryApp" src="/inventory/original.html" title="نظام الجرد اليومي"></iframe>
+<section id="loginScreen">
+  <div class="loginCard">
+    <div class="loginBrands"><img src="/inventory/inventory-brands.jpg" alt="شعارات مطاعم الدمشقية"></div>
+    <h1>نظام الجرد اليومي</h1>
+    <p>دخول الفرع أو المدير</p>
+    <form id="loginForm">
+      <div class="field"><label for="username">اسم المستخدم</label><input id="username" autocomplete="username" required></div>
+      <div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <button id="loginBtn" class="loginBtn" type="submit">دخول</button>
+      <div id="err" class="err"></div>
+    </form>
+  </div>
+</section>
+<section id="systemScreen" class="hidden">
+  <div class="brandBar">
+    <div class="brandTitle"><b>نظام الجرد اليومي</b><span>مطاعم الدمشقية</span></div>
+    <img src="/inventory/inventory-brands.jpg" alt="شعارات مطاعم الدمشقية">
+  </div>
+  <iframe id="inventoryApp" title="نظام الجرد اليومي"></iframe>
+</section>
 <script>
-(()=>{
+(()=>{'use strict';
+ const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
+ const KEY='inventory_token';
+ const loginScreen=document.getElementById('loginScreen');
+ const systemScreen=document.getElementById('systemScreen');
  const frame=document.getElementById('inventoryApp');
- const BRAND='/inventory/inventory-brands.jpg';
- const css=`
- .login{width:min(330px,92vw)!important;padding:18px 18px 16px!important;border-radius:18px!important}
- .biglogo{width:50px!important;height:50px!important;margin-bottom:9px!important;border-radius:15px!important;font-size:23px!important}
- .login h1{font-size:20px!important;margin-bottom:4px!important}
- .login p{font-size:12px!important;margin-bottom:14px!important}
- .login .field{margin-bottom:10px!important;gap:5px!important}
- .login .field label{font-size:12px!important}
- .login .input{padding:9px 10px!important;height:42px!important;border-radius:10px!important}
- .login .btn{padding:10px!important;margin-top:2px!important}
- .login-wrap,.loginwrap{padding:14px!important}
- .inventory-brand-banner{background:#fff;border:1px solid #e6dccb;border-radius:14px;padding:7px 14px;margin:7px 0 13px;box-shadow:0 9px 26px rgba(58,44,23,.07);overflow:hidden}
- .inventory-brand-banner img{display:block;width:min(720px,100%);max-height:145px;object-fit:contain;margin:auto}
- @media(max-width:620px){
-   .login{width:min(310px,92vw)!important;padding:16px!important}
-   .inventory-brand-banner{padding:5px 9px;margin:6px 0 10px}
-   .inventory-brand-banner img{max-height:108px}
- }`;
- function apply(){
-   let d;
-   try{d=frame.contentDocument}catch(e){return}
-   if(!d||!d.head||!d.body)return;
-   if(!d.getElementById('inventory-ui-overrides')){
-     const st=d.createElement('style'); st.id='inventory-ui-overrides'; st.textContent=css; d.head.appendChild(st);
-   }
-   const shell=d.querySelector('main.shell');
-   if(shell && !shell.querySelector('.inventory-brand-banner')){
-     const b=d.createElement('div'); b.className='inventory-brand-banner';
-     const img=d.createElement('img'); img.src=BRAND; img.alt='شعارات مطاعم الدمشقية';
-     b.appendChild(img); shell.insertBefore(b,shell.firstChild);
-   }
- }
- frame.addEventListener('load',()=>{
-   apply();
-   const d=frame.contentDocument;
-   if(!d)return;
-   const target=d.getElementById('app')||d.body;
-   new MutationObserver(()=>apply()).observe(target,{childList:true,subtree:true});
+ const form=document.getElementById('loginForm');
+ const btn=document.getElementById('loginBtn');
+ const err=document.getElementById('err');
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=3'}
+ function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
+ if(localStorage.getItem(KEY)) showSystem(); else showLogin();
+ form.addEventListener('submit',async e=>{
+   e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';
+   try{
+     const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value})});
+     const d=await r.json().catch(()=>({}));
+     if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');
+     localStorage.setItem(KEY,d.token);showSystem();
+   }catch(x){err.textContent=x.message||'تعذر تسجيل الدخول'}
+   finally{btn.disabled=false;btn.textContent='دخول'}
  });
+ setInterval(()=>{const has=!!localStorage.getItem(KEY);if(!has&&!systemScreen.classList.contains('hidden'))showLogin()},700);
 })();
 </script>
 </body>
