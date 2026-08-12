@@ -12,21 +12,21 @@
 #loginScreen{position:fixed;inset:0;display:grid;place-items:center;padding:14px;background:radial-gradient(circle at 50% 44%,#fffaf1 0,#f6f1e8 48%,#efe7d8 100%)}
 .loginCard{width:min(300px,91vw);background:rgba(255,253,250,.98);border:1px solid var(--line);border-radius:17px;padding:13px 14px 14px;box-shadow:0 18px 50px rgba(62,45,21,.12)}
 .loginBrands{height:78px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden}
-.loginBrands img{display:block;width:250px;max-width:100%;height:78px;object-fit:contain}
+.loginBrands img{display:block;width:250px;max-width:100%;height:auto;object-fit:contain}
 .loginCard h1{font-size:18px;text-align:center;margin:1px 0 3px;font-weight:900}.loginCard p{text-align:center;margin:0 0 10px;color:var(--muted);font-size:11px}
 .field{margin-bottom:8px}.field label{display:block;font-size:11px;font-weight:800;margin:0 2px 4px}.field input{width:100%;height:37px;border:1px solid #d8c9b1;border-radius:9px;background:#fff;padding:7px 9px;outline:none;font:inherit;font-size:13px;color:var(--ink)}.field input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(183,139,66,.12)}
 .loginBtn{width:100%;height:39px;border:0;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font:inherit;font-size:14px;font-weight:900;cursor:pointer}.loginBtn:disabled{opacity:.6;cursor:wait}.err{min-height:16px;text-align:center;font-size:11px;color:#a33;margin:5px 0 0}
 #systemScreen{position:fixed;inset:0;background:var(--bg)}
-.brandBar{height:96px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:5px 14px;box-shadow:0 5px 18px rgba(57,43,23,.05);position:relative;z-index:3}
-.brandBar img{display:block;width:min(760px,78vw);height:84px;object-fit:contain}.brandTitle{position:absolute;right:18px;top:50%;transform:translateY(-50%);text-align:right}.brandTitle b{display:block;font-size:15px}.brandTitle span{font-size:11px;color:var(--muted)}
-#inventoryApp{position:absolute;top:96px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 96px);border:0;background:var(--bg)}
-@media(max-width:720px){.brandBar{height:72px;padding:4px 7px}.brandBar img{width:min(520px,92vw);height:62px}.brandTitle{display:none}#inventoryApp{top:72px;height:calc(100% - 72px)}.loginCard{width:min(286px,92vw);padding:12px}.loginBrands,.loginBrands img{height:70px}.loginBrands img{width:232px}}
+.brandBar{height:132px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0 14px;box-shadow:0 5px 18px rgba(57,43,23,.05);position:relative;z-index:3;overflow:hidden}
+.brandBar img{display:block;width:min(620px,88vw);height:auto;object-fit:contain}
+#inventoryApp{position:absolute;top:132px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 132px);border:0;background:var(--bg)}
+@media(max-width:720px){.brandBar{height:86px;padding:0 6px}.brandBar img{width:min(520px,94vw)}#inventoryApp{top:86px;height:calc(100% - 86px)}.loginCard{width:min(286px,92vw);padding:12px}.loginBrands{height:72px}.loginBrands img{width:232px}}
 </style>
 </head>
 <body>
 <section id="loginScreen">
   <div class="loginCard">
-    <div class="loginBrands"><img src="/inventory/inventory-brands.jpg" alt="شعارات مطاعم الدمشقية"></div>
+    <div class="loginBrands"><img src="/inventory/inventory-brands-login.png?v=5" alt="شعارات مطاعم الدمشقية"></div>
     <h1>نظام الجرد اليومي</h1>
     <p>دخول الفرع أو المدير</p>
     <form id="loginForm">
@@ -39,8 +39,7 @@
 </section>
 <section id="systemScreen" class="hidden">
   <div class="brandBar">
-    <div class="brandTitle"><b>نظام الجرد اليومي</b><span>مطاعم الدمشقية</span></div>
-    <img src="/inventory/inventory-brands.jpg" alt="شعارات مطاعم الدمشقية">
+    <img src="/inventory/inventory-brands-banner.png?v=5" alt="شعارات مطاعم الدمشقية">
   </div>
   <iframe id="inventoryApp" title="نظام الجرد اليومي"></iframe>
 </section>
@@ -54,7 +53,7 @@
  const form=document.getElementById('loginForm');
  const btn=document.getElementById('loginBtn');
  const err=document.getElementById('err');
- function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=3'}
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=5'}
  function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
  if(localStorage.getItem(KEY)) showSystem(); else showLogin();
  form.addEventListener('submit',async e=>{
