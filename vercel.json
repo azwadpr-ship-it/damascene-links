@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/inventory/morning",
+      "destination": "/inventory/morning-shell.html"
+    },
+    {
+      "source": "/inventory/morning/",
+      "destination": "/inventory/morning-shell.html"
+    },
+    {
       "source": "/inventory/whatsapp-preview.jpg",
       "destination": "/api/inventory-og"
     }
