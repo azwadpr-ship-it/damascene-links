@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/inventory/whatsapp-preview.jpg",
+      "destination": "/api/inventory-og"
+    }
+  ]
+}
