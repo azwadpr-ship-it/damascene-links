@@ -73,12 +73,12 @@
   if(!d.getElementById('manager-v17-css')){const m=d.createElement('link');m.id='manager-v17-css';m.rel='stylesheet';m.href='/inventory/manager-v17.css?v=17';d.head.appendChild(m)}
   if(!d.getElementById('manager-v17-js')){const j=d.createElement('script');j.id='manager-v17-js';j.src='/inventory/manager-v17.js?v=17';d.body.appendChild(j)}
   if(!d.getElementById('mazaq-flat-v22-js')){const z=d.createElement('script');z.id='mazaq-flat-v22-js';z.src='/inventory/mazaq-flat-v22.js?v=22';d.body.appendChild(z)}
-  if(!d.getElementById('receiving-link-v1-css')){const l=d.createElement('link');l.id='receiving-link-v1-css';l.rel='stylesheet';l.href='/inventory/receiving-link-v1.css?v=2';d.head.appendChild(l)}
-  if(!d.getElementById('receiving-link-v1-js')){const s=d.createElement('script');s.id='receiving-link-v1-js';s.src='/inventory/receiving-link-v1.js?v=2';d.body.appendChild(s)}
+  if(!d.getElementById('receiving-link-v2-css')){const l=d.createElement('link');l.id='receiving-link-v2-css';l.rel='stylesheet';l.href='/inventory/receiving-link-v2.css?v=1';d.head.appendChild(l)}
+  if(!d.getElementById('receiving-link-v3-js')){const s=d.createElement('script');s.id='receiving-link-v3-js';s.src='/inventory/receiving-link-v1.js?v=3';d.body.appendChild(s)}
   if(!d.getElementById('report-v32-js')){const r=d.createElement('script');r.id='report-v32-js';r.async=false;r.src='/inventory/report-v32.js?v=32';d.body.appendChild(r)}
  }catch(e){}}
  frame.addEventListener('load',()=>{applySmooth();setTimeout(applySmooth,120);setTimeout(applySmooth,450)});
- function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=34'}
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=35'}
  function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
  if(localStorage.getItem(KEY))showSystem();else showLogin();
  form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x.message||'تعذر تسجيل الدخول'}finally{btn.disabled=false;btn.textContent='دخول'}});
