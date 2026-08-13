@@ -8,8 +8,9 @@ async function post(url,action,p={}){const t=token();if(!t)throw Error('no-token
 async function getUser(){if(mainUser)return mainUser;if(userBusy)return userBusy;userBusy=post(IAPI,'bootstrap').then(d=>(mainUser=d.user||null)).catch(()=>null).finally(()=>userBusy=null);return userBusy}
 function fmt(n){const x=Number(n||0);return Number.isInteger(x)?String(x):String(Math.round(x*100)/100)}
 function time(v){try{return new Intl.DateTimeFormat('ar-SA',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'}).format(new Date(v))}catch{return''}}
+function managerButton(){const actions=q('.top .actions');if(!actions||q('#morningAdminBtn',actions))return;const b=document.createElement('button');b.className='btn';b.id='morningAdminBtn';b.textContent='استلامات الصباح';b.onclick=()=>{window.top.location.href='/inventory/morning/manager.html'};actions.insertBefore(b,actions.firstChild)}
 async function enhanceDashboard(){
- const root=q('.pro-manager-dashboard'),dash=q('#dash');if(!root||!dash)return false;
+ const root=q('.pro-manager-dashboard'),dash=q('#dash');if(!root||!dash)return false;managerButton();
  const date=q('#md')?.value||q('.manager-hero input[type=date]')?.value;if(!date)return true;
  const key=date+'|'+qa('.dash',dash).length;if(key===dashKey&&qa('.morning-status',dash).length)return true;dashKey=key;
  try{const d=await post(RAPI,'manager_summary',{date}),rows=d.rows||[];qa('.dash',dash).forEach(card=>{const name=(q('h3',card)?.textContent||'').trim(),r=rows.find(x=>x.branch_name===name);let el=q('.morning-status',card);if(!el){el=document.createElement('div');el.className='morning-status';(q('.manager-card-meta',card)||q('.meta',card)||q('.manager-card-head',card))?.insertAdjacentElement('afterend',el)}if(!el)return;if(r?.batch_count){el.classList.add('has-morning');el.innerHTML=`<b>الاستلام الصباحي:</b> ${r.batch_count} دفعة · ${r.item_count} صنف${r.last_at?` · آخر استلام ${time(r.last_at)}`:''}`}else{el.classList.remove('has-morning');el.innerHTML='<b>الاستلام الصباحي:</b> لم يُسجّل بعد'}})}catch(e){}
