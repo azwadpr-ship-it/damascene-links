@@ -1,0 +1,40 @@
+name: Inventory report v38 patch
+on:
+  push:
+    paths:
+      - .github/workflows/inventory-report-v38-patch.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch report loader only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8')
+          old="""  if(!d.getElementById('report-v33-js')){const r=d.createElement('script');r.id='report-v33-js';r.async=false;r.src='/inventory/report-v33.js?v=33';d.body.appendChild(r)}"""
+          new="""  if(!d.getElementById('report-v33-bridge-js')){const b=d.createElement('script');b.id='report-v33-bridge-js';b.async=false;b.src='/inventory/report-v33-bridge.js?v=1';d.body.appendChild(b)}\n  if(!d.getElementById('report-v33-js')){const r=d.createElement('script');r.id='report-v33-js';r.async=false;r.src='/inventory/report-v33.js?v=34';d.body.appendChild(r)}"""
+          if old not in s:
+              raise SystemExit('report loader anchor not found')
+          s=s.replace(old,new,1)
+          s=s.replace("frame.src='/inventory/original.html?v=37'","frame.src='/inventory/original.html?v=38'",1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Verify patch
+        run: |
+          grep -F "report-v33-bridge.js?v=1" inventory/index.html
+          grep -F "report-v33.js?v=34" inventory/index.html
+          grep -F "original.html?v=38" inventory/index.html
+      - name: Commit patch
+        run: |
+          git config user.name "azwadpr-ship-it"
+          git config user.email "azwadpr@azwadksa.com"
+          git add inventory/index.html
+          git commit -m "Inventory v38: complete report export data bridge"
+          git push
