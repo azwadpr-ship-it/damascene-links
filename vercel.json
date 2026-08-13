@@ -1,13 +1,17 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/inventory/morning",
-      "destination": "/inventory/morning-shell.html"
+      "destination": "/inventory/morning-shell.html",
+      "permanent": false
     },
     {
       "source": "/inventory/morning/",
-      "destination": "/inventory/morning-shell.html"
-    },
+      "destination": "/inventory/morning-shell.html",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
     {
       "source": "/inventory/whatsapp-preview.jpg",
       "destination": "/api/inventory-og"
