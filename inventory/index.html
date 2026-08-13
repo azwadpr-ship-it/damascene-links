@@ -75,10 +75,11 @@
   if(!d.getElementById('mazaq-flat-v22-js')){const z=d.createElement('script');z.id='mazaq-flat-v22-js';z.async=false;z.src='/inventory/mazaq-flat-v22.js?v=22';d.body.appendChild(z)}
   if(!d.getElementById('receiving-link-v2-css')){const l=d.createElement('link');l.id='receiving-link-v2-css';l.rel='stylesheet';l.href='/inventory/receiving-link-v2.css?v=1';d.head.appendChild(l)}
   if(!d.getElementById('receiving-link-v4-js')){const s=d.createElement('script');s.id='receiving-link-v4-js';s.async=false;s.src='/inventory/receiving-link-v4.js?v=4';d.body.appendChild(s)}
-  if(!d.getElementById('report-v33-js')){const r=d.createElement('script');r.id='report-v33-js';r.async=false;r.src='/inventory/report-v33.js?v=33';d.body.appendChild(r)}
+  if(!d.getElementById('report-v33-bridge-js')){const b=d.createElement('script');b.id='report-v33-bridge-js';b.async=false;b.src='/inventory/report-v33-bridge.js?v=1';d.body.appendChild(b)}
+  if(!d.getElementById('report-v33-js')){const r=d.createElement('script');r.id='report-v33-js';r.async=false;r.src='/inventory/report-v33.js?v=34';d.body.appendChild(r)}
  }catch(e){}}
  frame.addEventListener('load',()=>{applySmooth();setTimeout(applySmooth,120);setTimeout(applySmooth,450)});
- function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=37'}
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=38'}
  function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
  if(localStorage.getItem(KEY))showSystem();else showLogin();
  form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x.message||'تعذر تسجيل الدخول'}finally{btn.disabled=false;btn.textContent='دخول'}});
