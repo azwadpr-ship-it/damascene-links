@@ -16,14 +16,15 @@ async function enhanceDashboard(){
  return true
 }
 async function enhanceReport(){
- const incoming=qa('input.report-input[data-key="incoming"],input[data-key="incoming"]');if(!incoming.length)return false;
+ const incoming=qa('input.report-input[data-key="incoming"],input[data-key="incoming"]'),stock=qa('input.report-input[data-key="value"],input[data-key="value"]');if(!incoming.length&&!stock.length)return false;
  const u=await getUser();if(!u||u.role==='manager')return true;
  const date=q('#rd')?.value||q('.head input[type=date]')?.value||q('input[type=date]')?.value;if(!date||!u.branch_id)return true;
- const key=u.branch_id+'|'+date+'|'+incoming.length;if(key===reportKey&&incoming.some(x=>x.dataset.morningChecked==='1'))return true;reportKey=key;
+ const key=u.branch_id+'|'+date+'|'+incoming.length+'|'+stock.length;if(key===reportKey&&(incoming.some(x=>x.dataset.morningChecked==='1')||stock.some(x=>x.dataset.morningChecked==='1')))return true;reportKey=key;
  try{
-  const d=await post(RAPI,'inventory_totals',{date}),tot=d.totals||{},morningActive=Number(d.batch_count||0)>0;let linked=0;
+  const d=await post(RAPI,'inventory_totals',{date}),tot=d.totals||{},morningActive=Number(d.batch_count||0)>0;let linked=0,stockLinked=0;
   incoming.forEach(inp=>{const id=inp.dataset.id,total=Number(tot[id]||0),parent=inp.parentElement;if(morningActive){if(total>0)linked++;if(Number(inp.value)!==total){inp.value=fmt(total);inp.dispatchEvent(new Event('input',{bubbles:true}))}inp.readOnly=true;inp.classList.add('auto-incoming');inp.dataset.morningChecked='1';let note=parent?.querySelector('.morning-linked');if(!note&&parent){note=document.createElement('small');note.className='morning-linked';parent.appendChild(note)}if(note)note.textContent=total>0?'من الاستلام الصباحي':'لا يوجد استلام صباحي'}else{inp.readOnly=false;inp.classList.remove('auto-incoming');inp.dataset.morningChecked='1';parent?.querySelector('.morning-linked')?.remove()}});
-  let banner=q('.morning-link-banner');if(morningActive){if(!banner){banner=document.createElement('div');banner.className='morning-link-banner';const anchor=q('.note')||q('.section');anchor?.parentElement?.insertBefore(banner,anchor)}if(banner)banner.textContent=`الوارد مربوط تلقائيًا باستلامات الصباح لهذا اليوم${linked?` · ${linked} صنف بقيمة مستلمة`:''}. لإضافة وارد جديد استخدم صفحة الاستلام الصباحي.`}else banner?.remove();
+  stock.forEach(inp=>{const total=Number(tot[inp.dataset.id]||0),card=inp.closest('.item')||inp.parentElement;inp.dataset.morningChecked='1';let note=card?.querySelector('.morning-stock-info');if(morningActive&&total>0){stockLinked++;if(!note&&card){note=document.createElement('div');note.className='morning-stock-info';card.appendChild(note)}if(note){const unit=(q('.unit',card)?.textContent||'').trim();note.textContent=`استلام صباحي: ${fmt(total)}${unit?' '+unit:''}`}}else note?.remove()});
+  let banner=q('.morning-link-banner');if(morningActive){if(!banner){banner=document.createElement('div');banner.className='morning-link-banner';const anchor=q('.note')||q('.section');anchor?.parentElement?.insertBefore(banner,anchor)}if(banner){if(incoming.length)banner.textContent=`الوارد مربوط تلقائيًا باستلامات الصباح لهذا اليوم${linked?` · ${linked} صنف بقيمة مستلمة`:''}. لإضافة وارد جديد استخدم صفحة الاستلام الصباحي.`;else banner.textContent=`تم ربط سجل استلامات الصباح بهذا التقرير${stockLinked?` · ${stockLinked} صنف تم استلامه اليوم`:''}. كمية آخر اليوم تبقى جردًا مستقلًا.`}}else banner?.remove();
  }catch(e){}
  return true
 }
