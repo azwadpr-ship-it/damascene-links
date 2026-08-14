@@ -52,6 +52,10 @@ function reportFormat(n){
  const x=Math.round((n+Number.EPSILON)*1000)/1000;
  return Number.isInteger(x)?String(x):String(x).replace(/\.?0+$/,'');
 }
+function shareDate(iso){
+ const p=String(iso||'').split('-');
+ return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:String(iso||'');
+}
 function regularSodaInfo(name,unit){
  let raw=String(name||'').trim().replace(/\s+/g,' ');
  if(!/(بيبسي|سفن|ميرندا|ديو|شاني|كوكا|كولا|مشروبات غازية)/.test(raw))return null;
@@ -424,14 +428,14 @@ async function make(mode){
  if(!r.sections.length&&!r.notes)return toast('لا توجد بيانات مدخلة لإنشاء التقرير',true);
  try{
   toast('جاري تجهيز التقرير...');
-  const cvs=await canvases(r),safe=r.branch.replace(/\s+/g,'-').replace(/[^\u0600-\u06FF\w-]/g,''),files=[],jpegBlobs=[];
+  const cvs=await canvases(r),dateLabel=shareDate(r.reportDate),caption=`${r.branch} - ${dateLabel}`,cleanBranch=r.branch.replace(/[^\u0600-\u06FF\w ]/g,'').replace(/\s+/g,' ').trim(),files=[],jpegBlobs=[];
   for(let i=0;i<cvs.length;i++){
    const b=await blob(cvs[i]),s=cvs.length>1?`-${i+1}`:'';
    jpegBlobs.push(b);
-   files.push(new File([b],`جرد-${safe}-${r.reportDate}${s}.jpg`,{type:'image/jpeg'}));
+   files.push(new File([b],`${cleanBranch} ${dateLabel}${s?` ${i+1}`:''}.jpg`,{type:'image/jpeg'}));
   }
   const pdfBlob=await pdfFromJpegs(jpegBlobs);
-  const pdfFile=new File([pdfBlob],`جرد-${safe}-${r.reportDate}.pdf`,{type:'application/pdf'});
+  const pdfFile=new File([pdfBlob],`${cleanBranch} ${dateLabel}.pdf`,{type:'application/pdf'});
   const allFiles=[...files,pdfFile];
   if(pdfOnly){
    if(navigator.share){
@@ -439,7 +443,7 @@ async function make(mode){
     const canPdf=!navigator.canShare||navigator.canShare({files:onlyPdf});
     if(canPdf){
      try{
-      await navigator.share({files:onlyPdf,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
+      await navigator.share({files:onlyPdf,title:'تقرير الجرد اليومي',text:caption});
       return toast('تم تجهيز ملف PDF للمشاركة');
      }catch(e){if(e?.name==='AbortError')return}
     }
@@ -451,7 +455,7 @@ async function make(mode){
    const canImages=!navigator.canShare||navigator.canShare({files});
    if(canImages){
     try{
-     await navigator.share({files});
+     await navigator.share({files,text:caption});
      return toast('تم تجهيز صور التقرير للمشاركة');
     }catch(e){if(e?.name==='AbortError')return}
    }
