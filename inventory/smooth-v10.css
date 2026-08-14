@@ -19,3 +19,8 @@ input[type=number],.qty{-moz-appearance:textfield!important;appearance:textfield
 @media(min-width:1100px){.cards{grid-template-columns:repeat(3,1fr)!important}.dash{min-height:126px!important}}
 @media(max-width:900px){.shell{padding:9px 10px 80px!important}.adminform{grid-template-columns:1fr 1fr!important}.head h2{font-size:20px!important}.qty{width:76px!important;min-width:76px!important;max-width:76px!important;flex-basis:76px!important}}
 @media(max-width:620px){body{font-size:13px!important}.shell{padding:7px 7px 84px!important}.topin{padding:6px 8px!important}.grid3,.cards{grid-template-columns:1fr!important}.bottomin .btn{min-width:0!important}.adminform{grid-template-columns:1fr!important}.head{margin-top:3px!important}.item{padding:7px 8px!important;min-height:50px!important}.qty{width:72px!important;min-width:72px!important;max-width:72px!important;flex-basis:72px!important}.unit{font-size:10px!important}}
+
+/* Keep the quantity control visually attached to the item name instead of stretching across the card. */
+.cards>.item{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;direction:rtl!important}
+.cards>.item>.name{flex:0 1 auto!important;min-width:0!important;max-width:calc(100% - 92px)!important;width:auto!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.cards>.item>.qtyrow{flex:0 0 auto!important;width:auto!important;margin:0!important;justify-content:flex-start!important}
