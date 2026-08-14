@@ -417,7 +417,9 @@ async function download(files){
   setTimeout(()=>URL.revokeObjectURL(u),2500);await new Promise(r=>setTimeout(r,120));
  }
 }
-async function make(share){
+async function make(mode){
+ const share=mode===true||mode==='images';
+ const pdfOnly=mode==='pdf';
  const r=currentReport();
  if(!r.sections.length&&!r.notes)return toast('لا توجد بيانات مدخلة لإنشاء التقرير',true);
  try{
@@ -431,6 +433,20 @@ async function make(share){
   const pdfBlob=await pdfFromJpegs(jpegBlobs);
   const pdfFile=new File([pdfBlob],`جرد-${safe}-${r.reportDate}.pdf`,{type:'application/pdf'});
   const allFiles=[...files,pdfFile];
+  if(pdfOnly){
+   if(navigator.share){
+    const onlyPdf=[pdfFile];
+    const canPdf=!navigator.canShare||navigator.canShare({files:onlyPdf});
+    if(canPdf){
+     try{
+      await navigator.share({files:onlyPdf,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
+      return toast('تم تجهيز ملف PDF للمشاركة');
+     }catch(e){if(e?.name==='AbortError')return}
+    }
+   }
+   await download([pdfFile]);
+   return toast('المتصفح لا يدعم إرفاق PDF مباشرة؛ تم تنزيل الملف',true);
+  }
   if(share&&navigator.share){
    const canAll=!navigator.canShare||navigator.canShare({files:allFiles});
    if(canAll){
@@ -443,15 +459,13 @@ async function make(share){
    if(canImages){
     try{
      await navigator.share({files,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
-     await download([pdfFile]);
-     return toast('تمت مشاركة الصور وتنزيل PDF لأن الجهاز لا يدعم إرساله معها');
+     return toast('تمت مشاركة الصور؛ لإرسال PDF استخدم زر مشاركة PDF');
     }catch(e){if(e?.name==='AbortError')return}
    }
   }
   if(share){
    await download(allFiles);
-   setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(`تقرير الجرد اليومي - ${r.branch} - ${r.reportDate}`),'_blank'),250);
-   toast('تم تنزيل الصور وPDF وفتح واتساب');
+   return toast('المتصفح لا يدعم إرفاق ملفات التقرير مباشرة؛ تم تنزيل الصور وPDF',true);
   }else{
    await download(files);
    toast(files.length>1?`تم إنشاء ${files.length} صور 9:16`:'تم إنشاء التقرير 9:16');
@@ -462,7 +476,9 @@ async function make(share){
  }
 }
 document.addEventListener('click',e=>{
- const b=e.target.closest?.('#jpg,#share');if(!b)return;
- e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();make(b.id==='share');
+ const b=e.target.closest?.('#jpg,#share,#pdfShare');if(!b)return;
+ e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+ const mode=b.id==='pdfShare'?'pdf':b.id==='share'?'images':'download';
+ make(mode);
 },true);
 })();
