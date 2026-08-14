@@ -1,0 +1,43 @@
+name: Inventory manager tabs v47
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inventory-manager-tabs-v47.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Activate clear manager tabs
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8')
+          old="addStyles(d);if(!d.getElementById('manager-compact-v46-css')){const l=d.createElement('link');l.id='manager-compact-v46-css';l.rel='stylesheet';l.href='/inventory/manager-compact-v46.css?v=1';d.head.appendChild(l)}addScript(d,'branch-report-stable-v45-js','/inventory/branch-report-stable-v45.js?v=1');addScript(d,'manager-compact-v46-js','/inventory/manager-compact-v46.js?v=1')"
+          new="addStyles(d);if(!d.getElementById('manager-tabs-v47-css')){const l=d.createElement('link');l.id='manager-tabs-v47-css';l.rel='stylesheet';l.href='/inventory/manager-tabs-v47.css?v=1';d.head.appendChild(l)}addScript(d,'branch-report-stable-v45-js','/inventory/branch-report-stable-v45.js?v=1');addScript(d,'manager-tabs-v47-js','/inventory/manager-tabs-v47.js?v=1')"
+          if old not in s:
+              raise SystemExit('v46 manager hook not found')
+          s=s.replace(old,new,1)
+          if "/inventory/original.html?v=46" not in s:
+              raise SystemExit('v46 original marker not found')
+          s=s.replace('/inventory/original.html?v=46','/inventory/original.html?v=47',1)
+          p.write_text(s,encoding='utf-8')
+      - name: Verify
+        shell: bash
+        run: |
+          grep -q "manager-tabs-v47.css?v=1" inventory/index.html
+          grep -q "manager-tabs-v47.js?v=1" inventory/index.html
+          grep -q "original.html?v=47" inventory/index.html
+          ! grep -q "manager-compact-v46.js?v=1" inventory/index.html
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/index.html
+          git commit -m "Inventory v47: make daily inventory the clear default manager view"
+          git push
