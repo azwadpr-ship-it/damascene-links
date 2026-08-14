@@ -1,0 +1,30 @@
+name: Inventory report mobile readable v52
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/inventory-report-mobile-readable-v52.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply mobile readability patch
+        run: python .github/scripts/inventory_report_mobile_readable_v52.py
+      - name: Verify
+        run: |
+          grep -q "const GCOLS=2" inventory/report-v32.js
+          grep -q "mobileSimpleRow" inventory/report-v32.js
+          grep -q "mobileFlowRow" inventory/report-v32.js
+          grep -q "branch-report-stable-v52.js?v=1" inventory/index.html
+          grep -q "original.html?v=52" inventory/index.html
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/report-v32.js inventory/index.html
+          git commit -m "Inventory v52 improve mobile report readability"
+          git push
