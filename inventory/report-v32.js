@@ -448,18 +448,11 @@ async function make(mode){
    return toast('المتصفح لا يدعم إرفاق PDF مباشرة؛ تم تنزيل الملف',true);
   }
   if(share&&navigator.share){
-   const canAll=!navigator.canShare||navigator.canShare({files:allFiles});
-   if(canAll){
-    try{
-     await navigator.share({files:allFiles,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
-     return toast('تم تجهيز الصور وملف PDF للمشاركة');
-    }catch(e){if(e?.name==='AbortError')return}
-   }
    const canImages=!navigator.canShare||navigator.canShare({files});
    if(canImages){
     try{
-     await navigator.share({files,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
-     return toast('تمت مشاركة الصور؛ لإرسال PDF استخدم زر مشاركة PDF');
+     await navigator.share({files});
+     return toast('تم تجهيز صور التقرير للمشاركة');
     }catch(e){if(e?.name==='AbortError')return}
    }
   }
