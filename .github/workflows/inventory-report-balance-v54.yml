@@ -1,0 +1,28 @@
+name: Inventory report balance v54
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/inventory-report-balance-v54.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply v54 report balance patch
+        run: python .github/scripts/inventory_report_balance_v54.py
+      - name: Verify
+        run: |
+          grep -q "Math.min(1.17" inventory/report-v32.js
+          grep -q "branch-report-stable-v54.js?v=1" inventory/index.html
+          grep -q "original.html?v=54" inventory/index.html
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/report-v32.js inventory/index.html
+          git commit -m "Inventory v54 balance adaptive report scale"
+          git push
