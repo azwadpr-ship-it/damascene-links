@@ -167,7 +167,6 @@ function header(c,r,pageNo,pageCount,app,t){
  c.fillStyle=t.muted;c.font='700 24px Tahoma,Arial';c.fillText(d.hijri,P.M,165);
  c.strokeStyle=t.line;c.lineWidth=1.2;c.beginPath();c.moveTo(P.M,196);c.lineTo(P.W-P.M,196);c.stroke();
  if(app)appCard(c,app,t);
- if(pageCount>1){c.textAlign='left';c.fillStyle=t.muted;c.font='700 14px Tahoma,Arial';c.fillText(`صفحة ${pageNo} من ${pageCount}`,P.M,216);}
 }
 function appCard(c,app,t){
  const x=P.M,y=220,w=P.W-P.M*2,h=72;
@@ -196,6 +195,30 @@ function flowRow(c,it,x,y,w,i,t){
  fit(c,it.name,w-24,21.5,16,'800');c.fillText(ell(c,it.name,w-24),x+w-12,y+23);
  c.fillStyle=t.muted;c.font='600 15px Tahoma,Arial';
  c.fillText(ell(c,`أول ${it.opening} | وارد ${it.incoming} | آخر ${it.closing} | مباع ${it.sold} ${it.unit}`,w-24),x+w-12,y+46);
+}
+function flowSpreadRow(c,it,x,y,w,i,t,h){
+ if(i%2){c.fillStyle=t.stripe;c.fillRect(x+8,y,w-16,h);}
+ if(i){c.strokeStyle=t.line;c.beginPath();c.moveTo(x+12,y);c.lineTo(x+w-12,y);c.stroke();}
+ c.direction='rtl';c.textAlign='right';c.fillStyle=t.text;
+ fit(c,it.name,w-28,25,18,'800');c.fillText(ell(c,it.name,w-28),x+w-14,y+31);
+ c.fillStyle=t.muted;c.font='600 17px Tahoma,Arial';
+ c.fillText(ell(c,`أول ${it.opening} | وارد ${it.incoming} | آخر ${it.closing} | مباع ${it.sold} ${it.unit}`,w-28),x+w-14,y+h-17);
+}
+function drawFlowSpread(c,sec,t){
+ const titleY=P.TOP,titleH=64,colGap=18,gridY=titleY+titleH+16;
+ box(c,P.M,titleY,P.W-P.M*2,titleH,15,t.accent,null,false);
+ c.direction='rtl';c.textAlign='center';c.fillStyle='#fff';c.font='800 32px Tahoma,Arial';
+ c.fillText(sec.title,P.W/2,titleY+42);
+ const items=sec.items||[],rows=Math.max(1,Math.ceil(items.length/2));
+ const colW=(P.W-P.M*2-colGap)/2;
+ const rh=Math.max(66,Math.min(84,Math.floor((P.BOTTOM-gridY-8)/rows)));
+ for(let col=0;col<2;col++){
+  const slice=items.slice(col*rows,(col+1)*rows);
+  const x=col===0?P.W-P.M-colW:P.M;
+  const h=Math.max(rh,slice.length*rh);
+  box(c,x,gridY,colW,h,14,t.surface,t.line,true);
+  slice.forEach((it,i)=>flowSpreadRow(c,it,x,gridY+i*rh,colW,i,t,rh));
+ }
 }
 function card(c,b,t){
  const {sec,x,y,w,h}=b;box(c,x,y,w,h,14,t.surface,t.line,true);
@@ -254,11 +277,17 @@ async function canvases(r){
   const cv=document.createElement('canvas');cv.width=P.W;cv.height=P.H;const c=cv.getContext('2d');
   c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,1,1,appInfo(r),t);drawMazaqStock(c,r,t);footer(c,1,1,t);out.push(cv);return out;
  }
- const pages=layout(r);
+ const special=r.sections.find(s=>s.type==='flow'&&s.items?.length>16&&s.title.includes('العصير'));
+ const base=special?{...r,sections:r.sections.filter(s=>s!==special)}:r;
+ const pages=layout(base),total=pages.length+(special?1:0);
  pages.forEach((p,i)=>{
   const cv=document.createElement('canvas');cv.width=P.W;cv.height=P.H;const c=cv.getContext('2d');
-  c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,i+1,pages.length,p.app,t);p.cards.forEach(b=>card(c,b,t));footer(c,i+1,pages.length,t);out.push(cv);
+  c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,i+1,total,p.app,t);p.cards.forEach(b=>card(c,b,t));footer(c,i+1,total,t);out.push(cv);
  });
+ if(special){
+  const cv=document.createElement('canvas');cv.width=P.W;cv.height=P.H;const c=cv.getContext('2d');
+  c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,total,total,null,t);drawFlowSpread(c,special,t);footer(c,total,total,t);out.push(cv);
+ }
  return out;
 }
 const blob=cv=>new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error('تعذر إنشاء الصورة')),'image/jpeg',.95));
