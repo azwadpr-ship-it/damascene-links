@@ -1,0 +1,30 @@
+/* Manager v48 visual correction — no JS, no observers */
+/* Critical: when switching tabs, the inactive panel must really disappear. */
+body.pro-manager-dashboard.manager-tabs-v47 #dash.manager-final-list.manager-panel-hidden{display:none!important}
+body.pro-manager-dashboard.manager-tabs-v47 #managerMorningPanel.manager-morning-list.manager-panel-hidden{display:none!important}
+
+/* Daily inventory cards: compact single-row action, never a full-width gold bar. */
+body.pro-manager-dashboard.manager-tabs-v47 #dash>.dash.manager-final-row{border-radius:13px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-main{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;padding:10px 12px!important;min-height:72px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-branch-info h3{font-size:17px!important;margin:0 0 4px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;width:auto!important;flex:0 0 auto!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .status{flex:0 0 auto!important;margin:0!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .manager-open-report{box-sizing:border-box!important;width:auto!important;min-width:96px!important;max-width:112px!important;height:36px!important;min-height:36px!important;margin:0!important;padding:7px 12px!important;border-radius:10px!important;flex:0 0 auto!important;line-height:1!important;font-size:0!important;white-space:nowrap!important;box-shadow:none!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .manager-open-report::after{content:'عرض الجرد';font-size:11px!important;font-weight:800!important;line-height:1!important;color:inherit!important}
+
+/* Morning view: three concise rows, not large empty cards. */
+body.pro-manager-dashboard.manager-tabs-v47 .manager-morning-row{min-height:72px!important;padding:9px 11px!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:'info action' 'details details'!important;gap:7px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-info h3{font-size:17px!important;margin-bottom:3px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-action{width:auto!important;justify-content:flex-end!important}
+
+@media(max-width:700px){
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-main{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;padding:9px 10px!important;min-height:70px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-branch-info{min-width:0!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-branch-info h3{font-size:16px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-action{width:auto!important;justify-content:flex-end!important;gap:6px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .status{font-size:10px!important;padding:5px 7px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .manager-open-report{width:auto!important;min-width:88px!important;max-width:98px!important;height:34px!important;min-height:34px!important;padding:6px 9px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .manager-open-report::after{font-size:10.5px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-morning-row{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:'info action' 'details details'!important;min-height:68px!important;padding:9px 10px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .morning-row-action{width:auto!important;justify-content:flex-end!important}
+}
