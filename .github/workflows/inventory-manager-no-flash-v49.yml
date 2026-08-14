@@ -1,0 +1,65 @@
+name: Inventory manager no-flash v49
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inventory-manager-no-flash-v49.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prevent raw manager flash before enhancement
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8')
+
+          old="#inventoryApp{position:absolute;top:72px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 72px);border:0;background:var(--bg)}"
+          new="#inventoryApp{position:absolute;top:72px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 72px);border:0;background:var(--bg);visibility:hidden}"
+          if old not in s: raise SystemExit('iframe css marker not found')
+          s=s.replace(old,new,1)
+
+          old="const loginScreen=document.getElementById('loginScreen'),systemScreen=document.getElementById('systemScreen'),frame=document.getElementById('inventoryApp'),form=document.getElementById('loginForm'),btn=document.getElementById('loginBtn'),err=document.getElementById('err');"
+          new=old+"\n const revealFrame=()=>{frame.style.visibility='visible'};"
+          if old not in s: raise SystemExit('element refs marker not found')
+          s=s.replace(old,new,1)
+
+          old="if(!ready){if(++tries<100)bootTimer=setTimeout(tick,100);return}"
+          new="if(!ready){if(++tries<100)bootTimer=setTimeout(tick,100);else revealFrame();return}"
+          if old not in s: raise SystemExit('ready marker not found')
+          s=s.replace(old,new,1)
+
+          old="addScript(d,'branch-report-stable-v45-js','/inventory/branch-report-stable-v45.js?v=1');return}"
+          new="addScript(d,'branch-report-stable-v45-js','/inventory/branch-report-stable-v45.js?v=1');requestAnimationFrame(revealFrame);return}"
+          if old not in s: raise SystemExit('branch reveal marker not found')
+          s=s.replace(old,new,1)
+
+          old="addScript(d,'manager-tabs-v47-js','/inventory/manager-tabs-v47.js?v=1')}catch(e){}};tick()}"
+          new="addScript(d,'manager-tabs-v47-js','/inventory/manager-tabs-v47.js?v=1');let revealTries=0;const revealWhenReady=()=>{try{const md=frame.contentDocument;if(md&&md.querySelector('#managerModeTabs')&&md.querySelectorAll('.manager-final-row').length>=3){requestAnimationFrame(revealFrame);return}}catch(e){}if(++revealTries<150)setTimeout(revealWhenReady,20);else revealFrame()};revealWhenReady()}catch(e){revealFrame()}};tick()}"
+          if old not in s: raise SystemExit('manager reveal marker not found')
+          s=s.replace(old,new,1)
+
+          old="function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.getAttribute('src'))frame.src='/inventory/original.html?v=48'}"
+          new="function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');frame.style.visibility='hidden';if(!frame.getAttribute('src'))frame.src='/inventory/original.html?v=49'}"
+          if old not in s: raise SystemExit('showSystem v48 marker not found')
+          s=s.replace(old,new,1)
+
+          p.write_text(s,encoding='utf-8')
+      - name: Verify
+        shell: bash
+        run: |
+          grep -q "visibility:hidden" inventory/index.html
+          grep -q "revealWhenReady" inventory/index.html
+          grep -q "original.html?v=49" inventory/index.html
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/index.html
+          git commit -m "Inventory v49: reveal manager only after final layout is ready"
+          git push
