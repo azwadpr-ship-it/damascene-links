@@ -26,95 +26,32 @@
 <link rel="icon" type="image/svg+xml" href="/inventory/inventory-favicon-v2.svg">
 <link rel="shortcut icon" href="/inventory/inventory-favicon-v2.svg">
 <style>
-:root{--gold:#b78b42;--gold2:#916a2f;--ink:#2e281f;--muted:#786f63;--line:#e5d9c4;--bg:#f7f3ec;--card:#fffdfa}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:var(--ink)}
-.hidden{display:none!important}
-#loginScreen{position:fixed;inset:0;display:grid;place-items:center;padding:12px;background:#f7f3ec}
-.loginCard{width:min(292px,90vw);background:#fffdfa;border:1px solid var(--line);border-radius:14px;padding:12px 13px 13px;box-shadow:0 12px 34px rgba(62,45,21,.08)}
-.loginBrands{height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;overflow:hidden}
-.loginBrands img{display:block;width:238px;max-width:100%;height:auto;object-fit:contain}
-.loginCard h1{font-size:17px;text-align:center;margin:0 0 2px;font-weight:800}.loginCard p{text-align:center;margin:0 0 9px;color:var(--muted);font-size:10px}
-.field{margin-bottom:7px}.field label{display:block;font-size:10px;font-weight:700;margin:0 2px 3px}.field input{width:100%;height:35px;border:1px solid #ded3c1;border-radius:8px;background:#fff;padding:6px 9px;outline:none;font:inherit;font-size:12px;color:var(--ink)}.field input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(183,139,66,.10)}
-.loginBtn{width:100%;height:37px;border:0;border-radius:8px;background:#ad7f32;color:#fff;font:inherit;font-size:13px;font-weight:800;cursor:pointer}.loginBtn:disabled{opacity:.6;cursor:wait}.err{min-height:14px;text-align:center;font-size:10px;color:#a33;margin:4px 0 0}
-#systemScreen{position:fixed;inset:0;background:var(--bg)}
-.brandBar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0 8px;position:relative;z-index:3;overflow:hidden}
-.brandBar img{display:block;width:min(350px,72vw);height:auto;object-fit:contain}
-#inventoryApp{position:absolute;top:72px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 72px);border:0;background:var(--bg)}
+:root{--gold:#b78b42;--ink:#2e281f;--muted:#786f63;--line:#e5d9c4;--bg:#f7f3ec}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:var(--ink)}.hidden{display:none!important}
+#loginScreen{position:fixed;inset:0;display:grid;place-items:center;padding:12px;background:#f7f3ec}.loginCard{width:min(292px,90vw);background:#fffdfa;border:1px solid var(--line);border-radius:14px;padding:12px 13px 13px;box-shadow:0 12px 34px rgba(62,45,21,.08)}
+.loginBrands{height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;overflow:hidden}.loginBrands img{display:block;width:238px;max-width:100%;height:auto;object-fit:contain}.loginCard h1{font-size:17px;text-align:center;margin:0 0 2px;font-weight:800}.loginCard p{text-align:center;margin:0 0 9px;color:var(--muted);font-size:10px}.field{margin-bottom:7px}.field label{display:block;font-size:10px;font-weight:700;margin:0 2px 3px}.field input{width:100%;height:35px;border:1px solid #ded3c1;border-radius:8px;background:#fff;padding:6px 9px;outline:none;font:inherit;font-size:12px;color:var(--ink)}.field input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(183,139,66,.10)}.loginBtn{width:100%;height:37px;border:0;border-radius:8px;background:#ad7f32;color:#fff;font:inherit;font-size:13px;font-weight:800;cursor:pointer}.loginBtn:disabled{opacity:.6;cursor:wait}.err{min-height:14px;text-align:center;font-size:10px;color:#a33;margin:4px 0 0}
+#systemScreen{position:fixed;inset:0;background:var(--bg)}.brandBar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0 8px;position:relative;z-index:3;overflow:hidden}.brandBar img{display:block;width:min(350px,72vw);height:auto;object-fit:contain}#inventoryApp{position:absolute;top:72px;right:0;bottom:0;left:0;width:100%;height:calc(100% - 72px);border:0;background:var(--bg)}
 @media(max-width:720px){.brandBar{height:60px;padding:0 5px}.brandBar img{width:min(300px,84vw)}#inventoryApp{top:60px;height:calc(100% - 60px)}.loginCard{width:min(280px,91vw)}.loginBrands{height:68px}.loginBrands img{width:225px}}
 </style>
 </head>
 <body>
-<section id="loginScreen">
-  <div class="loginCard">
-    <div class="loginBrands"><img src="/inventory/inventory-brands-login.webp?v=6" alt="شعارات مطاعم الدمشقية"></div>
-    <h1>نظام الجرد اليومي</h1>
-    <p>دخول الفرع أو المدير</p>
-    <form id="loginForm">
-      <div class="field"><label for="username">اسم المستخدم</label><input id="username" autocomplete="username" required></div>
-      <div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required></div>
-      <button id="loginBtn" class="loginBtn" type="submit">دخول</button>
-      <div id="err" class="err"></div>
-    </form>
-  </div>
-</section>
-<section id="systemScreen" class="hidden">
-  <div class="brandBar"><img src="/inventory/inventory-brands-banner.webp?v=9" alt="شعارات مطاعم الدمشقية"></div>
-  <iframe id="inventoryApp" title="نظام الجرد اليومي"></iframe>
-</section>
+<section id="loginScreen"><div class="loginCard"><div class="loginBrands"><img src="/inventory/inventory-brands-login.webp?v=6" alt="شعارات مطاعم الدمشقية"></div><h1>نظام الجرد اليومي</h1><p>دخول الفرع أو المدير</p><form id="loginForm"><div class="field"><label for="username">اسم المستخدم</label><input id="username" autocomplete="username" required></div><div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required></div><button id="loginBtn" class="loginBtn" type="submit">دخول</button><div id="err" class="err"></div></form></div></section>
+<section id="systemScreen" class="hidden"><div class="brandBar"><img src="/inventory/inventory-brands-banner.webp?v=9" alt="شعارات مطاعم الدمشقية"></div><iframe id="inventoryApp" title="نظام الجرد اليومي"></iframe></section>
 <script>
 (()=>{'use strict';
- const API='/api/inventory-gateway';
- const UPSTREAM='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
- const RECEIVING_API='/api/inventory-receiving-gateway';
- const RECEIVING_UPSTREAM='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving';
+ const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
  const KEY='inventory_token';
  const loginScreen=document.getElementById('loginScreen'),systemScreen=document.getElementById('systemScreen'),frame=document.getElementById('inventoryApp'),form=document.getElementById('loginForm'),btn=document.getElementById('loginBtn'),err=document.getElementById('err');
- let enhanceTimer=0;
- function injectStyles(d){
-  if(!d.getElementById('smooth-v12')){const l=d.createElement('link');l.id='smooth-v12';l.rel='stylesheet';l.href='/inventory/smooth-v10.css?v=12';d.head.appendChild(l)}
-  if(!d.getElementById('pro-v16')){const p=d.createElement('link');p.id='pro-v16';p.rel='stylesheet';p.href='/inventory/pro-v13.css?v=16';d.head.appendChild(p)}
-  if(!d.getElementById('manager-v17-css')){const m=d.createElement('link');m.id='manager-v17-css';m.rel='stylesheet';m.href='/inventory/manager-v17.css?v=17';d.head.appendChild(m)}
-  if(!d.getElementById('receiving-link-v2-css')){const l=d.createElement('link');l.id='receiving-link-v2-css';l.rel='stylesheet';l.href='/inventory/receiving-link-v2.css?v=1';d.head.appendChild(l)}
- }
- function injectScripts(d){
-  if(d.documentElement.dataset.inventoryEnhancements==='1')return;
-  d.documentElement.dataset.inventoryEnhancements='1';
-  if(!d.getElementById('same-origin-gateway-v1')){const g=d.createElement('script');g.id='same-origin-gateway-v1';g.textContent=`(()=>{if(window.__inventorySameOriginV1)return;window.__inventorySameOriginV1=true;const nativeFetch=window.fetch.bind(window);window.fetch=(input,init)=>{if(typeof input==='string'){if(input==='${UPSTREAM}')input='${API}';else if(input==='${RECEIVING_UPSTREAM}')input='${RECEIVING_API}'}return nativeFetch(input,init)}})();`;d.body.appendChild(g)}
-  const add=(id,src)=>{if(d.getElementById(id))return;const s=d.createElement('script');s.id=id;s.async=false;s.src=src;d.body.appendChild(s)};
-  add('pro-v16-js','/inventory/pro-v13.js?v=16');
-  add('manager-v17-js','/inventory/manager-v17.js?v=17');
-  add('mazaq-flat-v22-js','/inventory/mazaq-flat-v22.js?v=22');
-  add('receiving-link-v4-js','/inventory/receiving-link-v4.js?v=5');
-  add('report-v33-bridge-js','/inventory/report-v33-bridge.js?v=1');
-  add('report-v33-js','/inventory/report-v33.js?v=34');
- }
- function waitForCore(){
-  clearTimeout(enhanceTimer);
-  let tries=0;
-  const check=()=>{try{const d=frame.contentDocument;if(!d)return;injectStyles(d);const ready=!!d.querySelector('.section,.dash,.admintable,.adminform');if(ready){injectScripts(d);return}if(++tries<120)enhanceTimer=setTimeout(check,100)}catch(e){}};
-  check();
- }
- frame.addEventListener('load',waitForCore);
- async function loadInventoryFrame(){
-  if(frame.dataset.boot==='1'||frame.dataset.boot==='loading')return;
-  frame.dataset.boot='loading';
-  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);
-  try{
-   const r=await fetch('/inventory/original.html?v=39',{cache:'force-cache',signal:controller.signal});
-   if(!r.ok)throw new Error('تعذر تحميل واجهة الجرد');
-   let html=await r.text();
-   html=html.replace("const API='"+UPSTREAM+"';","const API='"+API+"';");
-   frame.srcdoc=html;frame.dataset.boot='1';
-  }catch(e){
-   frame.dataset.boot='';
-   frame.srcdoc='<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><style>body{margin:0;background:#f7f3ec;font-family:Tahoma,Arial;color:#6f6252;text-align:center;padding:48px 16px}b{display:block;color:#8d6427;font-size:18px;margin-bottom:8px}</style><body><b>تعذر فتح الجرد</b>أعد تحميل الصفحة. إذا استمرت المشكلة سيظهر الخطأ بدل التعليق على جاري التحميل.</body></html>';
-  }finally{clearTimeout(timer)}
- }
- function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');loadInventoryFrame()}
- function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');clearTimeout(enhanceTimer);frame.removeAttribute('src');frame.removeAttribute('srcdoc');frame.dataset.boot=''}
+ let bootTimer=0;
+ const addScript=(d,id,src)=>{if(d.getElementById(id))return;const s=d.createElement('script');s.id=id;s.async=false;s.src=src;d.body.appendChild(s)};
+ function addStyles(d){if(!d.getElementById('smooth-v12')){const l=d.createElement('link');l.id='smooth-v12';l.rel='stylesheet';l.href='/inventory/smooth-v10.css?v=12';d.head.appendChild(l)}if(!d.getElementById('pro-v16')){const l=d.createElement('link');l.id='pro-v16';l.rel='stylesheet';l.href='/inventory/pro-v13.css?v=16';d.head.appendChild(l)}if(!d.getElementById('manager-v17-css')){const l=d.createElement('link');l.id='manager-v17-css';l.rel='stylesheet';l.href='/inventory/manager-v17.css?v=17';d.head.appendChild(l)}if(!d.getElementById('receiving-link-v2-css')){const l=d.createElement('link');l.id='receiving-link-v2-css';l.rel='stylesheet';l.href='/inventory/receiving-link-v2.css?v=1';d.head.appendChild(l)}}
+ function enhanceWhenReady(){clearTimeout(bootTimer);let tries=0;const tick=()=>{try{const d=frame.contentDocument;if(!d)return;addStyles(d);const h=(d.querySelector('.head h2')?.textContent||'').trim();const ready=!!h||!!d.querySelector('.section,.dash,.admintable,.adminform');if(!ready){if(++tries<100)bootTimer=setTimeout(tick,100);return}addScript(d,'pro-v16-js','/inventory/pro-v13.js?v=16');addScript(d,'manager-v17-js','/inventory/manager-v17.js?v=17');addScript(d,'mazaq-flat-v22-js','/inventory/mazaq-flat-v22.js?v=22');if(h==='لوحة المدير')addScript(d,'receiving-link-v4-js','/inventory/receiving-link-v4.js?v=5');else addScript(d,'receiving-report-stable-v40-js','/inventory/receiving-report-stable-v40.js?v=1');addScript(d,'report-v33-bridge-js','/inventory/report-v33-bridge.js?v=1');addScript(d,'report-v33-js','/inventory/report-v33.js?v=34')}catch(e){}};tick()}
+ frame.addEventListener('load',enhanceWhenReady);
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.getAttribute('src'))frame.src='/inventory/original.html?v=40'}
+ function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');clearTimeout(bootTimer);frame.removeAttribute('src')}
  if(localStorage.getItem(KEY))showSystem();else showLogin();
- form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value}),signal:controller.signal});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x?.name==='AbortError'?'انتهت مهلة الاتصال، حاول مرة أخرى':(x.message||'تعذر تسجيل الدخول')}finally{clearTimeout(timer);btn.disabled=false;btn.textContent='دخول'}});
- setInterval(()=>{const has=!!localStorage.getItem(KEY);if(!has&&!systemScreen.classList.contains('hidden'))showLogin()},700);
+ form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value}),signal:controller.signal});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x?.name==='AbortError'?'انتهت مهلة الاتصال، حاول مرة أخرى':(x.message||'تعذر تسجيل الدخول')}finally{clearTimeout(timer);btn.disabled=false;btn.textContent='دخول'}});
+ setInterval(()=>{const has=!!localStorage.getItem(KEY);if(!has&&!systemScreen.classList.contains('hidden'))showLogin()},1500);
 })();
 </script>
 </body>
