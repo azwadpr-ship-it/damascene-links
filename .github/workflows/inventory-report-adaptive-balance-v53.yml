@@ -1,0 +1,30 @@
+name: Inventory report adaptive balance v53
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/inventory-report-adaptive-balance-v53.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply adaptive balance patch
+        run: python .github/scripts/inventory_report_adaptive_balance_v53.py
+      - name: Verify
+        run: |
+          grep -q "function balancePage" inventory/report-v32.js
+          grep -q "const dp=i===0?p:balancePage(p)" inventory/report-v32.js
+          grep -q "branch-report-stable-v53.js?v=1" inventory/index.html
+          grep -q "original.html?v=53" inventory/index.html
+          grep -q "800 24px Tahoma,Arial" inventory/report-v32.js
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/report-v32.js inventory/index.html
+          git commit -m "Inventory v53 adapt report density to page content"
+          git push
