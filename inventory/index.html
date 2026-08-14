@@ -84,7 +84,7 @@
   add('pro-v16-js','/inventory/pro-v13.js?v=16');
   add('manager-v17-js','/inventory/manager-v17.js?v=17');
   add('mazaq-flat-v22-js','/inventory/mazaq-flat-v22.js?v=22');
-  add('receiving-link-v4-js','/inventory/receiving-link-v4.js?v=4');
+  add('receiving-link-v4-js','/inventory/receiving-link-v4.js?v=5');
   add('report-v33-bridge-js','/inventory/report-v33-bridge.js?v=1');
   add('report-v33-js','/inventory/report-v33.js?v=34');
  }
@@ -100,7 +100,7 @@
   frame.dataset.boot='loading';
   const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);
   try{
-   const r=await fetch('/inventory/original.html?v=38',{cache:'force-cache',signal:controller.signal});
+   const r=await fetch('/inventory/original.html?v=39',{cache:'force-cache',signal:controller.signal});
    if(!r.ok)throw new Error('تعذر تحميل واجهة الجرد');
    let html=await r.text();
    html=html.replace("const API='"+UPSTREAM+"';","const API='"+API+"';");
