@@ -1,0 +1,29 @@
+name: Inventory fast boot v61
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/inventory-fast-boot-v61.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply v61 fast boot patch
+        run: python .github/scripts/inventory_fast_boot_v61.py
+      - name: Verify
+        run: |
+          grep -q 'id="frameLoading"' inventory/index.html
+          grep -q 'original.html?v=61' inventory/index.html
+          grep -q "frame.addEventListener('load',()=>{revealFrame();enhanceWhenReady()})" inventory/index.html
+          grep -q 'visibility:visible' inventory/index.html
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/index.html
+          git commit -m "Inventory v61 reveal content immediately during boot"
+          git push
