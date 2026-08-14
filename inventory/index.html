@@ -63,10 +63,14 @@
 </section>
 <script>
 (()=>{'use strict';
- const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
+ const API='/api/inventory-gateway';
+ const UPSTREAM='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
+ const RECEIVING_API='/api/inventory-receiving-gateway';
+ const RECEIVING_UPSTREAM='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving';
  const KEY='inventory_token';
  const loginScreen=document.getElementById('loginScreen'),systemScreen=document.getElementById('systemScreen'),frame=document.getElementById('inventoryApp'),form=document.getElementById('loginForm'),btn=document.getElementById('loginBtn'),err=document.getElementById('err');
  function applySmooth(){try{const d=frame.contentDocument;if(!d)return;
+  if(!d.getElementById('same-origin-gateway-v1')){const g=d.createElement('script');g.id='same-origin-gateway-v1';g.textContent=`(()=>{if(window.__inventorySameOriginV1)return;window.__inventorySameOriginV1=true;const nativeFetch=window.fetch.bind(window);window.fetch=(input,init)=>{if(typeof input==='string'){if(input==='${UPSTREAM}')input='${API}';else if(input==='${RECEIVING_UPSTREAM}')input='${RECEIVING_API}'}return nativeFetch(input,init)}})();`;d.body.appendChild(g)}
   if(!d.getElementById('smooth-v12')){const l=d.createElement('link');l.id='smooth-v12';l.rel='stylesheet';l.href='/inventory/smooth-v10.css?v=12';d.head.appendChild(l)}
   if(!d.getElementById('pro-v16')){const p=d.createElement('link');p.id='pro-v16';p.rel='stylesheet';p.href='/inventory/pro-v13.css?v=16';d.head.appendChild(p)}
   if(!d.getElementById('pro-v16-js')){const s=d.createElement('script');s.id='pro-v16-js';s.async=false;s.src='/inventory/pro-v13.js?v=16';d.body.appendChild(s)}
@@ -79,10 +83,25 @@
   if(!d.getElementById('report-v33-js')){const r=d.createElement('script');r.id='report-v33-js';r.async=false;r.src='/inventory/report-v33.js?v=34';d.body.appendChild(r)}
  }catch(e){}}
  frame.addEventListener('load',()=>{applySmooth();setTimeout(applySmooth,120);setTimeout(applySmooth,450)});
- function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.src)frame.src='/inventory/original.html?v=38'}
- function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
+ async function loadInventoryFrame(){
+  if(frame.dataset.boot==='1'||frame.dataset.boot==='loading')return;
+  frame.dataset.boot='loading';
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);
+  try{
+   const r=await fetch('/inventory/original.html?v=38',{cache:'no-store',signal:controller.signal});
+   if(!r.ok)throw new Error('تعذر تحميل واجهة الجرد');
+   let html=await r.text();
+   html=html.replace("const API='"+UPSTREAM+"';","const API='"+API+"';");
+   frame.srcdoc=html;frame.dataset.boot='1';
+  }catch(e){
+   frame.dataset.boot='';
+   frame.srcdoc='<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><style>body{margin:0;background:#f7f3ec;font-family:Tahoma,Arial;color:#6f6252;text-align:center;padding:48px 16px}b{display:block;color:#8d6427;font-size:18px;margin-bottom:8px}</style><body><b>تعذر فتح الجرد</b>أعد تحميل الصفحة. إذا استمرت المشكلة سيظهر الخطأ بدل التعليق على جاري التحميل.</body></html>';
+  }finally{clearTimeout(timer)}
+ }
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');loadInventoryFrame()}
+ function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src');frame.removeAttribute('srcdoc');frame.dataset.boot=''}
  if(localStorage.getItem(KEY))showSystem();else showLogin();
- form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x.message||'تعذر تسجيل الدخول'}finally{btn.disabled=false;btn.textContent='دخول'}});
+ form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value}),signal:controller.signal});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x?.name==='AbortError'?'انتهت مهلة الاتصال، حاول مرة أخرى':(x.message||'تعذر تسجيل الدخول')}finally{clearTimeout(timer);btn.disabled=false;btn.textContent='دخول'}});
  setInterval(()=>{const has=!!localStorage.getItem(KEY);if(!has&&!systemScreen.classList.contains('hidden'))showLogin()},700);
 })();
 </script>
