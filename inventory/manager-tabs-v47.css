@@ -1,0 +1,58 @@
+/* Manager tabs v47 — clear mobile-first manager UI, no observers */
+body.pro-manager-dashboard.manager-tabs-v47 .shell.manager-shell{max-width:860px!important;padding:8px 10px 24px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-hero{margin:2px 0 8px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-hero h2{font-size:22px!important;margin:0!important;line-height:1.15!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .muted{font-size:11px!important;margin-top:2px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .datebar{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:nowrap!important;margin:0!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .datebar .input{height:38px!important;width:142px!important;min-width:142px!important;padding:6px 8px!important;border-radius:10px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .datebar .btn{height:38px!important;padding:6px 10px!important;border-radius:10px!important;white-space:nowrap!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tabs{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin:6px 0 8px!important;padding:4px!important;background:#eee6d8!important;border:1px solid #e1d5c0!important;border-radius:13px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tab{appearance:none!important;border:0!important;background:transparent!important;color:#6d6254!important;border-radius:9px!important;min-height:44px!important;padding:7px 10px!important;font:inherit!important;font-weight:800!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;cursor:pointer!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tab b{font-size:13px!important;min-width:34px!important;padding:3px 7px!important;border-radius:999px!important;background:#fffaf1!important;color:#9a712d!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tab.active{background:#b88732!important;color:#fff!important;box-shadow:0 3px 9px rgba(111,78,24,.18)!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tab.active b{background:rgba(255,255,255,.2)!important;color:#fff!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-panel-hidden{display:none!important}
+body.pro-manager-dashboard.manager-tabs-v47 #dash.manager-final-list{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;margin:0!important}
+body.pro-manager-dashboard.manager-tabs-v47 #dash>.dash.manager-final-row{margin:0!important;padding:0!important;min-height:0!important;border-radius:12px!important;box-shadow:0 3px 12px rgba(55,40,18,.05)!important;border:1px solid #e6dac6!important;background:#fffdfa!important;overflow:hidden!important}
+body.pro-manager-dashboard.manager-tabs-v47 #dash>.dash.manager-final-row:before{width:3px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-main{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;padding:10px 11px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-branch-info{min-width:0!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-branch-info h3{margin:0 0 3px!important;font-size:17px!important;line-height:1.2!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-branch-info .manager-card-meta{margin:0!important;min-height:0!important;font-size:10.5px!important;color:#807568!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action{display:flex!important;align-items:center!important;gap:7px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .status{font-size:10.5px!important;padding:5px 8px!important;border-radius:999px!important;white-space:nowrap!important}
+body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .manager-open-report{margin:0!important;min-width:92px!important;padding:8px 10px!important;border-radius:9px!important;font-size:11px!important;white-space:nowrap!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-morning-list{display:grid!important;grid-template-columns:1fr!important;gap:7px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-morning-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:'info action' 'details details'!important;align-items:center!important;gap:8px!important;padding:10px 11px!important;background:#fffdfa!important;border:1px solid #e6dac6!important;border-radius:12px!important;box-shadow:0 3px 12px rgba(55,40,18,.05)!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-info{grid-area:info;min-width:0!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-info h3{margin:0 0 3px!important;font-size:17px!important;line-height:1.2!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-info small{display:block!important;color:#817667!important;font-size:10.5px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-action{grid-area:action;display:flex!important;align-items:center!important;gap:7px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-status{font-size:10.5px!important;padding:5px 8px!important;border-radius:999px!important;font-weight:900!important;white-space:nowrap!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-status.ok{background:#e7f4ed!important;color:#246b49!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-status.wait{background:#f1eee8!important;color:#746b60!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-details-btn{padding:7px 9px!important;border-radius:8px!important;font-size:10.5px!important;white-space:nowrap!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-details{grid-area:details;display:none!important;margin-top:1px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-row-details.open{display:block!important;padding-top:7px!important;border-top:1px dashed #e5d8c4!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-batch{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important;padding:5px 0!important;font-size:10.5px!important;color:#665d52!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-batch b{color:#40382e!important}
+body.pro-manager-dashboard.manager-tabs-v47 .morning-batch small{width:100%!important;color:#867a6c!important}
+body.pro-manager-dashboard.manager-tabs-v47 .manager-empty{padding:14px!important;text-align:center!important;color:#827768!important;font-size:11px!important}
+body.pro-manager-dashboard.manager-tabs-v47 .daily-overview,body.pro-manager-dashboard.manager-tabs-v47 .morning-overview,body.pro-manager-dashboard.manager-tabs-v47 .manager-summary{display:none!important}
+@media(max-width:700px){
+ body.pro-manager-dashboard.manager-tabs-v47 .shell.manager-shell{padding:7px 8px 18px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-hero{align-items:stretch!important;margin-bottom:5px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-hero>div:first-child{width:100%!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-hero h2{font-size:19px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .muted{display:none!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .datebar{width:100%!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-hero .datebar .input{width:100%!important;min-width:0!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tabs{margin-top:4px!important;margin-bottom:7px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tab{min-height:42px!important;font-size:13px!important;padding:6px 7px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-mode-tab b{font-size:12px!important;min-width:30px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-main{grid-template-columns:1fr!important;gap:6px!important;padding:9px 10px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-action{justify-content:space-between!important;width:100%!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .final-row-action .manager-open-report{min-width:116px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .manager-morning-row{grid-template-columns:1fr!important;grid-template-areas:'info' 'action' 'details'!important;padding:9px 10px!important;gap:6px!important}
+ body.pro-manager-dashboard.manager-tabs-v47 .morning-row-action{justify-content:space-between!important;width:100%!important}
+}
