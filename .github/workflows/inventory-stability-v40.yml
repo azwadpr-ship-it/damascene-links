@@ -1,0 +1,90 @@
+name: Inventory stability v40
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inventory-stability-v40.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stabilize inventory frontend
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          # 1) Core app talks to same-origin gateway directly.
+          p = Path('inventory/original.html')
+          s = p.read_text()
+          old = "const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';"
+          new = "const API='/api/inventory-gateway';"
+          assert old in s or new in s
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          # 2) Receiving integration talks to same-origin gateways directly and avoids class-attribute feedback loops.
+          p = Path('inventory/receiving-link-v4.js')
+          s = p.read_text()
+          s = s.replace("const RAPI='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving';", "const RAPI='/api/inventory-receiving-gateway';", 1)
+          s = s.replace("const IAPI='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';", "const IAPI='/api/inventory-gateway';", 1)
+          old_obs = "new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});"
+          new_obs = "new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true});"
+          assert old_obs in s or new_obs in s
+          s = s.replace(old_obs, new_obs, 1)
+          s = s.replace("window.addEventListener('focus',forceRefresh);setInterval(forceRefresh,60000);", "window.addEventListener('pageshow',forceRefresh);setInterval(forceRefresh,300000);", 1)
+          p.write_text(s)
+
+          # 3) Replace srcdoc/fetch interception shell with direct iframe loading.
+          p = Path('inventory/index.html')
+          s = p.read_text()
+          new_script = r'''<script>
+(()=>{'use strict';
+ const API='/api/inventory-gateway';
+ const KEY='inventory_token';
+ const loginScreen=document.getElementById('loginScreen'),systemScreen=document.getElementById('systemScreen'),frame=document.getElementById('inventoryApp'),form=document.getElementById('loginForm'),btn=document.getElementById('loginBtn'),err=document.getElementById('err');
+ function applyEnhancements(){try{const d=frame.contentDocument;if(!d)return;
+  if(!d.getElementById('smooth-v12')){const l=d.createElement('link');l.id='smooth-v12';l.rel='stylesheet';l.href='/inventory/smooth-v10.css?v=12';d.head.appendChild(l)}
+  if(!d.getElementById('pro-v16')){const p=d.createElement('link');p.id='pro-v16';p.rel='stylesheet';p.href='/inventory/pro-v13.css?v=16';d.head.appendChild(p)}
+  if(!d.getElementById('pro-v16-js')){const x=d.createElement('script');x.id='pro-v16-js';x.async=false;x.src='/inventory/pro-v13.js?v=16';d.body.appendChild(x)}
+  if(!d.getElementById('manager-v17-css')){const m=d.createElement('link');m.id='manager-v17-css';m.rel='stylesheet';m.href='/inventory/manager-v17.css?v=17';d.head.appendChild(m)}
+  if(!d.getElementById('manager-v17-js')){const x=d.createElement('script');x.id='manager-v17-js';x.async=false;x.src='/inventory/manager-v17.js?v=17';d.body.appendChild(x)}
+  if(!d.getElementById('mazaq-flat-v22-js')){const x=d.createElement('script');x.id='mazaq-flat-v22-js';x.async=false;x.src='/inventory/mazaq-flat-v22.js?v=22';d.body.appendChild(x)}
+  if(!d.getElementById('receiving-link-v2-css')){const l=d.createElement('link');l.id='receiving-link-v2-css';l.rel='stylesheet';l.href='/inventory/receiving-link-v2.css?v=1';d.head.appendChild(l)}
+  if(!d.getElementById('receiving-link-v4-js')){const x=d.createElement('script');x.id='receiving-link-v4-js';x.async=false;x.src='/inventory/receiving-link-v4.js?v=6';d.body.appendChild(x)}
+  if(!d.getElementById('report-v33-bridge-js')){const x=d.createElement('script');x.id='report-v33-bridge-js';x.async=false;x.src='/inventory/report-v33-bridge.js?v=1';d.body.appendChild(x)}
+  if(!d.getElementById('report-v33-js')){const x=d.createElement('script');x.id='report-v33-js';x.async=false;x.src='/inventory/report-v33.js?v=34';d.body.appendChild(x)}
+ }catch(e){}}
+ frame.addEventListener('load',()=>{applyEnhancements();setTimeout(applyEnhancements,120);setTimeout(applyEnhancements,450)});
+ function showSystem(){loginScreen.classList.add('hidden');systemScreen.classList.remove('hidden');if(!frame.getAttribute('src'))frame.src='/inventory/original.html?v=40'}
+ function showLogin(){systemScreen.classList.add('hidden');loginScreen.classList.remove('hidden');frame.removeAttribute('src')}
+ if(localStorage.getItem(KEY))showSystem();else showLogin();
+ form.addEventListener('submit',async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='جاري الدخول...';const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username:document.getElementById('username').value.trim(),password:document.getElementById('password').value}),signal:controller.signal});const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error(d.error||'اسم المستخدم أو كلمة المرور غير صحيحة');localStorage.setItem(KEY,d.token);showSystem()}catch(x){err.textContent=x?.name==='AbortError'?'انتهت مهلة الاتصال، حاول مرة أخرى':(x.message||'تعذر تسجيل الدخول')}finally{clearTimeout(timer);btn.disabled=false;btn.textContent='دخول'}});
+ setInterval(()=>{const has=!!localStorage.getItem(KEY);if(!has&&!systemScreen.classList.contains('hidden'))showLogin()},1500);
+})();
+</script>'''
+          matches = list(re.finditer(r'<script>\n\(\(\)=>\{\'use strict\';.*?</script>', s, flags=re.S))
+          assert len(matches) == 1, f'expected one main script, got {len(matches)}'
+          m = matches[0]
+          s = s[:m.start()] + new_script + s[m.end():]
+          p.write_text(s)
+          PY
+      - name: Verify stability patch
+        run: |
+          grep -F "const API='/api/inventory-gateway';" inventory/original.html
+          grep -F "const RAPI='/api/inventory-receiving-gateway';" inventory/receiving-link-v4.js
+          grep -F "childList:true});" inventory/receiving-link-v4.js
+          grep -F "original.html?v=40" inventory/index.html
+          grep -F "receiving-link-v4.js?v=6" inventory/index.html
+          ! grep -F "frame.srcdoc" inventory/index.html
+          ! grep -F "same-origin-gateway-v1" inventory/index.html
+      - name: Commit stability patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/index.html inventory/original.html inventory/receiving-link-v4.js
+          git commit -m "Inventory v40: stabilize loading and numeric inputs"
+          git push
