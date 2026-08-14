@@ -335,6 +335,30 @@ async function canvases(r){
  return out;
 }
 const blob=cv=>new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error('تعذر إنشاء الصورة')),'image/jpeg',.95));
+const PDF_ENC=new TextEncoder();
+function pdfText(s){return PDF_ENC.encode(s)}
+async function pdfFromJpegs(jpegs){
+ const chunks=[],offsets=[0];let pos=0;
+ const push=v=>{const b=typeof v==='string'?pdfText(v):v;chunks.push(b);pos+=b.length};
+ const n=jpegs.length,total=2+n*3;
+ const obj=id=>{offsets[id]=pos;push(`${id} 0 obj\n`)};
+ push('%PDF-1.4\n%DMG1\n');
+ obj(1);push('<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+ const kids=Array.from({length:n},(_,i)=>`${3+i*3} 0 R`).join(' ');
+ obj(2);push(`<< /Type /Pages /Kids [${kids}] /Count ${n} >>\nendobj\n`);
+ for(let i=0;i<n;i++){
+  const pageId=3+i*3,imgId=pageId+1,contentId=pageId+2,name=`Im${i}`;
+  obj(pageId);push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 540 960] /Resources << /XObject << /${name} ${imgId} 0 R >> >> /Contents ${contentId} 0 R >>\nendobj\n`);
+  const img=new Uint8Array(await jpegs[i].arrayBuffer());
+  obj(imgId);push(`<< /Type /XObject /Subtype /Image /Width 1080 /Height 1920 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`);push(img);push('\nendstream\nendobj\n');
+  const content=pdfText(`q\n540 0 0 960 0 0 cm\n/${name} Do\nQ\n`);
+  obj(contentId);push(`<< /Length ${content.length} >>\nstream\n`);push(content);push('endstream\nendobj\n');
+ }
+ const xref=pos;push(`xref\n0 ${total+1}\n0000000000 65535 f \n`);
+ for(let id=1;id<=total;id++)push(`${String(offsets[id]).padStart(10,'0')} 00000 n \n`);
+ push(`trailer\n<< /Size ${total+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+ return new Blob(chunks,{type:'application/pdf'});
+}
 async function download(files){
  for(const f of files){
   const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();
@@ -346,20 +370,40 @@ async function make(share){
  if(!r.sections.length&&!r.notes)return toast('لا توجد بيانات مدخلة لإنشاء التقرير',true);
  try{
   toast('جاري تجهيز التقرير...');
-  const cvs=await canvases(r),safe=r.branch.replace(/\s+/g,'-').replace(/[^\u0600-\u06FF\w-]/g,''),files=[];
+  const cvs=await canvases(r),safe=r.branch.replace(/\s+/g,'-').replace(/[^\u0600-\u06FF\w-]/g,''),files=[],jpegBlobs=[];
   for(let i=0;i<cvs.length;i++){
    const b=await blob(cvs[i]),s=cvs.length>1?`-${i+1}`:'';
+   jpegBlobs.push(b);
    files.push(new File([b],`جرد-${safe}-${r.reportDate}${s}.jpg`,{type:'image/jpeg'}));
   }
-  if(share&&navigator.share&&(!navigator.canShare||navigator.canShare({files}))){
-   await navigator.share({files,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
-   return toast('تم تجهيز التقرير للمشاركة');
+  const pdfBlob=await pdfFromJpegs(jpegBlobs);
+  const pdfFile=new File([pdfBlob],`جرد-${safe}-${r.reportDate}.pdf`,{type:'application/pdf'});
+  const allFiles=[...files,pdfFile];
+  if(share&&navigator.share){
+   const canAll=!navigator.canShare||navigator.canShare({files:allFiles});
+   if(canAll){
+    try{
+     await navigator.share({files:allFiles,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
+     return toast('تم تجهيز الصور وملف PDF للمشاركة');
+    }catch(e){if(e?.name==='AbortError')return}
+   }
+   const canImages=!navigator.canShare||navigator.canShare({files});
+   if(canImages){
+    try{
+     await navigator.share({files,title:'تقرير الجرد اليومي',text:`${r.branch} - ${r.reportDate}`});
+     await download([pdfFile]);
+     return toast('تمت مشاركة الصور وتنزيل PDF لأن الجهاز لا يدعم إرساله معها');
+    }catch(e){if(e?.name==='AbortError')return}
+   }
   }
-  await download(files);
   if(share){
+   await download(allFiles);
    setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(`تقرير الجرد اليومي - ${r.branch} - ${r.reportDate}`),'_blank'),250);
-   toast('تم تنزيل التقرير وفتح واتساب');
-  }else toast(files.length>1?`تم إنشاء ${files.length} صور 9:16`:'تم إنشاء التقرير 9:16');
+   toast('تم تنزيل الصور وPDF وفتح واتساب');
+  }else{
+   await download(files);
+   toast(files.length>1?`تم إنشاء ${files.length} صور 9:16`:'تم إنشاء التقرير 9:16');
+  }
  }catch(e){
   if(e?.name==='AbortError')return;
   toast(e.message||'تعذر إنشاء التقرير',true);
