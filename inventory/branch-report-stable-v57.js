@@ -1,5 +1,5 @@
 (()=>{'use strict';
-if(window.__branchReportStableV63)return;window.__branchReportStableV63=true;
+if(window.__branchReportStableV64)return;window.__branchReportStableV64=true;
 let loading=null;
 function loadReport(){
  if(window.__reportV31Loaded)return Promise.resolve();
@@ -11,6 +11,23 @@ function loadReport(){
  });
  return loading
 }
+function arrangeShareButtons(){
+ const share=document.getElementById('share'),pdf=document.getElementById('pdfShare');
+ if(!share||!pdf)return;
+ share.textContent='مشاركة كصور';pdf.textContent='مشاركة PDF';
+ let stack=share.closest('.report-share-stack');
+ if(!stack){
+  stack=document.createElement('div');stack.className='report-share-stack';
+  share.parentNode.insertBefore(stack,share);stack.appendChild(share);stack.appendChild(pdf);
+ }
+ if(!document.getElementById('report-share-stack-v64-css')){
+  const st=document.createElement('style');st.id='report-share-stack-v64-css';
+  st.textContent=`.report-share-stack{display:flex;flex-direction:column;gap:8px;min-width:145px}.report-share-stack .btn{width:100%;min-width:145px;margin:0}@media(max-width:620px){.report-share-stack{width:100%;min-width:0}.report-share-stack .btn{width:100%;min-width:0}}`;
+  document.head.appendChild(st);
+ }
+}
+arrangeShareButtons();
+new MutationObserver(arrangeShareButtons).observe(document.body,{childList:true,subtree:true});
 document.addEventListener('click',async e=>{
  const b=e.target.closest?.('#jpg,#share,#pdfShare');if(!b)return;
  if(b.dataset.reportStablePass==='1'){delete b.dataset.reportStablePass;return}
