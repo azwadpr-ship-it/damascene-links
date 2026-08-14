@@ -200,7 +200,7 @@ function flowRow(c,it,x,y,w,i,t){
  c.fillText(ell(c,`أول ${it.opening} | وارد ${it.incoming} | آخر ${it.closing} | مباع ${it.sold} ${it.unit}`,w-24),x+w-12,y+46);
 }
 function mobileSimpleRow(c,it,x,y,w,i,t,h=68){
- const z=Math.min(1.28,Math.max(1,h/68));
+ const z=Math.min(1.17,Math.max(1,h/68));
  if(i%2){c.fillStyle=t.stripe;c.fillRect(x+7,y,w-14,h);}
  if(i){c.strokeStyle=t.line;c.beginPath();c.moveTo(x+10,y);c.lineTo(x+w-10,y);c.stroke();}
  c.direction='rtl';c.textAlign='right';c.fillStyle=t.text;
@@ -209,7 +209,7 @@ function mobileSimpleRow(c,it,x,y,w,i,t,h=68){
  c.textAlign='left';c.fillStyle=t.muted;c.font=`700 ${20*z}px Tahoma,Arial`;c.fillText(String(it.unit||''),x+16,y+h/2+9*z);
 }
 function mobileFlowRow(c,it,x,y,w,i,t,h=76){
- const z=Math.min(1.28,Math.max(1,h/76));
+ const z=Math.min(1.17,Math.max(1,h/76));
  if(i%2){c.fillStyle=t.stripe;c.fillRect(x+8,y,w-16,h);}
  if(i){c.strokeStyle=t.line;c.beginPath();c.moveTo(x+12,y);c.lineTo(x+w-12,y);c.stroke();}
  c.direction='rtl';c.textAlign='right';c.fillStyle=t.text;
@@ -251,7 +251,7 @@ function balancePage(p){
   const gapTotal=P.GAP*Math.max(0,cards.length-1);
   const natural=cards.reduce((sum,b)=>sum+b.h,0);
   const available=P.BOTTOM-start-gapTotal;
-  const scale=Math.min(1.28,Math.max(1,available/natural));
+  const scale=Math.min(1.17,Math.max(1,available/natural));
   let y=start;
   cards.forEach(b=>{
    const h=Math.round(b.h*scale);
@@ -262,7 +262,7 @@ function balancePage(p){
  return out;
 }
 function card(c,b,t){
- const {sec,x,y,w,h}=b,z=Math.min(1.28,Math.max(1,b.scale||1));
+ const {sec,x,y,w,h}=b,z=Math.min(1.17,Math.max(1,b.scale||1));
  const headH=Math.round(66*z),simpleH=Math.round(68*z),flowH=Math.round(76*z);
  box(c,x,y,w,h,14,t.surface,t.line,true);
  c.save();round(c,x,y,w,headH,14);c.clip();c.fillStyle=t.mode==='mazaq'?t.dark:t.accent;c.fillRect(x,y,w,headH);
