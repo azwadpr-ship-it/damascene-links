@@ -1,12 +1,12 @@
 (()=>{'use strict';
-if(window.__branchReportStableV64)return;window.__branchReportStableV64=true;
+if(window.__branchReportStableV65)return;window.__branchReportStableV65=true;
 let loading=null;
 function loadReport(){
  if(window.__reportV31Loaded)return Promise.resolve();
  if(loading)return loading;
  loading=new Promise((resolve,reject)=>{
   const old=document.getElementById('report-v32-v63-js');
-  if(old){old.addEventListener('load',resolve,{once:true});old.addEventListener('error',()=>reject(new Error('تعذر تحميل قالب التقرير')),{once:true});return}
+  if(old){if(window.__reportV31Loaded){resolve();return}old.addEventListener('load',resolve,{once:true});old.addEventListener('error',()=>reject(new Error('تعذر تحميل قالب التقرير')),{once:true});return}
   const s=document.createElement('script');s.id='report-v32-v63-js';s.src='/inventory/report-v32.js?v=63';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل قالب التقرير'));document.body.appendChild(s)
  });
  return loading
@@ -14,7 +14,8 @@ function loadReport(){
 function arrangeShareButtons(){
  const share=document.getElementById('share'),pdf=document.getElementById('pdfShare');
  if(!share||!pdf)return;
- share.textContent='مشاركة كصور';pdf.textContent='مشاركة PDF';
+ if(share.textContent!=='مشاركة كصور')share.textContent='مشاركة كصور';
+ if(pdf.textContent!=='مشاركة PDF')pdf.textContent='مشاركة PDF';
  let stack=share.closest('.report-share-stack');
  if(!stack){
   stack=document.createElement('div');stack.className='report-share-stack';
@@ -27,7 +28,8 @@ function arrangeShareButtons(){
  }
 }
 arrangeShareButtons();
-new MutationObserver(arrangeShareButtons).observe(document.body,{childList:true,subtree:true});
+const app=document.getElementById('app');
+if(app){new MutationObserver(()=>arrangeShareButtons()).observe(app,{childList:true})}
 document.addEventListener('click',async e=>{
  const b=e.target.closest?.('#jpg,#share,#pdfShare');if(!b)return;
  if(b.dataset.reportStablePass==='1'){delete b.dataset.reportStablePass;return}
