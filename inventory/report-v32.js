@@ -8,12 +8,19 @@ P.CW=(P.W-P.M*2-P.GAP*(P.COLS-1))/P.COLS;
 const GCOLS=2,GGAP=18,GCW=(P.W-P.M*2-GGAP)/GCOLS;
 
 const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';
-let individualsReportLogo=null,individualsReportLogoLoading=null;
+const FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';
+let individualsReportLogo=null,individualsReportLogoLoading=null,familiesReportLogo=null,familiesReportLogoLoading=null;
 function loadIndividualsReportLogo(){
  if(individualsReportLogo)return Promise.resolve(individualsReportLogo);
  if(individualsReportLogoLoading)return individualsReportLogoLoading;
  individualsReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{individualsReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=INDIVIDUALS_REPORT_LOGO});
  return individualsReportLogoLoading;
+}
+function loadFamiliesReportLogo(){
+ if(familiesReportLogo)return Promise.resolve(familiesReportLogo);
+ if(familiesReportLogoLoading)return familiesReportLogoLoading;
+ familiesReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{familiesReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=FAMILIES_REPORT_LOGO});
+ return familiesReportLogoLoading;
 }
 
 function toast(msg,bad=false){
@@ -153,6 +160,7 @@ function currentReport(){
 function theme(r){
  if(r.branch.includes('المذاق'))return{mode:'mazaq',paper:'#f8f8f7',surface:'#fff',accent:'#962733',dark:'#881520',text:'#26282b',muted:'#5d6064',line:'#d7d7da',stripe:'#f5f5f6',soft:'#f2f2f4'};
  if(r.branch.includes('المشويات أفراد'))return{mode:'individuals',paper:'#f4f5f5',surface:'#ffffff',accent:'#df9022',dark:'#3b3d3f',text:'#3b3d3f',muted:'#717477',line:'#d2d4d5',stripe:'#f4f4f4',soft:'#f7efe4'};
+ if(r.branch.includes('المشويات عوائل'))return{mode:'families',paper:'#faf7f0',surface:'#fffdf9',accent:'#b1740a',dark:'#6b4310',text:'#3d3021',muted:'#7a6a57',line:'#e4d3b8',stripe:'#fbf7ef',soft:'#f4eadb'};
  return{mode:'grill',paper:'#fbf8f1',surface:'#fffdfa',accent:'#c39235',dark:'#a77a29',text:'#2e2922',muted:'#6f6557',line:'#e4d7c0',stripe:'#fcf8f0',soft:'#fffaf0'};
 }
 function round(c,x,y,w,h,r){
@@ -224,13 +232,13 @@ function layout(r){
 }
 function border(c,t){
  c.strokeStyle=t.accent;c.lineWidth=2;round(c,12,12,P.W-24,P.H-24,24);c.stroke();
- c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':'#eadab8';c.lineWidth=1;round(c,21,21,P.W-42,P.H-42,19);c.stroke();
+ c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':t.mode==='families'?'#ddc79f':'#eadab8';c.lineWidth=1;round(c,21,21,P.W-42,P.H-42,19);c.stroke();
 }
 function header(c,r,pageNo,pageCount,app,t){
- const d=dateParts(r.reportDate),branded=t.mode==='individuals'&&individualsReportLogo;
+ const d=dateParts(r.reportDate),logo=t.mode==='individuals'?individualsReportLogo:t.mode==='families'?familiesReportLogo:null,branded=!!logo;
  c.direction='rtl';c.textAlign='right';
  if(branded){
-  c.drawImage(individualsReportLogo,P.W-P.M-92,42,82,82);
+  c.drawImage(logo,P.W-P.M-92,42,82,82);
   c.fillStyle=t.accent;c.font='900 48px Tahoma,Arial';c.fillText(r.branch,P.W-P.M-112,94);
   c.fillStyle=t.text;c.font='800 31px Tahoma,Arial';c.fillText('تقرير الجرد اليومي',P.W-P.M-112,140);
  }else{
@@ -337,8 +345,8 @@ function card(c,b,t){
  const {sec,x,y,w,h}=b,z=Math.min(1.17,Math.max(1,b.scale||1));
  const headH=Math.round(66*z),simpleH=Math.round(68*z),flowH=Math.round(76*z);
  box(c,x,y,w,h,14,t.surface,t.line,true);
- c.save();round(c,x,y,w,headH,14);c.clip();c.fillStyle=(t.mode==='mazaq'||t.mode==='individuals')?t.dark:t.accent;c.fillRect(x,y,w,headH);
- if(t.mode==='mazaq'||t.mode==='individuals'){c.fillStyle=t.accent;c.fillRect(x,y,w,4);}c.restore();
+ c.save();round(c,x,y,w,headH,14);c.clip();c.fillStyle=(['mazaq','individuals','families'].includes(t.mode))?t.dark:t.accent;c.fillRect(x,y,w,headH);
+ if(['mazaq','individuals','families'].includes(t.mode)){c.fillStyle=t.accent;c.fillRect(x,y,w,4);}c.restore();
  c.direction='rtl';c.textAlign='center';c.fillStyle='#fff';
  const title=sec.title;
  fit(c,title,w-26,33*z,24*z,'800');c.fillText(ell(c,title,w-26),x+w/2,y+44*z);
@@ -387,7 +395,7 @@ function footer(c,n,total,t){
  c.fillText(`نظام الجرد اليومي${total>1?` · ${n}/${total}`:''}`,P.W/2,P.H-34);
 }
 async function canvases(r){
- await document.fonts.ready;const t=theme(r),out=[];if(t.mode==='individuals')await loadIndividualsReportLogo();
+ await document.fonts.ready;const t=theme(r),out=[];if(t.mode==='individuals')await loadIndividualsReportLogo();if(t.mode==='families')await loadFamiliesReportLogo();
  if(t.mode==='mazaq'){
   const cv=document.createElement('canvas');cv.width=P.W;cv.height=P.H;const c=cv.getContext('2d');
   c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,1,1,appInfo(r),t);drawMazaqStock(c,r,t);footer(c,1,1,t);out.push(cv);return out;

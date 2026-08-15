@@ -30,7 +30,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edf6f6}
 </style>
 </head>
 <body>
-<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=13"></iframe>
+<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=14"></iframe>
 <script>
 (()=>{
  const frame=document.getElementById('app');
@@ -70,6 +70,20 @@ html[data-branch="individuals"] .row{border-bottom-color:#e1e2e3!important}
 html[data-branch="individuals"] .total{background:#f6f0e7!important;border-color:#d3d4d5!important}
 html[data-branch="individuals"] .bottom{background:rgba(250,250,250,.98)!important;border-top-color:#d3d4d5!important;box-shadow:0 -5px 20px rgba(55,57,59,.06)!important}
 html[data-branch="individuals"] .toast{background:#3b3d3f!important}
+html[data-branch="families"]{--accent:#b1740a!important;--dark:#6b4310!important;--bg:#f8f4ed!important;--card:#fffdf9!important;--ink:#3d3021!important;--muted:#7a6a57!important;--line:#e4d3b8!important;--soft:#f4eadb!important;--shadow:0 10px 28px rgba(90,58,18,.08)!important}
+html[data-branch="families"],html[data-branch="families"] body{background:#f8f4ed!important;color:#3d3021!important}
+html[data-branch="families"] .top{background:rgba(255,253,249,.98)!important;border-bottom-color:#e4d3b8!important}
+html[data-branch="families"] .top-title{border-right-color:#e4d3b8!important}html[data-branch="families"] .top-title b{color:#4b351c!important}html[data-branch="families"] .top-title small{color:#7a5a28!important}
+html[data-branch="families"] .topbrand img.families-logo{width:58px!important;height:58px!important;object-fit:contain!important;max-width:none!important;border-radius:7px}
+html[data-branch="families"] .hero{background:linear-gradient(135deg,#f4eadb,#fffdf9)!important;border-color:#e4d3b8!important;border-top-color:#b1740a!important;box-shadow:0 10px 28px rgba(90,58,18,.08)!important}
+html[data-branch="families"] .purpose,html[data-branch="families"] .btn.primary{background:#b1740a!important;border-color:#b1740a!important;color:#fff!important}
+html[data-branch="families"] .stat,html[data-branch="families"] .section,html[data-branch="families"] .note-card,html[data-branch="families"] .history,html[data-branch="families"] .morning-report-actions{border-color:#e4d3b8!important}
+html[data-branch="families"] .stat strong,html[data-branch="families"] .total b,html[data-branch="families"] .batch-time{color:#b1740a!important}
+html[data-branch="families"] .section summary{background:linear-gradient(90deg,#f4eadb,#fffdf9)!important;color:#4b351c!important}
+html[data-branch="families"] .row{border-bottom-color:#eadfcd!important}
+html[data-branch="families"] .total{background:#f6eddf!important;border-color:#e4d3b8!important}
+html[data-branch="families"] .bottom{background:rgba(255,253,249,.98)!important;border-top-color:#e4d3b8!important;box-shadow:0 -5px 20px rgba(90,58,18,.06)!important}
+html[data-branch="families"] .toast{background:#5a3b17!important}
 html[data-branch="mazaq"]{--accent:#b51f2e!important;--dark:#181818!important;--bg:#f1f1f1!important;--card:#fff!important;--ink:#202020!important;--muted:#666!important;--line:#d6d6d6!important;--soft:#f3e8ea!important}
 html[data-branch="mazaq"],html[data-branch="mazaq"] body{background:#f1f1f1!important;color:#202020!important}
 html[data-branch="mazaq"] .btn.primary,html[data-branch="mazaq"] .purpose{background:#b51f2e!important;border-color:#b51f2e!important;color:#fff!important}
@@ -80,7 +94,7 @@ html[data-branch="mazaq"] .hero{border-top-color:#b51f2e!important}
      if(!d.getElementById('morning-report-v1-js')){
        const script=d.createElement('script');
        script.id='morning-report-v1-js';
-       script.src='/inventory/morning/morning-report-v1.js?v=9';
+       script.src='/inventory/morning/morning-report-v1.js?v=10';
        script.async=false;
        d.body.appendChild(script);
      }

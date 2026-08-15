@@ -96,12 +96,15 @@ function signOut(call=true){if(call&&S.token)api('logout').catch(()=>{});localSt
 function applyTheme(){
  const root=document.documentElement,id=S.branch?.id||'',brand=document.querySelector('.topbrand img'),title=document.querySelector('.top-title b'),sub=document.querySelector('.top-title small'),theme=document.querySelector('meta[name=theme-color]');
  root.dataset.branch=id;
- brand?.classList.remove('individuals-logo');
+ brand?.classList.remove('individuals-logo','families-logo');
  if(id==='mazaq'){
   root.style.setProperty('--accent','#b51f2e');root.style.setProperty('--dark','#181818');root.style.setProperty('--bg','#f1f1f1');root.style.setProperty('--card','#fff');root.style.setProperty('--ink','#202020');root.style.setProperty('--muted','#666');root.style.setProperty('--line','#d6d6d6');root.style.setProperty('--soft','#f3e8ea');if(theme)theme.content='#b51f2e';
  }else if(id==='individuals'){
   root.style.setProperty('--accent','#df9022');root.style.setProperty('--dark','#3b3d3f');root.style.setProperty('--bg','#f2f3f3');root.style.setProperty('--card','#fff');root.style.setProperty('--ink','#3b3d3f');root.style.setProperty('--muted','#717477');root.style.setProperty('--line','#d3d4d5');root.style.setProperty('--soft','#f7efe4');if(theme)theme.content='#3b3d3f';
   if(brand){brand.src='/inventory/individuals-brand-logo.svg?v=1';brand.alt='المشويات الدمشقية';brand.classList.add('individuals-logo')}if(title)title.textContent='المشويات أفراد - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';
+ }else if(id==='families'){
+  root.style.setProperty('--accent','#b1740a');root.style.setProperty('--dark','#6b4310');root.style.setProperty('--bg','#f8f4ed');root.style.setProperty('--card','#fffdf9');root.style.setProperty('--ink','#3d3021');root.style.setProperty('--muted','#7a6a57');root.style.setProperty('--line','#e4d3b8');root.style.setProperty('--soft','#f4eadb');if(theme)theme.content='#6b4310';
+  if(brand){brand.src='/inventory/families-brand-logo.jpg?v=1';brand.alt='المشويات الدمشقية عوائل';brand.classList.add('families-logo')}if(title)title.textContent='المشويات عوائل - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';
  }else{
   root.style.setProperty('--accent','#0f6f78');root.style.setProperty('--dark','#0a4f57');root.style.setProperty('--bg','#edf6f6');root.style.setProperty('--card','#fbffff');root.style.setProperty('--ink','#183638');root.style.setProperty('--muted','#63787a');root.style.setProperty('--line','#cfe2e3');root.style.setProperty('--soft','#e5f3f4');if(theme)theme.content='#0f6f78';
   if(brand){brand.src='/inventory/inventory-brands-banner.webp?v=9';brand.alt='مطاعم الدمشقية'}if(title)title.textContent='الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';
