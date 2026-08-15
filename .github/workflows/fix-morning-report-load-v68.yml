@@ -1,0 +1,29 @@
+name: Fix morning report load v68
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-morning-report-load-v68.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply loader fix
+        run: python .github/scripts/fix_morning_report_load_v68.py
+      - name: Verify
+        run: |
+          grep -q "async function loadDay(date){const loaded=await post('receiving_load',{date})" inventory/morning/morning-report-v1.js
+          grep -q "try{const loaded=await loadDay(date);if(seq!==reportCheckSeq)return" inventory/morning/morning-report-v1.js
+          grep -q '__morningReportV8' inventory/morning/morning-report-v1.js
+          grep -q 'morning-report-v1.js?v=7' inventory/morning-shell.html
+      - name: Commit and cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/fix-morning-report-load-v68.yml .github/scripts/fix_morning_report_load_v68.py
+          git add inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m "Fix Mazaq morning report snapshot loading"
+          git push
