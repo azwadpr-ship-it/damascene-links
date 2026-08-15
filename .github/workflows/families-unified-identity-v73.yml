@@ -13,152 +13,86 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Apply Families identity
+      - name: Apply Families identity patches
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          def rep(path, old, new, label):
-              p=Path(path); s=p.read_text()
+          def one(s, old, new, label):
               if old not in s:
-                  raise SystemExit(f'MISSING {label} in {path}')
-              p.write_text(s.replace(old,new,1))
+                  raise SystemExit('MISSING '+label)
+              return s.replace(old,new,1)
 
-          # Dedicated Families UI skin for daily inventory + unified manager cards.
-          Path('inventory/families-supervisor-brand-v1.js').write_text(r'''(()=>{'use strict';
-          if(window.__familiesSupervisorBrandV1)return;window.__familiesSupervisorBrandV1=true;
-          const LOGO='/inventory/families-brand-logo.jpg?v=1';
-          const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
-          function ensureStyle(){
-           if(document.getElementById('families-supervisor-brand-style'))return;
-           const s=document.createElement('style');s.id='families-supervisor-brand-style';
-           s.textContent=`
-          html.families-identity{--gold:#b1740a!important;--gold2:#6b4310!important;--accent:#b1740a!important;--primary:#b1740a!important;--bg:#f8f4ed!important;--card:#fffdf9!important;--ink:#3d3021!important;--muted:#7a6a57!important;--line:#e4d3b8!important;--soft:#f4eadb!important}
-          html.families-identity,html.families-identity body{background:#f8f4ed!important;color:#3d3021!important}
-          html.families-identity .top{background:rgba(255,253,249,.98)!important;border-bottom-color:#e4d3b8!important}
-          html.families-identity .brand b,html.families-identity .head h2,html.families-identity .sectitle h3{color:#4b351c!important}
-          html.families-identity .brand small,html.families-identity .muted,html.families-identity .unit{color:#7a6a57!important}
-          html.families-identity .btn.primary,html.families-identity #share,html.families-identity #pdfShare{background:#b1740a!important;border-color:#b1740a!important;color:#fff!important}
-          html.families-identity .btn,html.families-identity #draft,html.families-identity #jpg{border-color:#dfcfb4!important;background:#fffdf9!important;color:#4b351c!important}
-          html.families-identity #submit{background:#6b4310!important;border-color:#6b4310!important;color:#fff!important}
-          html.families-identity .section{background:#fffdf9!important;border-color:#e4d3b8!important}
-          html.families-identity .sectitle{background:linear-gradient(90deg,#f4eadb,#fffdf9)!important;border-bottom-color:#e4d3b8!important}
-          html.families-identity .sectitle small{background:#efe0c7!important;color:#6b4310!important}
-          html.families-identity .item,html.families-identity .flow td{background:#fffdf9!important;border-color:#eadfcd!important}
-          html.families-identity .qty,html.families-identity .input,html.families-identity .select,html.families-identity .textarea{border-color:#dac8aa!important;color:#3d3021!important;background:#fff!important}
-          html.families-identity .qty:focus,html.families-identity .input:focus,html.families-identity .select:focus,html.families-identity .textarea:focus{border-color:#b1740a!important;box-shadow:0 0 0 2px rgba(177,116,10,.14)!important}
-          html.families-identity .note{background:#f8efe2!important;border-color:#dec39a!important;color:#5f411a!important}
-          html.families-identity .bottom{background:rgba(255,253,249,.98)!important;border-top-color:#e4d3b8!important}
-          .families-brand-strip{display:flex;align-items:center;gap:12px;direction:rtl;background:linear-gradient(135deg,#fffdf9,#f7f0e5);border:1px solid #dfcfb4;border-right:5px solid #b1740a;border-radius:14px;padding:8px 12px;margin:0 0 10px;box-shadow:0 7px 22px rgba(90,58,18,.07)}
-          .families-brand-strip img{width:54px;height:54px;object-fit:contain;border-radius:7px;background:#fff;flex:0 0 54px}
-          .families-brand-strip .families-brand-title{font-size:16px;font-weight:900;color:#4b351c;line-height:1.35}.families-brand-strip .families-brand-title b{color:#b1740a}
-          .families-branch-card{position:relative!important;border-color:#dfcfb4!important;border-top:4px solid #b1740a!important;background:linear-gradient(145deg,#fffdf9,#f7f0e5)!important}
-          .families-branch-card .families-card-logo{position:absolute;top:8px;right:8px;width:36px;height:36px;object-fit:contain;border-radius:6px;background:#fff;z-index:2}
-          .families-branch-card h3{padding-right:43px!important;color:#4b351c!important}.families-branch-card .manager-open-report,.families-branch-card .morning-details-btn{border-color:#b1740a!important;color:#5b3b16!important}
-          @media(max-width:650px){.families-brand-strip{padding:7px 9px}.families-brand-strip img{width:46px;height:46px;flex-basis:46px}.families-brand-strip .families-brand-title{font-size:14px}}
-          `;document.head.appendChild(s);
-          }
-          function outerBrand(on){
-           try{const pd=window.parent?.document;if(!pd||pd===document)return;let st=pd.getElementById('families-outer-brand-style');if(!st){st=pd.createElement('style');st.id='families-outer-brand-style';st.textContent=`
-          html.families-shell{--gold:#b1740a!important;--ink:#3d3021!important;--muted:#7a6a57!important;--line:#e4d3b8!important;--bg:#f8f4ed!important}
-          html.families-shell #systemScreen,html.families-shell .frameLoading{background:#f8f4ed!important}
-          html.families-shell .brandBar{background:#fffdf9!important;border-bottom-color:#e4d3b8!important;justify-content:center!important;gap:13px!important;direction:rtl!important}
-          html.families-shell .brandBar img{width:64px!important;height:64px!important;object-fit:contain!important;flex:0 0 64px!important;border-radius:7px}
-          #familiesShellTitle{font:900 16px Tahoma,Arial;color:#4b351c;text-align:right;white-space:nowrap}#familiesShellTitle b{color:#b1740a}
-          @media(max-width:720px){html.families-shell .brandBar img{width:52px!important;height:52px!important;flex-basis:52px!important}#familiesShellTitle{font-size:13px}}
-          `;pd.head.appendChild(st)}pd.documentElement.classList.toggle('families-shell',on);const img=pd.querySelector('.brandBar img');if(img){if(!img.dataset.defaultSrc)img.dataset.defaultSrc=img.getAttribute('src')||'/inventory/inventory-brands-banner.webp?v=9';if(on){img.src=LOGO;img.alt='المشويات الدمشقية عوائل'}else if(!pd.documentElement.classList.contains('individuals-shell')){img.src=img.dataset.defaultSrc;img.alt='شعارات مطاعم الدمشقية'}}let t=pd.getElementById('familiesShellTitle');if(on){if(!t){t=pd.createElement('div');t.id='familiesShellTitle';img?.after(t)}t.innerHTML='<b>المشويات عوائل</b> - الجرد اليومي'}else t?.remove()}catch{}
-          }
-          function closestCard(el){let n=el;for(let i=0;i<7&&n&&n!==document.body;i++,n=n.parentElement){const c=String(n.className||'');if(/manager-final-row|manager-morning-row|dash|card|branch|panel|tile|box/i.test(c)||['SECTION','ARTICLE'].includes(n.tagName))return n}return el.parentElement||el}
-          let busy=false,queued=false;
-          function apply(){if(busy)return;busy=true;try{ensureStyle();const title=(q('.head h2')?.textContent||'').trim();const branchView=title.includes('المشويات عوائل')&&title!=='لوحة المدير';document.documentElement.classList.toggle('families-identity',branchView);outerBrand(branchView);let strip=q('#familiesBrandStrip');if(branchView){if(!strip){strip=document.createElement('div');strip.id='familiesBrandStrip';strip.className='families-brand-strip';strip.innerHTML=`<img src="${LOGO}" alt="المشويات الدمشقية عوائل"><div class="families-brand-title"><b>المشويات عوائل</b> - الجرد اليومي</div>`;const shell=q('.shell')||document.body,head=q('.head',shell);shell.insertBefore(strip,head||shell.firstChild)}}else strip?.remove();qa('h3,h2,strong,b,span').filter(el=>(el.textContent||'').trim()==='المشويات عوائل').slice(0,12).forEach(el=>{const card=closestCard(el);if(!card)return;card.classList.add('families-branch-card');if(!card.querySelector('.families-card-logo')){const img=document.createElement('img');img.src=LOGO;img.alt='المشويات الدمشقية عوائل';img.className='families-card-logo';card.appendChild(img)}})}finally{busy=false}}
-          function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
-          new MutationObserver(ms=>{if(ms.some(m=>m.addedNodes?.length||m.removedNodes?.length))schedule()}).observe(document.body,{childList:true,subtree:true});document.addEventListener('click',()=>setTimeout(schedule,0),true);document.addEventListener('change',()=>setTimeout(schedule,0),true);schedule();
-          })();
-          ''')
-
-          # Inject Families skin and bust stable-loader cache.
+          # Daily shell injection + cache bust.
           p=Path('inventory/index.html'); s=p.read_text()
-          s=s.replace("addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');requestAnimationFrame(revealFrame)","addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');addScript(d,'families-supervisor-brand-v1-js','/inventory/families-supervisor-brand-v1.js?v=1');requestAnimationFrame(revealFrame)")
-          s=s.replace("addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');let revealTries=0", "addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');addScript(d,'families-supervisor-brand-v1-js','/inventory/families-supervisor-brand-v1.js?v=1');let revealTries=0")
-          s=s.replace("/inventory/branch-report-stable-v57.js?v=6","/inventory/branch-report-stable-v57.js?v=7")
-          if 'families-supervisor-brand-v1-js' not in s: raise SystemExit('index family injection failed')
+          s=one(s,"addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');requestAnimationFrame(revealFrame)","addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');addScript(d,'families-supervisor-brand-v1-js','/inventory/families-supervisor-brand-v1.js?v=1');requestAnimationFrame(revealFrame)",'daily branch family injection')
+          s=one(s,"addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');let revealTries=0","addScript(d,'individuals-supervisor-brand-v1-js','/inventory/individuals-supervisor-brand-v1.js?v=1');addScript(d,'families-supervisor-brand-v1-js','/inventory/families-supervisor-brand-v1.js?v=1');let revealTries=0",'daily manager family injection')
+          s=s.replace('/inventory/branch-report-stable-v57.js?v=6','/inventory/branch-report-stable-v57.js?v=7')
           p.write_text(s)
 
-          # Daily report: distinct warm bronze Families palette + Families logo.
+          # Daily report Families theme and logo.
           p=Path('inventory/report-v32.js'); s=p.read_text()
-          s=s.replace("const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';\nlet individualsReportLogo=null,individualsReportLogoLoading=null;", "const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';\nconst FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';\nlet individualsReportLogo=null,individualsReportLogoLoading=null,familiesReportLogo=null,familiesReportLogoLoading=null;")
-          marker="function loadIndividualsReportLogo(){\n if(individualsReportLogo)return Promise.resolve(individualsReportLogo);\n if(individualsReportLogoLoading)return individualsReportLogoLoading;\n individualsReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{individualsReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=INDIVIDUALS_REPORT_LOGO});\n return individualsReportLogoLoading;\n}\n"
-          if marker not in s: raise SystemExit('daily logo loader marker missing')
-          s=s.replace(marker, marker+"function loadFamiliesReportLogo(){\n if(familiesReportLogo)return Promise.resolve(familiesReportLogo);\n if(familiesReportLogoLoading)return familiesReportLogoLoading;\n familiesReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{familiesReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=FAMILIES_REPORT_LOGO});\n return familiesReportLogoLoading;\n}\n",1)
-          s=s.replace(" if(r.branch.includes('المشويات أفراد'))return{mode:'individuals',paper:'#f4f5f5',surface:'#ffffff',accent:'#df9022',dark:'#3b3d3f',text:'#3b3d3f',muted:'#717477',line:'#d2d4d5',stripe:'#f4f4f4',soft:'#f7efe4'};", " if(r.branch.includes('المشويات أفراد'))return{mode:'individuals',paper:'#f4f5f5',surface:'#ffffff',accent:'#df9022',dark:'#3b3d3f',text:'#3b3d3f',muted:'#717477',line:'#d2d4d5',stripe:'#f4f4f4',soft:'#f7efe4'};\n if(r.branch.includes('المشويات عوائل'))return{mode:'families',paper:'#faf7f0',surface:'#fffdf9',accent:'#b1740a',dark:'#6b4310',text:'#3d3021',muted:'#7a6a57',line:'#e4d3b8',stripe:'#fbf7ef',soft:'#f4eadb'};")
-          s=s.replace("c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':'#eadab8';", "c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':t.mode==='families'?'#ddc79f':'#eadab8';")
-          s=s.replace("const d=dateParts(r.reportDate),branded=t.mode==='individuals'&&individualsReportLogo;", "const d=dateParts(r.reportDate),logo=t.mode==='individuals'?individualsReportLogo:t.mode==='families'?familiesReportLogo:null,branded=!!logo;")
-          s=s.replace("c.drawImage(individualsReportLogo,P.W-P.M-92,42,82,82);", "c.drawImage(logo,P.W-P.M-92,42,82,82);")
-          s=s.replace("(t.mode==='mazaq'||t.mode==='individuals')", "(['mazaq','individuals','families'].includes(t.mode))")
-          s=s.replace("if(t.mode==='individuals')await loadIndividualsReportLogo();", "if(t.mode==='individuals')await loadIndividualsReportLogo();if(t.mode==='families')await loadFamiliesReportLogo();")
-          for x in ['FAMILIES_REPORT_LOGO',"mode:'families'",'loadFamiliesReportLogo','familiesReportLogo']:
-              if x not in s: raise SystemExit('daily report missing '+x)
+          s=one(s,"const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';\nlet individualsReportLogo=null,individualsReportLogoLoading=null;","const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';\nconst FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';\nlet individualsReportLogo=null,individualsReportLogoLoading=null,familiesReportLogo=null,familiesReportLogoLoading=null;",'daily family logo const')
+          loader="function loadIndividualsReportLogo(){\n if(individualsReportLogo)return Promise.resolve(individualsReportLogo);\n if(individualsReportLogoLoading)return individualsReportLogoLoading;\n individualsReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{individualsReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=INDIVIDUALS_REPORT_LOGO});\n return individualsReportLogoLoading;\n}\n"
+          s=one(s,loader,loader+"function loadFamiliesReportLogo(){\n if(familiesReportLogo)return Promise.resolve(familiesReportLogo);\n if(familiesReportLogoLoading)return familiesReportLogoLoading;\n familiesReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{familiesReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=FAMILIES_REPORT_LOGO});\n return familiesReportLogoLoading;\n}\n",'daily family loader')
+          s=one(s," if(r.branch.includes('المشويات أفراد'))return{mode:'individuals',paper:'#f4f5f5',surface:'#ffffff',accent:'#df9022',dark:'#3b3d3f',text:'#3b3d3f',muted:'#717477',line:'#d2d4d5',stripe:'#f4f4f4',soft:'#f7efe4'};"," if(r.branch.includes('المشويات أفراد'))return{mode:'individuals',paper:'#f4f5f5',surface:'#ffffff',accent:'#df9022',dark:'#3b3d3f',text:'#3b3d3f',muted:'#717477',line:'#d2d4d5',stripe:'#f4f4f4',soft:'#f7efe4'};\n if(r.branch.includes('المشويات عوائل'))return{mode:'families',paper:'#faf7f0',surface:'#fffdf9',accent:'#b1740a',dark:'#6b4310',text:'#3d3021',muted:'#7a6a57',line:'#e4d3b8',stripe:'#fbf7ef',soft:'#f4eadb'};",'daily family theme')
+          s=one(s,"c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':'#eadab8';","c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':t.mode==='families'?'#ddc79f':'#eadab8';",'daily family border')
+          s=one(s,"const d=dateParts(r.reportDate),branded=t.mode==='individuals'&&individualsReportLogo;","const d=dateParts(r.reportDate),logo=t.mode==='individuals'?individualsReportLogo:t.mode==='families'?familiesReportLogo:null,branded=!!logo;",'daily family header')
+          s=one(s,"c.drawImage(individualsReportLogo,P.W-P.M-92,42,82,82);","c.drawImage(logo,P.W-P.M-92,42,82,82);",'daily family draw logo')
+          s=s.replace("(t.mode==='mazaq'||t.mode==='individuals')","(['mazaq','individuals','families'].includes(t.mode))")
+          s=one(s,"if(t.mode==='individuals')await loadIndividualsReportLogo();","if(t.mode==='individuals')await loadIndividualsReportLogo();if(t.mode==='families')await loadFamiliesReportLogo();",'daily family preload')
           p.write_text(s)
 
-          # Daily lazy loader: new report asset version.
-          p=Path('inventory/branch-report-stable-v57.js'); s=p.read_text().replace("report-v32-v65-js","report-v32-v66-js").replace("/inventory/report-v32.js?v=65","/inventory/report-v32.js?v=66"); p.write_text(s)
+          p=Path('inventory/branch-report-stable-v57.js'); s=p.read_text().replace('report-v32-v65-js','report-v32-v66-js').replace('/inventory/report-v32.js?v=65','/inventory/report-v32.js?v=66'); p.write_text(s)
 
-          # Morning inner page: branch-specific Families palette, logo and heading.
+          # Morning inner Families branding.
           p=Path('inventory/morning/index.html'); s=p.read_text()
-          s=s.replace("brand?.classList.remove('individuals-logo');", "brand?.classList.remove('individuals-logo','families-logo');")
-          needle=" }else{\n  root.style.setProperty('--accent','#0f6f78');"
-          family=" }else if(id==='families'){\n  root.style.setProperty('--accent','#b1740a');root.style.setProperty('--dark','#6b4310');root.style.setProperty('--bg','#f8f4ed');root.style.setProperty('--card','#fffdf9');root.style.setProperty('--ink','#3d3021');root.style.setProperty('--muted','#7a6a57');root.style.setProperty('--line','#e4d3b8');root.style.setProperty('--soft','#f4eadb');if(theme)theme.content='#6b4310';\n  if(brand){brand.src='/inventory/families-brand-logo.jpg?v=1';brand.alt='المشويات الدمشقية عوائل';brand.classList.add('families-logo')}if(title)title.textContent='المشويات عوائل - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';\n }else{\n  root.style.setProperty('--accent','#0f6f78');"
-          if needle not in s: raise SystemExit('morning family branch marker missing')
-          s=s.replace(needle,family,1)
-          if "id==='families'" not in s: raise SystemExit('morning family theme failed')
+          s=one(s,"brand?.classList.remove('individuals-logo');","brand?.classList.remove('individuals-logo','families-logo');",'morning family logo class')
+          marker=" }else{\n  root.style.setProperty('--accent','#0f6f78');"
+          insert=" }else if(id==='families'){\n  root.style.setProperty('--accent','#b1740a');root.style.setProperty('--dark','#6b4310');root.style.setProperty('--bg','#f8f4ed');root.style.setProperty('--card','#fffdf9');root.style.setProperty('--ink','#3d3021');root.style.setProperty('--muted','#7a6a57');root.style.setProperty('--line','#e4d3b8');root.style.setProperty('--soft','#f4eadb');if(theme)theme.content='#6b4310';\n  if(brand){brand.src='/inventory/families-brand-logo.jpg?v=1';brand.alt='المشويات الدمشقية عوائل';brand.classList.add('families-logo')}if(title)title.textContent='المشويات عوائل - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';\n }else{\n  root.style.setProperty('--accent','#0f6f78');"
+          s=one(s,marker,insert,'morning family branch')
           p.write_text(s)
 
-          # Morning shell CSS: Families is bronze/ivory, not Individuals orange/charcoal.
+          # Morning outer shell Families palette and asset versions.
           p=Path('inventory/morning-shell.html'); s=p.read_text()
           family_css='''html[data-branch="families"]{--accent:#b1740a!important;--dark:#6b4310!important;--bg:#f8f4ed!important;--card:#fffdf9!important;--ink:#3d3021!important;--muted:#7a6a57!important;--line:#e4d3b8!important;--soft:#f4eadb!important;--shadow:0 10px 28px rgba(90,58,18,.08)!important}\nhtml[data-branch="families"],html[data-branch="families"] body{background:#f8f4ed!important;color:#3d3021!important}\nhtml[data-branch="families"] .top{background:rgba(255,253,249,.98)!important;border-bottom-color:#e4d3b8!important}\nhtml[data-branch="families"] .top-title{border-right-color:#e4d3b8!important}html[data-branch="families"] .top-title b{color:#4b351c!important}html[data-branch="families"] .top-title small{color:#7a5a28!important}\nhtml[data-branch="families"] .topbrand img.families-logo{width:58px!important;height:58px!important;object-fit:contain!important;max-width:none!important;border-radius:7px}\nhtml[data-branch="families"] .hero{background:linear-gradient(135deg,#f4eadb,#fffdf9)!important;border-color:#e4d3b8!important;border-top-color:#b1740a!important;box-shadow:0 10px 28px rgba(90,58,18,.08)!important}\nhtml[data-branch="families"] .purpose,html[data-branch="families"] .btn.primary{background:#b1740a!important;border-color:#b1740a!important;color:#fff!important}\nhtml[data-branch="families"] .stat,html[data-branch="families"] .section,html[data-branch="families"] .note-card,html[data-branch="families"] .history,html[data-branch="families"] .morning-report-actions{border-color:#e4d3b8!important}\nhtml[data-branch="families"] .stat strong,html[data-branch="families"] .total b,html[data-branch="families"] .batch-time{color:#b1740a!important}\nhtml[data-branch="families"] .section summary{background:linear-gradient(90deg,#f4eadb,#fffdf9)!important;color:#4b351c!important}\nhtml[data-branch="families"] .row{border-bottom-color:#eadfcd!important}\nhtml[data-branch="families"] .total{background:#f6eddf!important;border-color:#e4d3b8!important}\nhtml[data-branch="families"] .bottom{background:rgba(255,253,249,.98)!important;border-top-color:#e4d3b8!important;box-shadow:0 -5px 20px rgba(90,58,18,.06)!important}\nhtml[data-branch="families"] .toast{background:#5a3b17!important}\n'''
-          marker='html[data-branch="mazaq"]{--accent:#b51f2e!important;'
-          if marker not in s: raise SystemExit('morning shell marker missing')
-          s=s.replace(marker,family_css+marker,1)
+          s=one(s,'html[data-branch="mazaq"]{--accent:#b51f2e!important;',family_css+'html[data-branch="mazaq"]{--accent:#b51f2e!important;','morning shell family css')
           s=s.replace('/inventory/morning/index.html?inner=13','/inventory/morning/index.html?inner=14').replace('/inventory/morning/morning-report-v1.js?v=9','/inventory/morning/morning-report-v1.js?v=10')
           p.write_text(s)
 
-          # Morning report: Families theme + logo.
+          # Morning report Families palette and logo.
           p=Path('inventory/morning/morning-report-v1.js'); s=p.read_text()
           s=s.replace("if(window.__morningReportV10)return;window.__morningReportV10=true;","if(window.__morningReportV11)return;window.__morningReportV11=true;")
-          s=s.replace("const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';", "const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';\nconst FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';")
-          s=s.replace("function themeForBranch(id){if(id==='mazaq')return{paper:'#f5f5f5',card:'#fff',accent:'#b51f2e',dark:'#181818',ink:'#202020',muted:'#666',line:'#d6d6d6',soft:'#f3e8ea'};if(id==='individuals')return{paper:'#f4f5f5',card:'#fff',accent:'#df9022',dark:'#3b3d3f',ink:'#3b3d3f',muted:'#717477',line:'#d3d4d5',soft:'#f7efe4'};return", "function themeForBranch(id){if(id==='mazaq')return{paper:'#f5f5f5',card:'#fff',accent:'#b51f2e',dark:'#181818',ink:'#202020',muted:'#666',line:'#d6d6d6',soft:'#f3e8ea'};if(id==='individuals')return{paper:'#f4f5f5',card:'#fff',accent:'#df9022',dark:'#3b3d3f',ink:'#3b3d3f',muted:'#717477',line:'#d3d4d5',soft:'#f7efe4'};if(id==='families')return{paper:'#faf7f0',card:'#fffdf9',accent:'#b1740a',dark:'#6b4310',ink:'#3d3021',muted:'#7a6a57',line:'#e4d3b8',soft:'#f4eadb'};return")
-          s=s.replace("function loadIndividualsReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=INDIVIDUALS_REPORT_LOGO})}", "function loadIndividualsReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=INDIVIDUALS_REPORT_LOGO})}\nfunction loadFamiliesReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=FAMILIES_REPORT_LOGO})}")
-          s=s.replace("reportLogo=boot.branch?.id==='individuals'?await loadIndividualsReportLogo():null;", "reportLogo=boot.branch?.id==='individuals'?await loadIndividualsReportLogo():boot.branch?.id==='families'?await loadFamiliesReportLogo():null;")
-          for x in ['FAMILIES_REPORT_LOGO',"id==='families'",'loadFamiliesReportLogo']:
-              if x not in s: raise SystemExit('morning report missing '+x)
+          s=one(s,"const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';","const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';\nconst FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';",'morning report family const')
+          s=one(s,"function themeForBranch(id){if(id==='mazaq')return{paper:'#f5f5f5',card:'#fff',accent:'#b51f2e',dark:'#181818',ink:'#202020',muted:'#666',line:'#d6d6d6',soft:'#f3e8ea'};if(id==='individuals')return{paper:'#f4f5f5',card:'#fff',accent:'#df9022',dark:'#3b3d3f',ink:'#3b3d3f',muted:'#717477',line:'#d3d4d5',soft:'#f7efe4'};return","function themeForBranch(id){if(id==='mazaq')return{paper:'#f5f5f5',card:'#fff',accent:'#b51f2e',dark:'#181818',ink:'#202020',muted:'#666',line:'#d6d6d6',soft:'#f3e8ea'};if(id==='individuals')return{paper:'#f4f5f5',card:'#fff',accent:'#df9022',dark:'#3b3d3f',ink:'#3b3d3f',muted:'#717477',line:'#d3d4d5',soft:'#f7efe4'};if(id==='families')return{paper:'#faf7f0',card:'#fffdf9',accent:'#b1740a',dark:'#6b4310',ink:'#3d3021',muted:'#7a6a57',line:'#e4d3b8',soft:'#f4eadb'};return",'morning report family theme')
+          s=one(s,"function loadIndividualsReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=INDIVIDUALS_REPORT_LOGO})}","function loadIndividualsReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=INDIVIDUALS_REPORT_LOGO})}\nfunction loadFamiliesReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=FAMILIES_REPORT_LOGO})}",'morning report family loader')
+          s=one(s,"reportLogo=boot.branch?.id==='individuals'?await loadIndividualsReportLogo():null;","reportLogo=boot.branch?.id==='individuals'?await loadIndividualsReportLogo():boot.branch?.id==='families'?await loadFamiliesReportLogo():null;",'morning report family build')
           p.write_text(s)
 
-          # Morning manager: branch selector + summary card get Families logo and warm-bronze skin.
+          # Morning manager branch skin + summary card.
           p=Path('inventory/morning/manager.html'); s=p.read_text()
-          family_manager_css='''\nhtml[data-brand="families"]{--gold:#b1740a;--dark:#6b4310;--bg:#f8f4ed;--card:#fffdf9;--ink:#3d3021;--muted:#7a6a57;--line:#e4d3b8;--soft:#f4eadb}\nhtml[data-brand="families"] body{background:#f8f4ed;color:#3d3021}\nhtml[data-brand="families"] .top{background:rgba(255,253,249,.98)}\nhtml[data-brand="families"] .btn.primary{background:#b1740a;border-color:#b1740a}\nhtml[data-brand="families"] .brand img{width:58px;height:58px;object-fit:contain;border-radius:7px}\n.families-summary-card{border-top:4px solid #b1740a!important;background:linear-gradient(145deg,#fffdf9,#f7f0e5)!important}\n.families-summary-card:before{background:#b1740a!important}.families-summary-card .num b{color:#b1740a!important}\n.families-summary-logo{position:absolute;top:8px;right:9px;width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px}.families-summary-card h3{padding-right:43px}\n'''
-          if '</style></head>' not in s: raise SystemExit('manager css end missing')
-          s=s.replace('</style></head>',family_manager_css+'</style></head>',1)
-          s=s.replace("if(id==='individuals'){if(img){img.src='/inventory/individuals-brand-logo.svg?v=1';img.alt='المشويات الدمشقية'}if(title)title.textContent='المشويات أفراد - إدارة الاستلام الصباحي';if(sub)sub.textContent='متابعة وتدقيق الدفعات'}else{", "if(id==='individuals'){if(img){img.src='/inventory/individuals-brand-logo.svg?v=1';img.alt='المشويات الدمشقية'}if(title)title.textContent='المشويات أفراد - إدارة الاستلام الصباحي';if(sub)sub.textContent='متابعة وتدقيق الدفعات'}else if(id==='families'){if(img){img.src='/inventory/families-brand-logo.jpg?v=1';img.alt='المشويات الدمشقية عوائل'}if(title)title.textContent='المشويات عوائل - إدارة الاستلام الصباحي';if(sub)sub.textContent='متابعة وتدقيق الدفعات'}else{")
-          old="<div class=\\\"branch ${r.branch_id==='individuals'?'individuals-summary-card':''}\\\">${r.branch_id==='individuals'?'<img class=\\\"individuals-summary-logo\\\" src=\\\"/inventory/individuals-brand-logo.svg?v=1\\\" alt=\\\"المشويات الدمشقية\\\">':''}<h3>"
-          new="<div class=\\\"branch ${r.branch_id==='individuals'?'individuals-summary-card':r.branch_id==='families'?'families-summary-card':''}\\\">${r.branch_id==='individuals'?'<img class=\\\"individuals-summary-logo\\\" src=\\\"/inventory/individuals-brand-logo.svg?v=1\\\" alt=\\\"المشويات الدمشقية\\\">':r.branch_id==='families'?'<img class=\\\"families-summary-logo\\\" src=\\\"/inventory/families-brand-logo.jpg?v=1\\\" alt=\\\"المشويات الدمشقية عوائل\\\">':''}<h3>"
-          if old not in s: raise SystemExit('manager summary marker missing')
-          s=s.replace(old,new,1)
-          for x in ['families-summary-card',"id==='families'",'families-brand-logo.jpg']:
-              if x not in s: raise SystemExit('manager missing '+x)
+          css='''\nhtml[data-brand="families"]{--gold:#b1740a;--dark:#6b4310;--bg:#f8f4ed;--card:#fffdf9;--ink:#3d3021;--muted:#7a6a57;--line:#e4d3b8;--soft:#f4eadb}\nhtml[data-brand="families"] body{background:#f8f4ed;color:#3d3021}\nhtml[data-brand="families"] .top{background:rgba(255,253,249,.98)}html[data-brand="families"] .btn.primary{background:#b1740a;border-color:#b1740a}\nhtml[data-brand="families"] .brand img{width:58px;height:58px;object-fit:contain;border-radius:7px}\n.families-summary-card{border-top:4px solid #b1740a!important;background:linear-gradient(145deg,#fffdf9,#f7f0e5)!important}.families-summary-card:before{background:#b1740a!important}.families-summary-card .num b{color:#b1740a!important}\n.families-summary-logo{position:absolute;top:8px;right:9px;width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px}.families-summary-card h3{padding-right:43px}\n'''
+          s=one(s,'</style></head>',css+'</style></head>','manager family css')
+          s=one(s,"if(id==='individuals'){if(img){img.src='/inventory/individuals-brand-logo.svg?v=1';img.alt='المشويات الدمشقية'}if(title)title.textContent='المشويات أفراد - إدارة الاستلام الصباحي';if(sub)sub.textContent='متابعة وتدقيق الدفعات'}else{","if(id==='individuals'){if(img){img.src='/inventory/individuals-brand-logo.svg?v=1';img.alt='المشويات الدمشقية'}if(title)title.textContent='المشويات أفراد - إدارة الاستلام الصباحي';if(sub)sub.textContent='متابعة وتدقيق الدفعات'}else if(id==='families'){if(img){img.src='/inventory/families-brand-logo.jpg?v=1';img.alt='المشويات الدمشقية عوائل'}if(title)title.textContent='المشويات عوائل - إدارة الاستلام الصباحي';if(sub)sub.textContent='متابعة وتدقيق الدفعات'}else{",'manager family branch')
+          s=one(s,"r.branch_id==='individuals'?'individuals-summary-card':''","r.branch_id==='individuals'?'individuals-summary-card':r.branch_id==='families'?'families-summary-card':''",'manager family summary class')
+          s=one(s,"r.branch_id==='individuals'?'<img class=\"individuals-summary-logo\" src=\"/inventory/individuals-brand-logo.svg?v=1\" alt=\"المشويات الدمشقية\">':''","r.branch_id==='individuals'?'<img class=\"individuals-summary-logo\" src=\"/inventory/individuals-brand-logo.svg?v=1\" alt=\"المشويات الدمشقية\">':r.branch_id==='families'?'<img class=\"families-summary-logo\" src=\"/inventory/families-brand-logo.jpg?v=1\" alt=\"المشويات الدمشقية عوائل\">':''",'manager family summary logo')
           p.write_text(s)
 
-          # Safety checks: do not touch OG/social metadata or APIs.
+          # Guardrails.
+          assert Path('inventory/families-brand-logo.jpg').exists()
+          assert Path('inventory/families-supervisor-brand-v1.js').exists()
           assert 'morning-og-whatsapp-1200x630.jpg' in Path('inventory/morning-shell.html').read_text()
           assert 'inventory/whatsapp-preview.jpg' in Path('inventory/index.html').read_text()
-          print('Families v73 patch verification PASS')
+          print('Families v73 verification PASS')
           PY
-      - name: Commit and self-clean workflow
+      - name: Commit and clean workflows
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/families-unified-identity-v73.yml
-          git add inventory/index.html inventory/families-supervisor-brand-v1.js inventory/report-v32.js inventory/branch-report-stable-v57.js inventory/morning-shell.html inventory/morning/index.html inventory/morning/morning-report-v1.js inventory/morning/manager.html
+          git rm -f .github/workflows/repair-families-v73.yml || true
+          git add inventory/index.html inventory/report-v32.js inventory/branch-report-stable-v57.js inventory/morning-shell.html inventory/morning/index.html inventory/morning/morning-report-v1.js inventory/morning/manager.html
           git commit -m 'Apply Families restaurant identity'
           git push origin main
