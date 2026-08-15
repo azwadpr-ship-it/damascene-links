@@ -1,0 +1,87 @@
+name: Verify Mazaq unified identity v67
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/verify-mazaq-unified-identity-v67.yml
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify repository patch
+        run: |
+          set -euxo pipefail
+          test -s inventory/mazaq-brand-logo.svg
+          test -s inventory/mazaq-supervisor-brand-v1.js
+          grep -q 'mazaq-supervisor-brand-v1.js?v=1' inventory/index.html
+          grep -q 'mazaq-brand-logo.svg?v=1' inventory/morning/index.html
+          grep -q 'المذاق الدمشقي - تقرير الاستلام الصباحي' inventory/morning/index.html
+          grep -q 'index.html?inner=10' inventory/morning-shell.html
+          grep -q 'morning-report-v1.js?v=6' inventory/morning-shell.html
+          grep -q 'data-branch="mazaq"' inventory/morning-shell.html
+          grep -q '__morningReportV7' inventory/morning/morning-report-v1.js
+          grep -q 'REPORT_THEMES' inventory/morning/morning-report-v1.js
+          grep -q "accent:'#b51f2e'" inventory/morning/morning-report-v1.js
+          grep -qi 'mazaq' inventory/report-v32.js
+      - name: Wait for current patch on production
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_live() {
+            stamp=$(date +%s)
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/index.html?v=$stamp" | grep -q 'mazaq-supervisor-brand-v1.js?v=1' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning-shell.html?v=$stamp" | grep -q 'index.html?inner=10' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning-shell.html?v=$stamp" | grep -q 'morning-report-v1.js?v=6' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning/index.html?v=$stamp" | grep -q 'المذاق الدمشقي - تقرير الاستلام الصباحي' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning/index.html?v=$stamp" | grep -q 'mazaq-brand-logo.svg?v=1' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning/morning-report-v1.js?v=$stamp" | grep -q 'REPORT_THEMES' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning/morning-report-v1.js?v=$stamp" | grep -q "accent:'#b51f2e'" || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/mazaq-supervisor-brand-v1.js?v=$stamp" | grep -q '#b51f2e' || return 1
+            bytes=$(curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/mazaq-brand-logo.svg?v=$stamp" | wc -c)
+            test "$bytes" -gt 500 || return 1
+          }
+          ok=0
+          for i in $(seq 1 30); do
+            if check_live; then ok=1; break; fi
+            sleep 10
+          done
+          test "$ok" = 1
+      - name: Record verification and remove temporary verifier
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p reports/mazaq-unified-identity-v67
+          cat > reports/mazaq-unified-identity-v67/PRODUCTION_VERIFIED.txt <<'EOF'
+          Mazaq unified identity v67
+          Repository patch verified.
+          Production live files verified after deployment.
+          Scope: Mazaq supervisor/dashboard identity, morning receiving identity, morning report identity, existing Mazaq daily-report branch preserved.
+          Grill branches are not intentionally recolored by the Mazaq supervisor overlay.
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/verify-mazaq-unified-identity-v67.yml
+          git add reports/mazaq-unified-identity-v67/PRODUCTION_VERIFIED.txt
+          git commit -m "Verify Mazaq unified identity on production"
+          git push
+      - name: Verify final production after cleanup commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_final() {
+            stamp=$(date +%s)
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/index.html?v=$stamp" | grep -q 'mazaq-supervisor-brand-v1.js?v=1' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning-shell.html?v=$stamp" | grep -q 'index.html?inner=10' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning/index.html?v=$stamp" | grep -q 'المذاق الدمشقي - تقرير الاستلام الصباحي' || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/morning/morning-report-v1.js?v=$stamp" | grep -q "accent:'#b51f2e'" || return 1
+            curl -fsSL -H 'Cache-Control: no-cache' "https://damascene-links.vercel.app/inventory/mazaq-supervisor-brand-v1.js?v=$stamp" | grep -q '#b51f2e' || return 1
+          }
+          ok=0
+          for i in $(seq 1 30); do
+            if check_final; then ok=1; break; fi
+            sleep 10
+          done
+          test "$ok" = 1
