@@ -1,0 +1,57 @@
+from pathlib import Path
+
+p = Path('inventory/morning/morning-report-v1.js')
+s = p.read_text(encoding='utf-8')
+
+def rep(old, new):
+    global s
+    if old not in s:
+        raise SystemExit('missing pattern: ' + old[:140])
+    s = s.replace(old, new, 1)
+
+rep(
+    "if(window.__morningReportV5)return;window.__morningReportV5=true;",
+    "if(window.__morningReportV6)return;window.__morningReportV6=true;"
+)
+
+rep(
+    "let reportCheckSeq=0;",
+    """let reportCheckSeq=0;
+let preparedReport=null,prepareSeq=0;
+function sharingNavigator(){try{return window.top?.navigator||navigator}catch{return navigator}}
+function sharingFile(parts,name,opts){try{return new window.top.File(parts,name,opts)}catch{return new File(parts,name,opts)}}
+async function prepareReport(date){
+ const seq=++prepareSeq;preparedReport=null;
+ const images=$('#morningShareImages'),pdf=$('#morningSharePdf'),hint=$('#morningReportHint');
+ if(images)images.disabled=true;if(pdf)pdf.disabled=true;
+ try{
+  const r=await build();if(seq!==prepareSeq||r.date!==date)return;
+  r.pdfBlob=await pdfFromJpegs(r.blobs);if(seq!==prepareSeq)return;
+  preparedReport=r;
+  if(images)images.disabled=false;if(pdf)pdf.disabled=false;
+  if(hint){const count=(r.data?.batches||[]).length,itemCount=Object.values(r.data?.totals||{}).filter(v=>Number(v)>0).length;hint.textContent=`تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف — ${ddmmyyyy(date)} — جاهز للمشاركة`}
+ }catch(e){if(seq!==prepareSeq)return;if(hint)hint.textContent=e?.message||'تعذر تجهيز التقرير للمشاركة'}
+}"""
+)
+
+old_refresh = """const count=(loaded.data?.batches||[]).length,disabled=count===0;if(images)images.disabled=disabled;if(pdf)pdf.disabled=disabled;card.classList.toggle('morning-report-empty',disabled);const itemCount=Object.values(loaded.data?.totals||{}).filter(v=>Number(v)>0).length;if(hint)hint.textContent=count?`تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف — ${ddmmyyyy(date)}`:(date===today()?'احفظ دفعة الاستلام أولًا، وبعد الحفظ تتفعّل أزرار التقرير تلقائيًا.':`لا توجد دفعات استلام محفوظة بتاريخ ${ddmmyyyy(date)}.`)"""
+new_refresh = """const count=(loaded.data?.batches||[]).length,disabled=count===0;preparedReport=null;prepareSeq++;if(images)images.disabled=true;if(pdf)pdf.disabled=true;card.classList.toggle('morning-report-empty',disabled);const itemCount=Object.values(loaded.data?.totals||{}).filter(v=>Number(v)>0).length;if(!count){if(hint)hint.textContent=date===today()?'احفظ دفعة الاستلام أولًا، وبعد الحفظ تتفعّل أزرار التقرير تلقائيًا.':`لا توجد دفعات استلام محفوظة بتاريخ ${ddmmyyyy(date)}.`}else{if(hint)hint.textContent=`جاري تجهيز تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف...`;prepareReport(date)}"""
+rep(old_refresh, new_refresh)
+
+old_share = """async function share(kind){const box=$('#morningReportActions');if(box?.classList.contains('morning-report-busy'))return;box?.classList.add('morning-report-busy');try{const r=await build(),date=ddmmyyyy(r.date),caption=`الاستلام الصباحي - ${r.branch} - ${date}`;if(kind==='images'){const files=r.blobs.map((b,i)=>new File([b],`${r.branch} ${date} ${i+1}.jpg`,{type:'image/jpeg'}));if(navigator.share){const canImages=!navigator.canShare||navigator.canShare({files});if(canImages){try{await navigator.share({files,text:caption});return}catch(e){if(e?.name==='AbortError')return}}}files.forEach(f=>download(f,f.name));alert('تم تنزيل صور التقرير لأن المشاركة المباشرة غير مدعومة على هذا الجهاز.')}else{const pdf=await pdfFromJpegs(r.blobs),file=new File([pdf],`${r.branch} ${date}.pdf`,{type:'application/pdf'});if(navigator.share){const canPdf=!navigator.canShare||navigator.canShare({files:[file]});if(canPdf){try{await navigator.share({files:[file],title:'تقرير الاستلام الصباحي',text:caption});return}catch(e){if(e?.name==='AbortError')return}}}download(file,file.name);alert('تم تنزيل ملف PDF لأن المشاركة المباشرة غير مدعومة على هذا الجهاز.')}}catch(e){if(e?.name!=='AbortError')alert(e?.message||'تعذر تجهيز تقرير الاستلام')}finally{box?.classList.remove('morning-report-busy')}}"""
+new_share = """async function share(kind){const box=$('#morningReportActions');if(box?.classList.contains('morning-report-busy'))return;box?.classList.add('morning-report-busy');try{const r=preparedReport&&preparedReport.date===reportDate()?preparedReport:await build(),date=ddmmyyyy(r.date),caption=`الاستلام الصباحي - ${r.branch} - ${date}`,nav=sharingNavigator();if(kind==='images'){const files=r.blobs.map((b,i)=>sharingFile([b],`${r.branch} ${date} ${i+1}.jpg`,{type:'image/jpeg'}));if(nav.share){const canImages=!nav.canShare||nav.canShare({files});if(canImages){try{await nav.share({files,text:caption});return}catch(e){if(e?.name==='AbortError')return;console.error('morning image share',e)}}}files.forEach(f=>download(f,f.name));alert('تعذر فتح المشاركة المباشرة؛ تم تنزيل صور التقرير.')}else{const pdf=r.pdfBlob||await pdfFromJpegs(r.blobs),file=sharingFile([pdf],`${r.branch} ${date}.pdf`,{type:'application/pdf'});if(nav.share){const canPdf=!nav.canShare||nav.canShare({files:[file]});if(canPdf){try{await nav.share({files:[file],title:'تقرير الاستلام الصباحي',text:caption});return}catch(e){if(e?.name==='AbortError')return;console.error('morning pdf share',e)}}}download(file,file.name);alert('تعذر فتح المشاركة المباشرة؛ تم تنزيل ملف PDF.')}}catch(e){if(e?.name!=='AbortError')alert(e?.message||'تعذر تجهيز تقرير الاستلام')}finally{box?.classList.remove('morning-report-busy')}}"""
+rep(old_share, new_share)
+
+p.write_text(s, encoding='utf-8')
+
+shell = Path('inventory/morning-shell.html')
+h = shell.read_text(encoding='utf-8')
+old_iframe = '<iframe id="app" title="الاستلام الصباحي" src="/inventory/morning/index.html?inner=7"></iframe>'
+new_iframe = '<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=8"></iframe>'
+if old_iframe not in h:
+    raise SystemExit('morning iframe marker not found')
+h = h.replace(old_iframe, new_iframe, 1)
+if 'morning-report-v1.js?v=4' not in h:
+    raise SystemExit('report loader marker not found')
+h = h.replace('morning-report-v1.js?v=4', 'morning-report-v1.js?v=5', 1)
+shell.write_text(h, encoding='utf-8')
