@@ -1,0 +1,55 @@
+name: Patch cumulative morning report
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-morning-cumulative-report.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Make morning report explicitly cumulative
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning/morning-report-v1.js')
+          s=p.read_text(encoding='utf-8')
+          def rep(old,new):
+              global s
+              if old not in s:
+                  raise SystemExit('missing pattern: '+old[:120])
+              s=s.replace(old,new,1)
+          rep("if(window.__morningReportV4)return;window.__morningReportV4=true;","if(window.__morningReportV5)return;window.__morningReportV5=true;")
+          marker="function groupTotals(data){const bySec=new Map(),tot=data.totals||{};(data.items||[]).forEach(i=>{const qty=Number(tot[i.id]||0);if(!(qty>0))return;if(!bySec.has(i.section))bySec.set(i.section,[]);bySec.get(i.section).push({name:i.name,unit:i.unit,qty})});return Array.from(bySec,([section,rows])=>({section,rows}))}"
+          cumulative="function cumulativeDayData(data){const totals={};for(const b of data.batches||[])for(const e of b.entries||[]){const q=Number(e.qty||0);if(q>0)totals[e.item_id]=(totals[e.item_id]||0)+q}return{...data,totals}}\n"+marker
+          rep(marker,cumulative)
+          rep("const data=loaded.data||{},branch=boot.branch?.name||'الفرع'","const raw=loaded.data||{},data=cumulativeDayData(raw),branch=boot.branch?.name||'الفرع'")
+          old="if(hint)hint.textContent=count?`${count} دفعة محفوظة بتاريخ ${ddmmyyyy(date)} — التقرير جاهز لإعادة الإرسال.`:(date===today()?'احفظ دفعة الاستلام أولًا، وبعد الحفظ تتفعّل أزرار التقرير تلقائيًا.':`لا توجد دفعات استلام محفوظة بتاريخ ${ddmmyyyy(date)}.`)"
+          new="const itemCount=Object.values(loaded.data?.totals||{}).filter(v=>Number(v)>0).length;if(hint)hint.textContent=count?`تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف — ${ddmmyyyy(date)}`:(date===today()?'احفظ دفعة الاستلام أولًا، وبعد الحفظ تتفعّل أزرار التقرير تلقائيًا.':`لا توجد دفعات استلام محفوظة بتاريخ ${ddmmyyyy(date)}.`)"
+          rep(old,new)
+          p.write_text(s,encoding='utf-8')
+
+          shell=Path('inventory/morning-shell.html')
+          h=shell.read_text(encoding='utf-8')
+          if 'morning-report-v1.js?v=3' not in h: raise SystemExit('missing report cache pattern')
+          h=h.replace('morning-report-v1.js?v=3','morning-report-v1.js?v=4',1)
+          h=h.replace('/inventory/morning/index.html?inner=6','/inventory/morning/index.html?inner=7',1)
+          shell.write_text(h,encoding='utf-8')
+          PY
+      - name: Verify patch
+        run: |
+          grep -q 'function cumulativeDayData' inventory/morning/morning-report-v1.js
+          grep -q 'تقرير اليوم الكامل' inventory/morning/morning-report-v1.js
+          grep -q 'morning-report-v1.js?v=4' inventory/morning-shell.html
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m 'Morning receiving: make reports cumulative for full day' || exit 0
+          git push
