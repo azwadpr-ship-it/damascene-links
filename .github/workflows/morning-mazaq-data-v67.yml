@@ -1,0 +1,137 @@
+name: Morning Mazaq data v67
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/morning-mazaq-data-v67.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Mazaq morning data and report fallback
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def rep(s, old, new, label):
+              if old not in s:
+                  raise SystemExit('missing marker: '+label)
+              return s.replace(old, new, 1)
+
+          # Morning receiving page
+          p = Path('inventory/morning/index.html')
+          s = p.read_text(encoding='utf-8')
+          s = rep(s,
+              "const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving',KEY='inventory_receiving_token';",
+              "const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving',SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot',KEY='inventory_receiving_token';",
+              'snapshot api')
+
+          marker = "function draftKey(){return`receiving_draft_${S.branch?.id||S.user?.branch_id||''}_${S.date||today()}`}"
+          helper = """async function enrichSnapshot(data){
+ if(S.branch?.id!=='mazaq')return data;
+ try{
+  const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;
+  const r=await fetch(SNAPSHOT_API,{method:'POST',headers:h,body:JSON.stringify({date:S.date})});
+  const d=await r.json().catch(()=>({ok:false}));
+  if(r.ok&&d.ok!==false)data.inventory_snapshot=d.data||null;
+ }catch(e){console.error('mazaq morning snapshot',e)}
+ return data
+}
+""" + marker
+          s = rep(s, marker, helper, 'snapshot helper')
+
+          old = "async function ensureCurrentDay(migrateDraft=true){const now=today();if(!S.date||S.date===now)return false;const oldKey=draftKey(),draft={...S.draft};S.date=now;if(migrateDraft&&Object.keys(draft).length){localStorage.removeItem(oldKey);S.draft=draft;localStorage.setItem(draftKey(),JSON.stringify(S.draft))}else S.draft={};const d=await api('receiving_load',{date:S.date});S.data=d.data;render();return true}"
+          new = "async function ensureCurrentDay(migrateDraft=true){const now=today();if(!S.date||S.date===now)return false;const oldKey=draftKey(),draft={...S.draft};S.date=now;if(migrateDraft&&Object.keys(draft).length){localStorage.removeItem(oldKey);S.draft=draft;localStorage.setItem(draftKey(),JSON.stringify(S.draft))}else S.draft={};const d=await api('receiving_load',{date:S.date});S.data=await enrichSnapshot(d.data);render();return true}"
+          s = rep(s, old, new, 'ensureCurrentDay')
+
+          old = "async function load(){const d=await api('receiving_load',{date:S.date});S.data=d.data;loadDraft();render()}"
+          new = "async function load(){const d=await api('receiving_load',{date:S.date});S.data=await enrichSnapshot(d.data);loadDraft();render()}"
+          s = rep(s, old, new, 'load snapshot')
+
+          old = "const d=await api('receiving_post',{date:S.date,entries,note});S.data=d.data;clearDraft();render();toast('تم حفظ دفعة الاستلام وربط الوارد بالجرد المسائي')"
+          new = "const d=await api('receiving_post',{date:S.date,entries,note});S.data=await enrichSnapshot(d.data);clearDraft();render();toast('تم حفظ دفعة الاستلام بنجاح')"
+          s = rep(s, old, new, 'save snapshot refresh')
+
+          old = "${arr.map(i=>{const total=Number(d.totals?.[i.id]||0),v=S.draft[i.id]??'';return`<div class=\"row\"><div class=\"name\">${esc(i.name)}<small>${esc(i.unit)}</small></div><div class=\"total\"><b>${fmt(total)}</b><small>إجمالي اليوم</small></div><div class=\"entry\"><input class=\"qty\" data-id=\"${i.id}\" type=\"number\" min=\"0\" step=\"0.01\" inputmode=\"decimal\" placeholder=\"0\" value=\"${esc(v)}\"><span>${esc(i.unit)}</span></div></div>`}).join('')}"
+          new = "${arr.map(i=>{const received=Number(d.totals?.[i.id]||0),snap=d.inventory_snapshot?.values?.[i.id],showSnap=S.branch?.id==='mazaq'&&snap!==undefined&&snap!==null,total=showSnap?Number(snap):received,label=showSnap?`آخر جرد ${d.inventory_snapshot?.date||''}`:'إجمالي اليوم',v=S.draft[i.id]??'';return`<div class=\"row\"><div class=\"name\">${esc(i.name)}<small>${esc(i.unit)}</small></div><div class=\"total\"><b>${fmt(total)}</b><small>${esc(label)}</small>${showSnap?`<i>استلام اليوم: ${fmt(received)}</i>`:''}</div><div class=\"entry\"><input class=\"qty\" data-id=\"${i.id}\" type=\"number\" min=\"0\" step=\"0.01\" inputmode=\"decimal\" placeholder=\"0\" value=\"${esc(v)}\"><span>${esc(i.unit)}</span></div></div>`}).join('')}"
+          s = rep(s, old, new, 'mazaq row snapshot')
+
+          old = "</div></div></section><div class=\"tools\"><div class=\"search\">"
+          new = "</div></div></section>${S.branch?.id==='mazaq'&&d.inventory_snapshot?.count?`<div class=\"snapshot-note\"><b>آخر جرد محفوظ:</b> ${esc(d.inventory_snapshot.date)} · ${d.inventory_snapshot.count} صنف. الأرقام داخل البطاقات هي رصيد الجرد المحفوظ، وخانة الإدخال مخصصة للاستلام الجديد فقط.</div>`:''}<div class=\"tools\"><div class=\"search\">"
+          s = rep(s, old, new, 'snapshot note')
+
+          old = ".total small{display:block;color:var(--muted);font-size:9px;margin-top:1px}"
+          new = ".total small{display:block;color:var(--muted);font-size:9px;margin-top:1px}.total i{display:block;color:var(--dark);font-size:9px;font-style:normal;font-weight:800;margin-top:3px}.snapshot-note{margin:10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);color:var(--dark);font-size:11px;line-height:1.65}.snapshot-note b{font-weight:900}"
+          s = rep(s, old, new, 'snapshot css')
+          p.write_text(s, encoding='utf-8')
+
+          # Morning report generator
+          p = Path('inventory/morning/morning-report-v1.js')
+          r = p.read_text(encoding='utf-8')
+          r = rep(r, "if(window.__morningReportV6)return;window.__morningReportV6=true;", "if(window.__morningReportV7)return;window.__morningReportV7=true;", 'report guard')
+          r = rep(r,
+              "const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving';",
+              "const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving';\nconst SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot';",
+              'report snapshot api')
+
+          marker = "function visibleDate(){const t=$('.hero .date')?.textContent||'';const m=t.match(/\\d{4}-\\d{2}-\\d{2}/);return m?.[0]||today()}"
+          helper = """async function snapshot(date){
+ const token=localStorage.getItem(KEY)||'';if(!token)return null;
+ const r=await fetch(SNAPSHOT_API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({date})});
+ const d=await r.json().catch(()=>({ok:false}));if(!r.ok||d.ok===false)return null;return d.data||null
+}
+async function loadDay(date){const loaded=await post('receiving_load',{date});try{loaded.data.inventory_snapshot=await snapshot(date)}catch(e){console.error('morning report snapshot',e)}return loaded}
+function reportItemCount(data){const batches=(data?.batches||[]).length;if(batches)return Object.values(data?.totals||{}).filter(v=>Number(v)>0).length;return Number(data?.inventory_snapshot?.count||0)}
+""" + marker
+          r = rep(r, marker, helper, 'report snapshot helpers')
+
+          old = "const r=await build();if(seq!==prepareSeq||r.date!==date)return;\n  r.pdfBlob=await pdfFromJpegs(r.blobs);if(seq!==prepareSeq)return;\n  preparedReport=r;\n  if(images)images.disabled=false;if(pdf)pdf.disabled=false;\n  if(hint){const count=(r.data?.batches||[]).length,itemCount=Object.values(r.data?.totals||{}).filter(v=>Number(v)>0).length;hint.textContent=`تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف — ${ddmmyyyy(date)} — جاهز للمشاركة`}"
+          new = "const r=await build();if(seq!==prepareSeq||r.date!==date)return;\n  r.pdfBlob=await pdfFromJpegs(r.blobs);if(seq!==prepareSeq)return;\n  preparedReport=r;\n  if(images)images.disabled=false;if(pdf)pdf.disabled=false;\n  if(hint){const count=(r.data?.batches||[]).length,itemCount=reportItemCount(r.data),fallback=!count&&itemCount>0;hint.textContent=fallback?`تقرير الحالة الصباحية — آخر جرد ${r.data.inventory_snapshot?.date||''} / ${itemCount} صنف — جاهز للمشاركة`:`تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف — ${ddmmyyyy(date)} — جاهز للمشاركة`}"
+          r = rep(r, old, new, 'prepare hint')
+
+          r = rep(r, "const loaded=await post('receiving_load',{date});", "const loaded=await loadDay(date);", 'refresh loadDay')
+
+          old = "const count=(loaded.data?.batches||[]).length,disabled=count===0;preparedReport=null;prepareSeq++;if(images)images.disabled=true;if(pdf)pdf.disabled=true;card.classList.toggle('morning-report-empty',disabled);const itemCount=Object.values(loaded.data?.totals||{}).filter(v=>Number(v)>0).length;if(!count){if(hint)hint.textContent=date===today()?'احفظ دفعة الاستلام أولًا، وبعد الحفظ تتفعّل أزرار التقرير تلقائيًا.':`لا توجد دفعات استلام محفوظة بتاريخ ${ddmmyyyy(date)}.`}else{if(hint)hint.textContent=`جاري تجهيز تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف...`;prepareReport(date)}"
+          new = "const count=(loaded.data?.batches||[]).length,itemCount=reportItemCount(loaded.data),fallback=!count&&itemCount>0,disabled=!count&&!fallback;preparedReport=null;prepareSeq++;if(images)images.disabled=true;if(pdf)pdf.disabled=true;card.classList.toggle('morning-report-empty',disabled);if(disabled){if(hint)hint.textContent=date===today()?'لا توجد دفعات استلام أو جرد محفوظ لهذا اليوم حتى الآن.':`لا توجد بيانات محفوظة بتاريخ ${ddmmyyyy(date)}.`}else if(fallback){if(hint)hint.textContent=`لا توجد دفعات استلام بعد — سيتم إنشاء تقرير حالة صباحية من آخر جرد محفوظ بتاريخ ${loaded.data.inventory_snapshot?.date||''} (${itemCount} صنف).`;prepareReport(date)}else{if(hint)hint.textContent=`جاري تجهيز تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف...`;prepareReport(date)}"
+          r = rep(r, old, new, 'refresh fallback')
+
+          old = "function groupTotals(data){const bySec=new Map(),tot=data.totals||{};(data.items||[]).forEach(i=>{const qty=Number(tot[i.id]||0);if(!(qty>0))return;if(!bySec.has(i.section))bySec.set(i.section,[]);bySec.get(i.section).push({name:i.name,unit:i.unit,qty})});return Array.from(bySec,([section,rows])=>({section,rows}))}"
+          new = "function groupTotals(data){const bySec=new Map(),hasBatches=(data.batches||[]).length>0,tot=hasBatches?(data.totals||{}):(data.inventory_snapshot?.values||{});(data.items||[]).forEach(i=>{const raw=tot[i.id];if(raw===undefined||raw===null||raw==='')return;const qty=Number(raw);if(!Number.isFinite(qty))return;if(!hasBatches&&qty===0)return;if(hasBatches&&!(qty>0))return;if(!bySec.has(i.section))bySec.set(i.section,[]);bySec.get(i.section).push({name:i.name,unit:i.unit,qty})});return Array.from(bySec,([section,rows])=>({section,rows}))}"
+          r = rep(r, old, new, 'group totals fallback')
+
+          old = "function drawSummary(ctx,data){const batches=data.batches||[],tot=data.totals||{},items=Object.values(tot).filter(v=>Number(v)>0).length,last=batches[0]?.created_at?time(batches[0].created_at):'—';rounded(ctx,55,226,970,118,18,'#e5f3f4','#cfe2e3');const cells=[['دفعات محفوظة',String(batches.length)],['أصناف مستلمة',String(items)],['آخر استلام',last]];cells.forEach((c,i)=>{const cx=55+i*(970/3),cw=970/3;ctx.textAlign='center';ctx.fillStyle='#0f6f78';ctx.font='700 32px Tahoma,Arial';ctx.fillText(c[1],cx+cw/2,275);ctx.fillStyle='#63787a';ctx.font='20px Tahoma,Arial';ctx.fillText(c[0],cx+cw/2,314);if(i<2){ctx.strokeStyle='#cfe2e3';ctx.beginPath();ctx.moveTo(cx+cw,244);ctx.lineTo(cx+cw,326);ctx.stroke()}})}"
+          new = "function drawSummary(ctx,data){const batches=data.batches||[],fallback=!batches.length&&Number(data.inventory_snapshot?.count||0)>0,tot=fallback?(data.inventory_snapshot?.values||{}):(data.totals||{}),items=fallback?Number(data.inventory_snapshot?.count||0):Object.values(tot).filter(v=>Number(v)>0).length,last=fallback?ddmmyyyy(data.inventory_snapshot?.date||''):batches[0]?.created_at?time(batches[0].created_at):'—';rounded(ctx,55,226,970,118,18,'#e5f3f4','#cfe2e3');const cells=fallback?[['دفعات استلام','0'],['أصناف آخر جرد',String(items)],['تاريخ آخر جرد',last]]:[['دفعات محفوظة',String(batches.length)],['أصناف مستلمة',String(items)],['آخر استلام',last]];cells.forEach((c,i)=>{const cx=55+i*(970/3),cw=970/3;ctx.textAlign='center';ctx.fillStyle='#0f6f78';ctx.font='700 32px Tahoma,Arial';ctx.fillText(c[1],cx+cw/2,275);ctx.fillStyle='#63787a';ctx.font='20px Tahoma,Arial';ctx.fillText(c[0],cx+cw/2,314);if(i<2){ctx.strokeStyle='#cfe2e3';ctx.beginPath();ctx.moveTo(cx+cw,244);ctx.lineTo(cx+cw,326);ctx.stroke()}})}"
+          r = rep(r, old, new, 'summary fallback')
+
+          old = "async function build(){const date=reportDate(),[boot,loaded]=await Promise.all([post('bootstrap'),post('receiving_load',{date})]);const raw=loaded.data||{},data=cumulativeDayData(raw),branch=boot.branch?.name||'الفرع',user=boot.user?.display_name||boot.user?.username||'',groups=groupTotals(data);if(!(data.batches||[]).length)throw Error('لا توجد دفعات استلام محفوظة لهذا اليوم');if(!groups.length)throw Error('لا توجد كميات مستلمة في التقرير');const cols=splitColumns(groups,16),pageCount=Math.max(1,Math.ceil(cols.length/2)),canvases=[];for(let i=0;i<pageCount;i++)canvases.push(canvasPage(branch,date,user,data,cols[i*2]||[],cols[i*2+1]||[],i+1,pageCount));const blobs=[];for(const c of canvases)blobs.push(await toBlob(c));return{date,branch,user,data,blobs}}"
+          new = "async function build(){const date=reportDate(),[boot,loaded]=await Promise.all([post('bootstrap'),loadDay(date)]);const raw=loaded.data||{},data=cumulativeDayData(raw),branch=boot.branch?.name||'الفرع',user=boot.user?.display_name||boot.user?.username||'',groups=groupTotals(data),fallback=!(data.batches||[]).length&&Number(data.inventory_snapshot?.count||0)>0;if(!(data.batches||[]).length&&!fallback)throw Error('لا توجد دفعات استلام أو جرد محفوظ لهذا اليوم');if(!groups.length)throw Error(fallback?'لا توجد قيم محفوظة في آخر جرد':'لا توجد كميات مستلمة في التقرير');const cols=splitColumns(groups,16),pageCount=Math.max(1,Math.ceil(cols.length/2)),canvases=[];for(let i=0;i<pageCount;i++)canvases.push(canvasPage(branch,date,user,data,cols[i*2]||[],cols[i*2+1]||[],i+1,pageCount));const blobs=[];for(const c of canvases)blobs.push(await toBlob(c));return{date,branch,user,data,blobs}}"
+          r = rep(r, old, new, 'build fallback')
+          p.write_text(r, encoding='utf-8')
+
+          # Bust caches in the shell
+          p = Path('inventory/morning-shell.html')
+          h = p.read_text(encoding='utf-8')
+          h = rep(h, 'index.html?inner=9', 'index.html?inner=10', 'inner cache')
+          h = rep(h, 'morning-report-v1.js?v=5', 'morning-report-v1.js?v=6', 'report cache')
+          p.write_text(h, encoding='utf-8')
+          PY
+      - name: Verify patch
+        run: |
+          grep -q 'daily-inventory-morning-snapshot' inventory/morning/index.html
+          grep -q 'آخر جرد محفوظ' inventory/morning/index.html
+          grep -q '__morningReportV7' inventory/morning/morning-report-v1.js
+          grep -q 'reportItemCount' inventory/morning/morning-report-v1.js
+          grep -q 'index.html?inner=10' inventory/morning-shell.html
+          grep -q 'morning-report-v1.js?v=6' inventory/morning-shell.html
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/morning-mazaq-data-v67.yml
+          git add inventory/morning/index.html inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m "Fix Mazaq morning receiving data and reporting"
+          git push
