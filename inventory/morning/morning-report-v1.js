@@ -1,6 +1,7 @@
 (()=>{'use strict';
-if(window.__morningReportV8)return;window.__morningReportV8=true;
+if(window.__morningReportV9)return;window.__morningReportV9=true;
 const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving';
+const FAMILY_LOAD_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_load_v1',FAMILY_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indua254anhpcGt2aW9lZ3NrZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgxMjMsImV4cCI6MjEwMjAzNDEyM30.KV_P5zHGaVzRiJ8tD8VkMiPaMKFrw8HHyKwbqUVktZ4';
 const SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot';
 const KEY='inventory_receiving_token';
 const $=s=>document.querySelector(s);
@@ -10,7 +11,7 @@ function today(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh'
 function dayName(d){try{return new Intl.DateTimeFormat('ar-SA',{weekday:'long',timeZone:'Asia/Riyadh'}).format(new Date(d+'T12:00:00+03:00'))}catch{return''}}
 function hijri(d){try{return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Riyadh'}).format(new Date(d+'T12:00:00+03:00'))}catch{return''}}
 function time(v){try{return new Intl.DateTimeFormat('ar-SA',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'}).format(new Date(v))}catch{return''}}
-async function post(action,p={}){const token=localStorage.getItem(KEY)||'';if(!token)throw Error('سجّل الدخول أولًا');const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action,...p})});const d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(!r.ok||d.ok===false)throw Error(d.error||'تعذر تحميل تقرير الاستلام');return d}
+async function post(action,p={}){const token=localStorage.getItem(KEY)||'';if(!token)throw Error('سجّل الدخول أولًا');if(window.__morningReceivingState?.branch?.id==='families'&&action==='receiving_load'){const r=await fetch(FAMILY_LOAD_RPC,{method:'POST',headers:{'content-type':'application/json',apikey:FAMILY_ANON,authorization:'Bearer '+FAMILY_ANON},body:JSON.stringify({p_token:token,p_date:p.date})});const d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(!r.ok||d.ok===false){const raw=String(d.error||d.message||'تعذر تحميل تقرير الاستلام');if(raw.includes('UNAUTHORIZED'))throw Error('انتهت الجلسة، سجّل الدخول من جديد');throw Error(raw)}return d}const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action,...p})});const d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(!r.ok||d.ok===false)throw Error(d.error||'تعذر تحميل تقرير الاستلام');return d}
 async function snapshot(date){
  const token=localStorage.getItem(KEY)||'';if(!token)return null;
  const r=await fetch(SNAPSHOT_API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({date})});

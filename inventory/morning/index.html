@@ -56,6 +56,7 @@
 <script>
 (()=>{'use strict';
 const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving',SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot',KEY='inventory_receiving_token';
+const FAMILY_LOAD_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_load_v1',FAMILY_POST_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_post_v1',FAMILY_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indua254anhpcGt2aW9lZ3NrZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgxMjMsImV4cCI6MjEwMjAzNDEyM30.KV_P5zHGaVzRiJ8tD8VkMiPaMKFrw8HHyKwbqUVktZ4';
 const S={token:localStorage.getItem(KEY)||'',user:null,branch:null,data:null,date:null,draft:{},query:''};
 let dateSyncing=false;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
@@ -64,7 +65,16 @@ function dateLabel(d){try{return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-uma
 function fmt(n){const x=Number(n||0);return Number.isInteger(x)?String(x):String(Math.round(x*100)/100)}
 function time(v){try{return new Intl.DateTimeFormat('ar-SA',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Riyadh'}).format(new Date(v))}catch{return''}}
 function toast(m,bad=false){const t=$('#toast');t.textContent=m;t.className='toast show'+(bad?' bad':'');clearTimeout(window.__mt);window.__mt=setTimeout(()=>t.className='toast',2600)}
-async function api(action,p={}){const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify({action,...p})}),d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(r.status===401&&action!=='login'){signOut(false);throw Error(d.error||'انتهت الجلسة')}if(!r.ok||d.ok===false)throw Error(d.error||'حدث خطأ');return d}
+async function api(action,p={}){
+ if(S.branch?.id==='families'&&(action==='receiving_load'||action==='receiving_post')){
+  const endpoint=action==='receiving_load'?FAMILY_LOAD_RPC:FAMILY_POST_RPC;
+  const payload=action==='receiving_load'?{p_token:S.token,p_date:p.date}:{p_token:S.token,p_date:p.date,p_note:p.note||'',p_entries:p.entries||{}};
+  const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',apikey:FAMILY_ANON,authorization:'Bearer '+FAMILY_ANON},body:JSON.stringify(payload)}),d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));
+  if(!r.ok||d.ok===false){const raw=String(d.error||d.message||'حدث خطأ');if(raw.includes('UNAUTHORIZED')){signOut(false);throw Error('انتهت الجلسة، سجّل الدخول من جديد')}if(raw.includes('REPORT_SUBMITTED'))throw Error('تم اعتماد جرد هذا اليوم، لا يمكن تعديل استلامات الصباح بعد الاعتماد');if(raw.includes('ITEM_FORBIDDEN'))throw Error('يوجد صنف غير تابع لهذا المطعم');if(raw.includes('EMPTY_BATCH'))throw Error('أدخل كمية مستلمة واحدة على الأقل');if(raw.includes('INVALID_QTY'))throw Error('إحدى الكميات غير صحيحة');throw Error(raw)}
+  return d
+ }
+ const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify({action,...p})}),d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(r.status===401&&action!=='login'){signOut(false);throw Error(d.error||'انتهت الجلسة')}if(!r.ok||d.ok===false)throw Error(d.error||'حدث خطأ');return d
+}
 async function enrichSnapshot(data){
  if(S.branch?.id!=='mazaq')return data;
  try{
