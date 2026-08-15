@@ -1,0 +1,163 @@
+name: Mazaq unified identity v67
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/mazaq-unified-identity-v67.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Mazaq brand asset and patch interfaces
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, base64, mimetypes, subprocess, sys
+
+          root = Path('.')
+          candidates = []
+          image_exts = {'.png','.jpg','.jpeg','.webp','.svg'}
+          for f in root.rglob('*'):
+              if not f.is_file() or f.suffix.lower() not in image_exts:
+                  continue
+              sp = f.as_posix()
+              if '/node_modules/' in sp or sp.startswith('node_modules/') or 'mazaq-brand-logo' in sp:
+                  continue
+              low = sp.lower()
+              name_score = 0
+              if 'mazaq' in low or 'mazak' in low: name_score += 100
+              if 'taste' in low and 'damascus' in low: name_score += 95
+              if 'مذاق' in sp: name_score += 100
+              if 'logo' in low: name_score += 10
+              if name_score:
+                  candidates.append((name_score, f))
+          if not candidates:
+              try:
+                  from PIL import Image
+              except Exception:
+                  subprocess.run([sys.executable,'-m','pip','install','pillow','-q'], check=True)
+                  from PIL import Image
+              for f in root.rglob('*'):
+                  if not f.is_file() or f.suffix.lower() not in {'.png','.jpg','.jpeg','.webp'}:
+                      continue
+                  sp=f.as_posix()
+                  if '/node_modules/' in sp or sp.startswith('node_modules/') or 'inventory-brands' in sp:
+                      continue
+                  try:
+                      im=Image.open(f).convert('RGB'); w,h=im.size
+                      if min(w,h)<120: continue
+                      ratio=w/h
+                      if ratio<0.78 or ratio>1.28: continue
+                      im.thumbnail((72,72)); px=list(im.getdata()); n=max(1,len(px))
+                      white=sum(1 for r,g,b in px if r>225 and g>225 and b>225)/n
+                      red=sum(1 for r,g,b in px if r>115 and r>g*1.35 and r>b*1.25)/n
+                      dark=sum(1 for r,g,b in px if r<95 and g<95 and b<95)/n
+                      if white<0.42 or red<0.012 or dark<0.012: continue
+                      score=white*40+red*220+dark*80-(abs(1-ratio)*15)
+                      candidates.append((score,f))
+                  except Exception:
+                      pass
+          out = Path('inventory/mazaq-brand-logo.svg')
+          if candidates:
+              candidates.sort(key=lambda x:x[0], reverse=True); src=candidates[0][1]
+              mime=mimetypes.guess_type(src.name)[0] or ('image/svg+xml' if src.suffix.lower()=='.svg' else 'image/png')
+              data=base64.b64encode(src.read_bytes()).decode('ascii')
+              svg=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250" role="img" aria-label="المذاق الدمشقي"><rect width="250" height="250" fill="#fff"/><image href="data:{mime};base64,{data}" x="0" y="0" width="250" height="250" preserveAspectRatio="xMidYMid meet"/></svg>'''
+              print('Mazaq brand source:', src)
+          else:
+              svg='''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250" role="img" aria-label="المذاق الدمشقي"><rect width="250" height="250" fill="#fff"/><g transform="translate(125 82)"><path d="M0-68 23-48 55-52 58-20 82 0 62 25 68 55 35 60 15 83-12 62-43 67-48 34-74 14-58-14-64-45-30-49Z" fill="#fff" stroke="#1d1d1f" stroke-width="6"/><path d="M-42-36 43-48 50 35-35 44Z" fill="#c62032" stroke="#1d1d1f" stroke-width="5"/><path d="M-27-26 17-40 35-8 15 49-12 35-31-5Z" fill="#fff" stroke="#1d1d1f" stroke-width="4"/><path d="M-11-44 C-7-58 4-61 9-48 C13-37 2-31-3-38" fill="none" stroke="#c62032" stroke-width="5" stroke-linecap="round"/><path d="M-12-18 9-25 M-14-5 12-12 M-12 8 10 1 M-8 21 7 15" stroke="#c62032" stroke-width="3" stroke-linecap="round"/></g><text x="125" y="190" text-anchor="middle" font-family="Tahoma,Arial,sans-serif" font-size="18" font-weight="700" fill="#1d1d1f">المذاق الدمشقي</text><text x="125" y="209" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#333">Taste of Damascus</text></svg>'''
+              print('Mazaq brand source: generated fallback SVG')
+          out.write_text(svg,encoding='utf-8')
+
+          brand_js = r'''(()=>{'use strict';if(window.__mazaqSupervisorBrandV1)return;window.__mazaqSupervisorBrandV1=true;const LOGO='/inventory/mazaq-brand-logo.svg?v=1';const frame=document.querySelector('iframe');if(!frame)return;function install(){let w,d;try{w=frame.contentWindow;d=frame.contentDocument}catch{return}if(!d||!d.documentElement||!d.body)return;if(!d.getElementById('mazaq-supervisor-brand-style')){const s=d.createElement('style');s.id='mazaq-supervisor-brand-style';s.textContent=`html.mazaq-supervisor-view{--accent:#b51f2e!important;--primary:#b51f2e!important;--gold:#b51f2e!important;--dark:#181818!important;--ink:#202020!important;--muted:#666!important;--line:#d6d6d6!important;--soft:#f3e8ea!important;--bg:#f1f1f1!important;--card:#fff!important}html.mazaq-supervisor-view,html.mazaq-supervisor-view body{background:#f1f1f1!important;color:#202020!important}html.mazaq-supervisor-view h1,html.mazaq-supervisor-view h2,html.mazaq-supervisor-view h3,html.mazaq-supervisor-view [class*="title"]{color:#1d1d1f!important}html.mazaq-supervisor-view button[class*="primary"],html.mazaq-supervisor-view .primary,html.mazaq-supervisor-view [class*="btn-primary"],html.mazaq-supervisor-view [class*="active"]{background:#b51f2e!important;border-color:#b51f2e!important;color:#fff!important}html.mazaq-supervisor-view [class*="card"],html.mazaq-supervisor-view section,html.mazaq-supervisor-view article{border-color:#d8d8d8!important}.mazaq-brand-strip{display:flex;align-items:center;justify-content:flex-start;gap:12px;direction:rtl;background:linear-gradient(135deg,#fff,#f6f6f6);border:1px solid #d5d5d5;border-right:5px solid #b51f2e;border-radius:16px;padding:10px 14px;margin:0 0 12px;box-shadow:0 8px 24px rgba(0,0,0,.06)}.mazaq-brand-strip img{width:52px;height:52px;object-fit:contain;flex:0 0 52px;border-radius:8px;background:#fff}.mazaq-brand-strip .mazaq-brand-title{font-size:17px;font-weight:900;color:#1d1d1f;line-height:1.35;text-align:right}.mazaq-brand-strip .mazaq-brand-title b{color:#b51f2e}.mazaq-branch-card{position:relative!important;border-color:#cfcfcf!important;border-top:4px solid #b51f2e!important;background:linear-gradient(145deg,#fff,#f5f5f5)!important;box-shadow:0 8px 22px rgba(0,0,0,.06)!important}.mazaq-branch-card .mazaq-card-logo{position:absolute;top:10px;right:10px;width:38px;height:38px;object-fit:contain;border-radius:7px;background:#fff;z-index:2}.mazaq-branch-card button,.mazaq-branch-card [class*="button"],.mazaq-branch-card [class*="btn"]{border-color:#b51f2e!important}@media(max-width:650px){.mazaq-brand-strip{padding:8px 10px;border-radius:13px}.mazaq-brand-strip img{width:46px;height:46px;flex-basis:46px}.mazaq-brand-strip .mazaq-brand-title{font-size:15px}}`;d.head.appendChild(s)}let busy=false,mo;function closestCard(el){let n=el;for(let i=0;i<6&&n&&n!==d.body;i++,n=n.parentElement){const c=String(n.className||'');if(/card|branch|panel|tile|box/i.test(c)||['SECTION','ARTICLE'].includes(n.tagName))return n}return el.parentElement||el}function apply(){if(busy)return;busy=true;if(mo)mo.disconnect();try{const bodyText=(d.body.innerText||'').replace(/\s+/g,' ');const heads=[...d.querySelectorAll('h1,h2,h3,[class*="title"],[class*="heading"]')].map(x=>(x.textContent||'').trim()).filter(Boolean);const headMazaq=heads.some(x=>x.includes('المذاق الدمشقي'));const headOther=heads.some(x=>x.includes('المشويات أفراد')||x.includes('المشويات عوائل'));let urlMazaq=false;try{urlMazaq=/mazaq/i.test(w.location.href)}catch{}const full=urlMazaq||(headMazaq&&!headOther&&bodyText.includes('المذاق الدمشقي'));d.documentElement.classList.toggle('mazaq-supervisor-view',full);[...d.querySelectorAll('h1,h2,h3,h4,strong,b,span,div')].filter(el=>(el.textContent||'').trim()==='المذاق الدمشقي').slice(0,8).forEach(el=>{const card=closestCard(el);if(!card)return;card.classList.add('mazaq-branch-card');if(!card.querySelector('.mazaq-card-logo')){const img=d.createElement('img');img.src=LOGO;img.alt='المذاق الدمشقي';img.className='mazaq-card-logo';card.appendChild(img)}});let strip=d.getElementById('mazaqBrandStrip');if(full){const daily=bodyText.includes('الجرد اليومي');const title=daily?'المذاق الدمشقي - الجرد اليومي':'المذاق الدمشقي - لوحة المشرف';if(!strip){strip=d.createElement('div');strip.id='mazaqBrandStrip';strip.className='mazaq-brand-strip';strip.innerHTML=`<img src="${LOGO}" alt="المذاق الدمشقي"><div class="mazaq-brand-title"></div>`;const host=d.querySelector('main,.shell,.container,[class*="content"]')||d.body;host.insertBefore(strip,host.firstChild)}const t=strip.querySelector('.mazaq-brand-title');if(t&&t.textContent!==title)t.innerHTML=`<b>المذاق الدمشقي</b> - ${daily?'الجرد اليومي':'لوحة المشرف'}`}else if(strip){strip.remove()}}finally{busy=false;if(mo)mo.observe(d.body,{childList:true,subtree:true})}}let queued=false;mo=new w.MutationObserver(()=>{if(queued)return;queued=true;w.requestAnimationFrame(()=>{queued=false;apply()})});apply();mo.observe(d.body,{childList:true,subtree:true})}frame.addEventListener('load',()=>setTimeout(install,30));if(frame.contentDocument?.readyState==='complete'||frame.contentDocument?.readyState==='interactive')setTimeout(install,30)})();'''
+          Path('inventory/mazaq-supervisor-brand-v1.js').write_text(brand_js,encoding='utf-8')
+          shell = Path('inventory/index.html'); sh=shell.read_text(encoding='utf-8'); loader='<script src="/inventory/mazaq-supervisor-brand-v1.js?v=1"></script>'
+          if loader not in sh:
+              if '</body>' not in sh: raise SystemExit('inventory/index.html body marker not found')
+              sh=sh.replace('</body>',loader+'\n</body>',1)
+          shell.write_text(sh,encoding='utf-8')
+
+          p=Path('inventory/morning/index.html'); s=p.read_text(encoding='utf-8')
+          old="function applyTheme(){if(S.branch?.id==='mazaq'){document.documentElement.style.setProperty('--accent','#98242c');document.documentElement.style.setProperty('--dark','#6f171d');document.documentElement.style.setProperty('--soft','#f7eff0');document.querySelector('meta[name=theme-color]').content='#98242c'}else{document.documentElement.style.setProperty('--accent','#b88932');document.documentElement.style.setProperty('--dark','#8e6524');document.documentElement.style.setProperty('--soft','#fff8ec');document.querySelector('meta[name=theme-color]').content='#b88932'}}"
+          new="""function applyTheme(){const root=document.documentElement,isMazaq=S.branch?.id==='mazaq',brand=document.querySelector('.topbrand img'),title=document.querySelector('.top-title b'),sub=document.querySelector('.top-title small'),theme=document.querySelector('meta[name=theme-color]');root.dataset.branch=isMazaq?'mazaq':'grill';if(isMazaq){root.style.setProperty('--accent','#b51f2e');root.style.setProperty('--dark','#181818');root.style.setProperty('--bg','#f1f1f1');root.style.setProperty('--card','#ffffff');root.style.setProperty('--ink','#202020');root.style.setProperty('--muted','#666666');root.style.setProperty('--line','#d6d6d6');root.style.setProperty('--soft','#f3e8ea');if(theme)theme.content='#b51f2e';if(brand){brand.src='/inventory/mazaq-brand-logo.svg?v=1';brand.alt='المذاق الدمشقي';brand.classList.add('mazaq-logo')}if(title)title.textContent='المذاق الدمشقي - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة'}else{root.style.setProperty('--accent','#b88932');root.style.setProperty('--dark','#8e6524');root.style.setProperty('--soft','#fff8ec');if(theme)theme.content='#b88932';if(brand){brand.src='/inventory/inventory-brands-banner.webp?v=9';brand.alt='مطاعم الدمشقية';brand.classList.remove('mazaq-logo')}if(title)title.textContent='الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة'}}"""
+          if old not in s: raise SystemExit('morning applyTheme marker not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+
+          ms=Path('inventory/morning-shell.html'); h=ms.read_text(encoding='utf-8')
+          if 'index.html?inner=9' not in h: raise SystemExit('morning inner cache marker not found')
+          h=h.replace('index.html?inner=9','index.html?inner=10',1)
+          if 'morning-report-v1.js?v=5' not in h: raise SystemExit('morning report cache marker not found')
+          h=h.replace('morning-report-v1.js?v=5','morning-report-v1.js?v=6',1)
+          marker='.toast{background:#173a3e!important}\n'
+          extra=r'''html[data-branch="mazaq"]{--accent:#b51f2e!important;--dark:#181818!important;--bg:#f1f1f1!important;--card:#fff!important;--ink:#202020!important;--muted:#666!important;--line:#d6d6d6!important;--soft:#f3e8ea!important;--shadow:0 10px 28px rgba(0,0,0,.07)!important}
+html[data-branch="mazaq"],html[data-branch="mazaq"] body{background:#f1f1f1!important;color:#202020!important}
+html[data-branch="mazaq"] .top{background:rgba(255,255,255,.97)!important;border-bottom-color:#d4d4d4!important;box-shadow:0 2px 14px rgba(0,0,0,.06)!important}
+html[data-branch="mazaq"] .topbrand{gap:10px!important}
+html[data-branch="mazaq"] .topbrand img.mazaq-logo{width:52px!important;max-width:52px!important;height:52px!important;object-fit:contain!important;flex:0 0 52px!important;border-radius:8px!important;background:#fff!important}
+html[data-branch="mazaq"] .top-title{border-right:1px solid #d6d6d6!important;padding-right:10px!important}
+html[data-branch="mazaq"] .top-title b{color:#1d1d1f!important;font-size:14px!important;font-weight:900!important}
+html[data-branch="mazaq"] .top-title small{color:#666!important}
+html[data-branch="mazaq"] .hero{background:linear-gradient(135deg,#f2e5e8,#fff)!important;border-color:#d6d6d6!important;border-top:4px solid #b51f2e!important;box-shadow:0 10px 28px rgba(0,0,0,.07)!important}
+html[data-branch="mazaq"] .purpose{background:#181818!important;border-color:#181818!important;color:#fff!important}
+html[data-branch="mazaq"] .stat,html[data-branch="mazaq"] .section,html[data-branch="mazaq"] .note-card,html[data-branch="mazaq"] .history,html[data-branch="mazaq"] .morning-report-actions{background:#fff!important;border-color:#d6d6d6!important}
+html[data-branch="mazaq"] .stat strong,html[data-branch="mazaq"] .total b,html[data-branch="mazaq"] .batch-time{color:#b51f2e!important}
+html[data-branch="mazaq"] .section summary{background:linear-gradient(90deg,#f3e8ea,#fff)!important;color:#1d1d1f!important}
+html[data-branch="mazaq"] .row{border-bottom-color:#e4e4e4!important}
+html[data-branch="mazaq"] .total{background:#f3e8ea!important;border-color:#d6d6d6!important}
+html[data-branch="mazaq"] .btn.primary{background:#b51f2e!important;border-color:#b51f2e!important;color:#fff!important}
+html[data-branch="mazaq"] .morning-date-shortcut{background:#f2f2f2!important;color:#202020!important;border-color:#d6d6d6!important}
+html[data-branch="mazaq"] .bottom{background:rgba(255,255,255,.98)!important;border-top-color:#d6d6d6!important;box-shadow:0 -5px 20px rgba(0,0,0,.06)!important}
+html[data-branch="mazaq"] .toast{background:#242424!important}
+@media(max-width:650px){html[data-branch="mazaq"] .topbrand img.mazaq-logo{width:46px!important;max-width:46px!important;height:46px!important;flex-basis:46px!important}html[data-branch="mazaq"] .top-title b{font-size:12px!important}}
+'''
+          if extra not in h:
+              if marker not in h: raise SystemExit('morning shell css marker not found')
+              h=h.replace(marker,marker+extra,1)
+          ms.write_text(h,encoding='utf-8')
+
+          rp=Path('inventory/morning/morning-report-v1.js'); r=rp.read_text(encoding='utf-8')
+          r=r.replace('if(window.__morningReportV6)return;window.__morningReportV6=true;','if(window.__morningReportV7)return;window.__morningReportV7=true;',1)
+          if 'const REPORT_THEMES=' not in r:
+              anchor='function drawHeader(ctx,branch,date,user,page,total)'
+              if anchor not in r: raise SystemExit('morning report drawHeader marker not found')
+              theme_code="""const REPORT_THEMES={grill:{accent:'#0f6f78',dark:'#0a4f57',ink:'#183638',muted:'#63787a',line:'#cfe2e3',soft:'#e5f3f4',card:'#fbffff',rowLine:'#dcebea',page:'#f7fbfb',footer:'#7f9697'},mazaq:{accent:'#b51f2e',dark:'#181818',ink:'#242424',muted:'#666666',line:'#d5d5d5',soft:'#f1e4e7',card:'#ffffff',rowLine:'#e4e4e4',page:'#f4f4f4',footer:'#666666'}};let activeTheme=REPORT_THEMES.grill,activeLogo=null;async function loadMazaqReportLogo(on){if(!on)return null;try{const img=new Image();img.src='/inventory/mazaq-brand-logo.svg?v=1';await img.decode();return img}catch{return null}}\n"""
+              r=r.replace(anchor,theme_code+anchor,1)
+              start=r.index('function drawHeader(ctx,branch,date,user,page,total)'); end=r.index('const toBlob=',start)
+              if start<0 or end<0: raise SystemExit('morning report drawing range not found')
+              block=r[start:end]
+              for a,b in {"'#0a4f57'":'activeTheme.dark',"'#183638'":'activeTheme.ink',"'#63787a'":'activeTheme.muted',"'#cfe2e3'":'activeTheme.line',"'#e5f3f4'":'activeTheme.soft',"'#0f6f78'":'activeTheme.accent',"'#fbffff'":'activeTheme.card',"'#dcebea'":'activeTheme.rowLine',"'#f7fbfb'":'activeTheme.page',"'#7f9697'":'activeTheme.footer'}.items(): block=block.replace(a,b)
+              oldh="function drawHeader(ctx,branch,date,user,page,total){ctx.direction='rtl';ctx.textAlign='right';ctx.fillStyle=activeTheme.dark;ctx.font='700 48px Tahoma,Arial';ctx.fillText(branch,1020,92);ctx.fillStyle=activeTheme.ink;ctx.font='700 31px Tahoma,Arial';ctx.fillText('تقرير الاستلام الصباحي',1020,140);"
+              newh="function drawHeader(ctx,branch,date,user,page,total){ctx.direction='rtl';ctx.textAlign='right';const mazaq=!!activeLogo,titleX=mazaq?900:1020;if(mazaq){ctx.drawImage(activeLogo,930,42,76,76)}ctx.fillStyle=activeTheme.dark;ctx.font=mazaq?'700 31px Tahoma,Arial':'700 48px Tahoma,Arial';ctx.fillText(mazaq?'المذاق الدمشقي - تقرير الاستلام الصباحي':branch,titleX,92);ctx.fillStyle=activeTheme.ink;ctx.font='700 31px Tahoma,Arial';ctx.fillText('تقرير الاستلام الصباحي',titleX,140);"
+              if oldh not in block: raise SystemExit('morning report header replacement marker not found')
+              block=block.replace(oldh,newh,1); r=r[:start]+block+r[end:]
+              oldbuild="async function build(){const date=reportDate(),[boot,loaded]=await Promise.all([post('bootstrap'),post('receiving_load',{date})]);const raw=loaded.data||{},data=cumulativeDayData(raw),branch=boot.branch?.name||'الفرع',user=boot.user?.display_name||boot.user?.username||'',groups=groupTotals(data);"
+              newbuild="async function build(){const date=reportDate(),[boot,loaded]=await Promise.all([post('bootstrap'),post('receiving_load',{date})]);const isMazaq=boot.branch?.id==='mazaq';activeTheme=isMazaq?REPORT_THEMES.mazaq:REPORT_THEMES.grill;activeLogo=await loadMazaqReportLogo(isMazaq);const raw=loaded.data||{},data=cumulativeDayData(raw),branch=boot.branch?.name||'الفرع',user=boot.user?.display_name||boot.user?.username||'',groups=groupTotals(data);"
+              if oldbuild not in r: raise SystemExit('morning report build marker not found')
+              r=r.replace(oldbuild,newbuild,1)
+          rp.write_text(r,encoding='utf-8')
+          daily=Path('inventory/report-v32.js').read_text(encoding='utf-8')
+          if 'mazaq' not in daily.lower(): raise SystemExit('daily report Mazaq branch marker missing; aborting instead of changing grill report')
+          PY
+      - name: Verify identity patch
+        run: |
+          grep -q 'mazaq-supervisor-brand-v1.js?v=1' inventory/index.html
+          grep -q 'mazaq-brand-logo.svg?v=1' inventory/morning/index.html
+          grep -q 'المذاق الدمشقي - تقرير الاستلام الصباحي' inventory/morning/index.html
+          grep -q 'data-branch="mazaq"' inventory/morning-shell.html
+          grep -q 'index.html?inner=10' inventory/morning-shell.html
+          grep -q 'morning-report-v1.js?v=6' inventory/morning-shell.html
+          grep -q 'REPORT_THEMES' inventory/morning/morning-report-v1.js
+          grep -q "accent:'#b51f2e'" inventory/morning/morning-report-v1.js
+          test -s inventory/mazaq-brand-logo.svg
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/mazaq-unified-identity-v67.yml
+          git add inventory/index.html inventory/morning/index.html inventory/morning-shell.html inventory/morning/morning-report-v1.js inventory/mazaq-supervisor-brand-v1.js inventory/mazaq-brand-logo.svg
+          git commit -m "Unify Mazaq supervisor and morning identity"
+          git push
