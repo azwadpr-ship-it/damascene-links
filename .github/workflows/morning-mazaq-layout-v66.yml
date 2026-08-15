@@ -1,0 +1,69 @@
+name: Morning Mazaq layout v66
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/morning-mazaq-layout-v66.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Mazaq morning layout
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('inventory/morning/index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_group = "function grouped(items){const g={};(items||[]).forEach(i=>(g[i.section]??=[]).push(i));return g}"
+          new_group = """const MAZAQ_MORNING_SECTION_ORDER=['الملحمة','المقليات','المقبلات','الصوصات والتجهيز','الخبز','المشروبات','الخضار','المواد العامة','مستلزمات التشغيل'];
+          const MAZAQ_MORNING_SECTIONS={
+          'سيخ دجاج':'الملحمة','سيخ لحم':'الملحمة',
+          'بطاطس مجمدة - كرتون':'المقليات','بطاطس مجمدة - كيس':'المقليات',
+          'مخلل مقطع':'المقبلات','مخلل مشكل - كيلو':'المقبلات','مخلل مشكل - علبة':'المقبلات','حمص':'المقبلات','سلطة ملفوف':'المقبلات',
+          'ثوم علبة':'الصوصات والتجهيز','ثوم سائل':'الصوصات والتجهيز','طحينة علبة':'الصوصات والتجهيز','طحينة سائلة':'الصوصات والتجهيز','محمرة علبة':'الصوصات والتجهيز','محمرة سائلة':'الصوصات والتجهيز','بقدونس وبصل':'الصوصات والتجهيز','صلصة إيطالي':'الصوصات والتجهيز','دبس رمان':'الصوصات والتجهيز','مايونيز':'الصوصات والتجهيز','شطة':'الصوصات والتجهيز','كاتشب - جالون':'الصوصات والتجهيز','كاتشب - شفرات':'الصوصات والتجهيز','سومطرة':'الصوصات والتجهيز','عصير رمان':'الصوصات والتجهيز',
+          'خبز تورتيلا أبيض كبير':'الخبز','خبز تورتيلا أسمر كبير':'الخبز','خبز تورتيلا أسمر صغير':'الخبز','خبز شامي':'الخبز','خبز صامولي':'الخبز','خبز لقيمات':'الخبز',
+          'مشروبات غازية - كرتون':'المشروبات','مشروبات غازية - حبة':'المشروبات','ماء نستله - كرتون':'المشروبات','ماء نستله - حبة':'المشروبات',
+          'طماطم':'الخضار','زهرة':'الخضار','باذنجان':'الخضار','خس أميركي':'الخضار','ملفوف':'الخضار',
+          'جبنة شرائح':'المواد العامة','زيت دلال تنك':'المواد العامة','زيت ليزا':'المواد العامة','زيتون أسود':'المواد العامة','فطر':'المواد العامة','ذرة':'المواد العامة',
+          'جونتي':'مستلزمات التشغيل','غطا راس':'مستلزمات التشغيل','كمامة':'مستلزمات التشغيل'};
+          function morningSection(i){return S.branch?.id==='mazaq'?(MAZAQ_MORNING_SECTIONS[i.name]||i.section):i.section}
+          function grouped(items){const g={};(items||[]).forEach(i=>{const sec=morningSection(i);(g[sec]??=[]).push(sec===i.section?i:{...i,section:sec})});if(S.branch?.id!=='mazaq')return g;const o={};MAZAQ_MORNING_SECTION_ORDER.forEach(sec=>{if(g[sec])o[sec]=g[sec]});Object.keys(g).forEach(sec=>{if(!o[sec])o[sec]=g[sec]});return o}"""
+          if old_group not in s:
+              raise SystemExit('grouped() marker not found')
+          s = s.replace(old_group, new_group, 1)
+
+          old_summary = '<summary><span>${esc(sec)}</span><span>${arr.length} صنف</span></summary>'
+          new_summary = '<summary><span>${esc(sec)}</span><span>${arr.length} صنف <b aria-hidden="true">⌄</b></span></summary>'
+          if old_summary not in s:
+              raise SystemExit('section summary marker not found')
+          s = s.replace(old_summary, new_summary, 1)
+          p.write_text(s, encoding='utf-8')
+
+          shell = Path('inventory/morning-shell.html')
+          h = shell.read_text(encoding='utf-8')
+          if 'index.html?inner=8' not in h:
+              raise SystemExit('morning inner cache marker not found')
+          h = h.replace('index.html?inner=8', 'index.html?inner=9', 1)
+          shell.write_text(h, encoding='utf-8')
+          PY
+      - name: Verify patch
+        run: |
+          grep -q "MAZAQ_MORNING_SECTION_ORDER" inventory/morning/index.html
+          grep -q "'سيخ دجاج':'الملحمة'" inventory/morning/index.html
+          grep -q "'جونتي':'مستلزمات التشغيل'" inventory/morning/index.html
+          grep -q 'aria-hidden="true">⌄' inventory/morning/index.html
+          grep -q 'index.html?inner=9' inventory/morning-shell.html
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/morning-mazaq-layout-v66.yml
+          git add inventory/morning/index.html inventory/morning-shell.html
+          git commit -m "Organize Mazaq morning receiving sections"
+          git push
