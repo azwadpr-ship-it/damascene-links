@@ -7,6 +7,15 @@ const P={W:1080,H:1920,M:34,BOTTOM:1824,GAP:12,COLS:3,TOP:246,TOP_APP:314};
 P.CW=(P.W-P.M*2-P.GAP*(P.COLS-1))/P.COLS;
 const GCOLS=2,GGAP=18,GCW=(P.W-P.M*2-GGAP)/GCOLS;
 
+const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';
+let individualsReportLogo=null,individualsReportLogoLoading=null;
+function loadIndividualsReportLogo(){
+ if(individualsReportLogo)return Promise.resolve(individualsReportLogo);
+ if(individualsReportLogoLoading)return individualsReportLogoLoading;
+ individualsReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{individualsReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=INDIVIDUALS_REPORT_LOGO});
+ return individualsReportLogoLoading;
+}
+
 function toast(msg,bad=false){
  let t=document.querySelector('.report-v31-toast');
  if(!t){
@@ -142,9 +151,9 @@ function currentReport(){
  return{branch,notes,sections,reportDate};
 }
 function theme(r){
- return r.branch.includes('المذاق')
- ?{mode:'mazaq',paper:'#f8f8f7',surface:'#fff',accent:'#962733',dark:'#881520',text:'#26282b',muted:'#5d6064',line:'#d7d7da',stripe:'#f5f5f6',soft:'#f2f2f4'}
- :{mode:'grill',paper:'#fbf8f1',surface:'#fffdfa',accent:'#c39235',dark:'#a77a29',text:'#2e2922',muted:'#6f6557',line:'#e4d7c0',stripe:'#fcf8f0',soft:'#fffaf0'};
+ if(r.branch.includes('المذاق'))return{mode:'mazaq',paper:'#f8f8f7',surface:'#fff',accent:'#962733',dark:'#881520',text:'#26282b',muted:'#5d6064',line:'#d7d7da',stripe:'#f5f5f6',soft:'#f2f2f4'};
+ if(r.branch.includes('المشويات أفراد'))return{mode:'individuals',paper:'#f4f5f5',surface:'#ffffff',accent:'#df9022',dark:'#3b3d3f',text:'#3b3d3f',muted:'#717477',line:'#d2d4d5',stripe:'#f4f4f4',soft:'#f7efe4'};
+ return{mode:'grill',paper:'#fbf8f1',surface:'#fffdfa',accent:'#c39235',dark:'#a77a29',text:'#2e2922',muted:'#6f6557',line:'#e4d7c0',stripe:'#fcf8f0',soft:'#fffaf0'};
 }
 function round(c,x,y,w,h,r){
  const q=Math.min(r,w/2,h/2);
@@ -215,12 +224,19 @@ function layout(r){
 }
 function border(c,t){
  c.strokeStyle=t.accent;c.lineWidth=2;round(c,12,12,P.W-24,P.H-24,24);c.stroke();
- c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':'#eadab8';c.lineWidth=1;round(c,21,21,P.W-42,P.H-42,19);c.stroke();
+ c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':'#eadab8';c.lineWidth=1;round(c,21,21,P.W-42,P.H-42,19);c.stroke();
 }
 function header(c,r,pageNo,pageCount,app,t){
- const d=dateParts(r.reportDate);
- c.direction='rtl';c.textAlign='right';c.fillStyle=t.accent;c.font='900 54px Tahoma,Arial';c.fillText(r.branch,P.W-P.M,100);
- c.fillStyle=t.text;c.font='800 35px Tahoma,Arial';c.fillText('تقرير الجرد اليومي',P.W-P.M,150);
+ const d=dateParts(r.reportDate),branded=t.mode==='individuals'&&individualsReportLogo;
+ c.direction='rtl';c.textAlign='right';
+ if(branded){
+  c.drawImage(individualsReportLogo,P.W-P.M-92,42,82,82);
+  c.fillStyle=t.accent;c.font='900 48px Tahoma,Arial';c.fillText(r.branch,P.W-P.M-112,94);
+  c.fillStyle=t.text;c.font='800 31px Tahoma,Arial';c.fillText('تقرير الجرد اليومي',P.W-P.M-112,140);
+ }else{
+  c.fillStyle=t.accent;c.font='900 54px Tahoma,Arial';c.fillText(r.branch,P.W-P.M,100);
+  c.fillStyle=t.text;c.font='800 35px Tahoma,Arial';c.fillText('تقرير الجرد اليومي',P.W-P.M,150);
+ }
  c.textAlign='left';c.fillStyle=t.text;c.font='900 47px Tahoma,Arial';c.fillText(d.weekday,P.M,82);
  c.fillStyle=t.dark;c.font='900 42px Tahoma,Arial';c.fillText(r.reportDate,P.M,130);
  c.fillStyle=t.muted;c.font='700 24px Tahoma,Arial';c.fillText(d.hijri,P.M,165);
@@ -321,8 +337,8 @@ function card(c,b,t){
  const {sec,x,y,w,h}=b,z=Math.min(1.17,Math.max(1,b.scale||1));
  const headH=Math.round(66*z),simpleH=Math.round(68*z),flowH=Math.round(76*z);
  box(c,x,y,w,h,14,t.surface,t.line,true);
- c.save();round(c,x,y,w,headH,14);c.clip();c.fillStyle=t.mode==='mazaq'?t.dark:t.accent;c.fillRect(x,y,w,headH);
- if(t.mode==='mazaq'){c.fillStyle=t.accent;c.fillRect(x,y,w,4);}c.restore();
+ c.save();round(c,x,y,w,headH,14);c.clip();c.fillStyle=(t.mode==='mazaq'||t.mode==='individuals')?t.dark:t.accent;c.fillRect(x,y,w,headH);
+ if(t.mode==='mazaq'||t.mode==='individuals'){c.fillStyle=t.accent;c.fillRect(x,y,w,4);}c.restore();
  c.direction='rtl';c.textAlign='center';c.fillStyle='#fff';
  const title=sec.title;
  fit(c,title,w-26,33*z,24*z,'800');c.fillText(ell(c,title,w-26),x+w/2,y+44*z);
@@ -371,7 +387,7 @@ function footer(c,n,total,t){
  c.fillText(`نظام الجرد اليومي${total>1?` · ${n}/${total}`:''}`,P.W/2,P.H-34);
 }
 async function canvases(r){
- await document.fonts.ready;const t=theme(r),out=[];
+ await document.fonts.ready;const t=theme(r),out=[];if(t.mode==='individuals')await loadIndividualsReportLogo();
  if(t.mode==='mazaq'){
   const cv=document.createElement('canvas');cv.width=P.W;cv.height=P.H;const c=cv.getContext('2d');
   c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,1,1,appInfo(r),t);drawMazaqStock(c,r,t);footer(c,1,1,t);out.push(cv);return out;

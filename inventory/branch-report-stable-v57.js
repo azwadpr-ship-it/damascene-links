@@ -5,9 +5,9 @@ function loadReport(){
  if(window.__reportV31Loaded)return Promise.resolve();
  if(loading)return loading;
  loading=new Promise((resolve,reject)=>{
-  const old=document.getElementById('report-v32-v63-js');
+  const old=document.getElementById('report-v32-v65-js');
   if(old){if(window.__reportV31Loaded){resolve();return}old.addEventListener('load',resolve,{once:true});old.addEventListener('error',()=>reject(new Error('تعذر تحميل قالب التقرير')),{once:true});return}
-  const s=document.createElement('script');s.id='report-v32-v63-js';s.src='/inventory/report-v32.js?v=63';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل قالب التقرير'));document.body.appendChild(s)
+  const s=document.createElement('script');s.id='report-v32-v65-js';s.src='/inventory/report-v32.js?v=65';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل قالب التقرير'));document.body.appendChild(s)
  });
  return loading
 }

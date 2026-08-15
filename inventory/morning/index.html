@@ -93,7 +93,20 @@ function publishState(){const state={date:S.date,user:S.user,branch:S.branch,dat
 async function ensureCurrentDay(migrateDraft=true){const now=today();if(!S.date||S.date===now)return false;const oldKey=draftKey(),draft={...S.draft};S.date=now;if(migrateDraft&&Object.keys(draft).length){localStorage.removeItem(oldKey);S.draft=draft;localStorage.setItem(draftKey(),JSON.stringify(S.draft))}else S.draft={};const d=await api('receiving_load',{date:S.date});S.data=await enrichSnapshot(d.data);render();return true}
 async function syncDateOnResume(){if(dateSyncing||!S.token||!S.user||S.date===today())return;dateSyncing=true;try{const moved=await ensureCurrentDay(true);if(moved)toast('تم الانتقال تلقائيًا إلى استلامات اليوم')}catch(e){toast(e.message,true)}finally{dateSyncing=false}}
 function signOut(call=true){if(call&&S.token)api('logout').catch(()=>{});localStorage.removeItem(KEY);S.token='';S.user=null;S.branch=null;S.data=null;$('#appScreen').classList.add('hidden');$('#loginScreen').classList.remove('hidden')}
-function applyTheme(){if(S.branch?.id==='mazaq'){document.documentElement.style.setProperty('--accent','#98242c');document.documentElement.style.setProperty('--dark','#6f171d');document.documentElement.style.setProperty('--soft','#f7eff0');document.querySelector('meta[name=theme-color]').content='#98242c'}else{document.documentElement.style.setProperty('--accent','#b88932');document.documentElement.style.setProperty('--dark','#8e6524');document.documentElement.style.setProperty('--soft','#fff8ec');document.querySelector('meta[name=theme-color]').content='#b88932'}}
+function applyTheme(){
+ const root=document.documentElement,id=S.branch?.id||'',brand=document.querySelector('.topbrand img'),title=document.querySelector('.top-title b'),sub=document.querySelector('.top-title small'),theme=document.querySelector('meta[name=theme-color]');
+ root.dataset.branch=id;
+ brand?.classList.remove('individuals-logo');
+ if(id==='mazaq'){
+  root.style.setProperty('--accent','#b51f2e');root.style.setProperty('--dark','#181818');root.style.setProperty('--bg','#f1f1f1');root.style.setProperty('--card','#fff');root.style.setProperty('--ink','#202020');root.style.setProperty('--muted','#666');root.style.setProperty('--line','#d6d6d6');root.style.setProperty('--soft','#f3e8ea');if(theme)theme.content='#b51f2e';
+ }else if(id==='individuals'){
+  root.style.setProperty('--accent','#df9022');root.style.setProperty('--dark','#3b3d3f');root.style.setProperty('--bg','#f2f3f3');root.style.setProperty('--card','#fff');root.style.setProperty('--ink','#3b3d3f');root.style.setProperty('--muted','#717477');root.style.setProperty('--line','#d3d4d5');root.style.setProperty('--soft','#f7efe4');if(theme)theme.content='#3b3d3f';
+  if(brand){brand.src='/inventory/individuals-brand-logo.svg?v=1';brand.alt='المشويات الدمشقية';brand.classList.add('individuals-logo')}if(title)title.textContent='المشويات أفراد - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';
+ }else{
+  root.style.setProperty('--accent','#0f6f78');root.style.setProperty('--dark','#0a4f57');root.style.setProperty('--bg','#edf6f6');root.style.setProperty('--card','#fbffff');root.style.setProperty('--ink','#183638');root.style.setProperty('--muted','#63787a');root.style.setProperty('--line','#cfe2e3');root.style.setProperty('--soft','#e5f3f4');if(theme)theme.content='#0f6f78';
+  if(brand){brand.src='/inventory/inventory-brands-banner.webp?v=9';brand.alt='مطاعم الدمشقية'}if(title)title.textContent='الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';
+ }
+}
 const MAZAQ_MORNING_SECTION_ORDER=['الملحمة','المقليات','المقبلات','الصوصات والتجهيز','الخبز','المشروبات','الخضار','المواد العامة','مستلزمات التشغيل'];
 const MAZAQ_MORNING_SECTIONS={
 'سيخ دجاج':'الملحمة','سيخ لحم':'الملحمة',
