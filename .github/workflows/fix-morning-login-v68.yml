@@ -1,0 +1,51 @@
+name: Fix frozen morning login v68
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-morning-login-v68.yml'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix syntax and bump cache
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning/index.html')
+          s=p.read_text(encoding='utf-8')
+          bad="catch{S.draft={}}}}\nfunction saveDraft()"
+          good="catch{S.draft={}}}\nfunction saveDraft()"
+          assert bad in s, 'bad loadDraft brace pattern not found'
+          s=s.replace(bad,good,1)
+          p.write_text(s,encoding='utf-8')
+          p=Path('inventory/morning-shell.html')
+          s=p.read_text(encoding='utf-8')
+          assert '/inventory/morning/index.html?inner=4' in s, 'inner=4 not found'
+          s=s.replace('/inventory/morning/index.html?inner=4','/inventory/morning/index.html?inner=5',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Verify JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('inventory/morning/index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script>(.*?)</script>',s,re.S)
+          assert scripts, 'no inline script found'
+          Path('/tmp/morning-inline.js').write_text(scripts[-1],encoding='utf-8')
+          PY
+          node --check /tmp/morning-inline.js
+          grep -q "inner=5" inventory/morning-shell.html
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/morning/index.html inventory/morning-shell.html
+          git commit -m "Fix frozen morning receiving login"
+          git push origin main
