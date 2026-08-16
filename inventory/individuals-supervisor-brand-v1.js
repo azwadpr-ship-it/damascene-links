@@ -35,32 +35,34 @@ html.individuals-identity .bottom{background:rgba(250,250,250,.98)!important;bor
 `;
  document.head.appendChild(s);
 }
-function outerBrand(on){
+function outerBrand(){
  try{
   const pd=window.parent?.document;if(!pd||pd===document)return;
-  let st=pd.getElementById('individuals-outer-brand-style');
-  if(!st){st=pd.createElement('style');st.id='individuals-outer-brand-style';st.textContent=`
-html.individuals-shell{--gold:#df9022!important;--ink:#3b3d3f!important;--muted:#717477!important;--line:#d3d4d5!important;--bg:#f2f3f3!important}
-html.individuals-shell #systemScreen,html.individuals-shell .frameLoading{background:#f2f3f3!important}
-html.individuals-shell .brandBar{background:#fff!important;border-bottom-color:#d3d4d5!important;justify-content:center!important;gap:13px!important;direction:rtl!important}
-html.individuals-shell .brandBar img{width:64px!important;height:64px!important;object-fit:contain!important;flex:0 0 64px!important}
-#individualsShellTitle{font:900 16px Tahoma,Arial;color:#3b3d3f;text-align:right;white-space:nowrap}
-#individualsShellTitle b{color:#df9022}
-@media(max-width:720px){html.individuals-shell .brandBar img{width:52px!important;height:52px!important;flex-basis:52px!important}#individualsShellTitle{font-size:13px}}
-`;pd.head.appendChild(st)}
-  pd.documentElement.classList.toggle('individuals-shell',on);
+  pd.documentElement.classList.remove('individuals-shell');
+  pd.getElementById('individualsShellTitle')?.remove();
   const img=pd.querySelector('.brandBar img');
-  if(img){
-   if(!img.dataset.defaultSrc)img.dataset.defaultSrc=img.getAttribute('src')||'/inventory/inventory-brands-banner.webp?v=9';
-   if(on){img.src=LOGO;img.alt='المشويات الدمشقية'}else{img.src=img.dataset.defaultSrc;img.alt='شعارات مطاعم الدمشقية'}
-  }
-  let t=pd.getElementById('individualsShellTitle');
-  if(on){if(!t){t=pd.createElement('div');t.id='individualsShellTitle';img?.after(t)}t.innerHTML='<b>المشويات أفراد</b> - الجرد اليومي';}else t?.remove();
+  if(img){img.src='/inventory/inventory-brands-banner.webp?v=9';img.alt='شعارات مطاعم الدمشقية'}
  }catch{}
 }
 function closestCard(el){let n=el;for(let i=0;i<7&&n&&n!==document.body;i++,n=n.parentElement){const c=String(n.className||'');if(/manager-final-row|manager-morning-row|dash|card|branch|panel|tile|box/i.test(c)||['SECTION','ARTICLE'].includes(n.tagName))return n}return el.parentElement||el}
 let busy=false,queued=false;
-function apply(){if(busy)return;busy=true;try{ensureStyle();const title=(q('.head h2')?.textContent||'').trim();const branchView=title.includes('المشويات أفراد')&&title!=='لوحة المدير';document.documentElement.classList.toggle('individuals-identity',branchView);outerBrand(branchView);let strip=q('#individualsBrandStrip');if(branchView){if(!strip){strip=document.createElement('div');strip.id='individualsBrandStrip';strip.className='individuals-brand-strip';strip.innerHTML=`<img src="${LOGO}" alt="المشويات الدمشقية"><div class="individuals-brand-title"><b>المشويات أفراد</b> - الجرد اليومي</div>`;const shell=q('.shell')||document.body,head=q('.head',shell);shell.insertBefore(strip,head||shell.firstChild)}}else strip?.remove();qa('h3,h2,strong,b,span').filter(el=>(el.textContent||'').trim()==='المشويات أفراد').slice(0,12).forEach(el=>{const card=closestCard(el);if(!card)return;card.classList.add('individuals-branch-card');if(!card.querySelector('.individuals-card-logo')){const img=document.createElement('img');img.src=LOGO;img.alt='المشويات الدمشقية';img.className='individuals-card-logo';card.appendChild(img)}})}finally{busy=false}}
+function apply(){if(busy)return;busy=true;try{
+ ensureStyle();
+ const title=(q('.head h2')?.textContent||'').trim();
+ const branchView=title.includes('المشويات أفراد')&&title!=='لوحة المدير';
+ const managerView=title==='لوحة المدير';
+ document.documentElement.classList.toggle('individuals-identity',branchView);
+ outerBrand();
+ q('#individualsBrandStrip')?.remove();
+ qa('.individuals-card-logo').forEach(x=>x.remove());
+ qa('.individuals-branch-card').forEach(x=>x.classList.remove('individuals-branch-card'));
+ if(managerView){
+  qa('#dash .manager-final-row h3,#managerMorningPanel .manager-morning-row h3').filter(el=>(el.textContent||'').trim()==='المشويات أفراد').forEach(el=>{
+   const card=closestCard(el);if(!card)return;card.classList.add('individuals-branch-card');
+   if(!card.querySelector('.individuals-card-logo')){const img=document.createElement('img');img.src=LOGO;img.alt='المشويات أفراد';img.className='individuals-card-logo';card.appendChild(img)}
+  })
+ }
+}finally{busy=false}}
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
 new MutationObserver(ms=>{if(ms.some(m=>m.addedNodes?.length||m.removedNodes?.length))schedule()}).observe(document.body,{childList:true,subtree:true});
 document.addEventListener('click',()=>setTimeout(schedule,0),true);document.addEventListener('change',()=>setTimeout(schedule,0),true);schedule();
