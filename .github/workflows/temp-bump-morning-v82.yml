@@ -1,0 +1,35 @@
+name: Temporary morning v82 cache bump
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump morning shell cache versions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning-shell.html')
+          s=p.read_text()
+          old=s
+          s=s.replace('/inventory/morning/index.html?inner=16','/inventory/morning/index.html?inner=17')
+          s=s.replace('/inventory/morning/morning-report-v1.js?v=13','/inventory/morning/morning-report-v1.js?v=14')
+          if s==old:
+              raise SystemExit('Expected morning shell cache markers not found')
+          p.write_text(s)
+          PY
+      - name: Remove temporary workflow and commit
+        run: |
+          rm -f .github/workflows/temp-bump-morning-v82.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add inventory/morning-shell.html .github/workflows/temp-bump-morning-v82.yml
+          git commit -m "Activate reliable morning report sharing v82"
+          git push
