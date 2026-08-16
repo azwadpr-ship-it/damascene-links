@@ -7,9 +7,10 @@ const P={W:1080,H:1920,M:34,BOTTOM:1824,GAP:12,COLS:3,TOP:246,TOP_APP:314};
 P.CW=(P.W-P.M*2-P.GAP*(P.COLS-1))/P.COLS;
 const GCOLS=2,GGAP=18,GCW=(P.W-P.M*2-GGAP)/GCOLS;
 
+const MAZAQ_REPORT_LOGO='/inventory/mazaq-brand-logo.png?v=1';
 const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';
 const FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';
-let individualsReportLogo=null,individualsReportLogoLoading=null,familiesReportLogo=null,familiesReportLogoLoading=null;
+let mazaqReportLogo=null,mazaqReportLogoLoading=null,individualsReportLogo=null,individualsReportLogoLoading=null,familiesReportLogo=null,familiesReportLogoLoading=null;
 function cleanIndividualsReportLogo(img){
  try{
   const w=img.naturalWidth||img.width||250,h=img.naturalHeight||img.height||250;
@@ -32,6 +33,12 @@ function loadFamiliesReportLogo(){
  if(familiesReportLogoLoading)return familiesReportLogoLoading;
  familiesReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{familiesReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=FAMILIES_REPORT_LOGO});
  return familiesReportLogoLoading;
+}
+function loadMazaqReportLogo(){
+ if(mazaqReportLogo)return Promise.resolve(mazaqReportLogo);
+ if(mazaqReportLogoLoading)return mazaqReportLogoLoading;
+ mazaqReportLogoLoading=new Promise(resolve=>{const img=new Image();img.onload=()=>{mazaqReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=MAZAQ_REPORT_LOGO});
+ return mazaqReportLogoLoading;
 }
 
 function toast(msg,bad=false){
@@ -246,10 +253,16 @@ function border(c,t){
  c.strokeStyle=t.mode==='mazaq'?'#d3d4d6':t.mode==='individuals'?'#c9cbcc':t.mode==='families'?'#ddc79f':'#eadab8';c.lineWidth=1;round(c,21,21,P.W-42,P.H-42,19);c.stroke();
 }
 function header(c,r,pageNo,pageCount,app,t){
- const d=dateParts(r.reportDate),logo=t.mode==='individuals'?individualsReportLogo:t.mode==='families'?familiesReportLogo:null,branded=!!logo;
+ const d=dateParts(r.reportDate),logo=t.mode==='mazaq'?mazaqReportLogo:t.mode==='individuals'?individualsReportLogo:t.mode==='families'?familiesReportLogo:null,branded=!!logo;
  c.direction='rtl';c.textAlign='right';
  if(branded){
-  if(t.mode==='individuals'){
+  if(t.mode==='mazaq'){
+   const lw=96,lh=123,lx=P.W-P.M-lw,ly=26,tx=lx-22;
+   c.drawImage(logo,lx,ly,lw,lh);
+   c.fillStyle=t.accent;c.font='900 48px Tahoma,Arial';c.fillText(r.branch,tx,88);
+   c.fillStyle=t.text;c.font='800 30px Tahoma,Arial';c.fillText('تقرير الجرد اليومي',tx,130);
+   c.fillStyle=t.accent;round(c,tx-150,154,150,4,2);c.fill();
+  }else if(t.mode==='individuals'){
    const lw=118,lh=118,lx=P.W-P.M-lw,ly=31,tx=lx-22;
    c.drawImage(logo,lx,ly,lw,lh);
    c.fillStyle=t.accent;c.font='900 48px Tahoma,Arial';c.fillText(r.branch,tx,88);
@@ -424,7 +437,7 @@ function footer(c,n,total,t){
  c.fillText(`نظام الجرد اليومي${total>1?` · ${n}/${total}`:''}`,P.W/2,P.H-34);
 }
 async function canvases(r){
- await document.fonts.ready;const t=theme(r),out=[];if(t.mode==='individuals')await loadIndividualsReportLogo();if(t.mode==='families')await loadFamiliesReportLogo();
+ await document.fonts.ready;const t=theme(r),out=[];if(t.mode==='mazaq')await loadMazaqReportLogo();if(t.mode==='individuals')await loadIndividualsReportLogo();if(t.mode==='families')await loadFamiliesReportLogo();
  if(t.mode==='mazaq'){
   const cv=document.createElement('canvas');cv.width=P.W;cv.height=P.H;const c=cv.getContext('2d');
   c.fillStyle=t.paper;c.fillRect(0,0,P.W,P.H);border(c,t);header(c,r,1,1,appInfo(r),t);drawMazaqStock(c,r,t);footer(c,1,1,t);out.push(cv);return out;

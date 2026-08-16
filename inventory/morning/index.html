@@ -96,9 +96,10 @@ function signOut(call=true){if(call&&S.token)api('logout').catch(()=>{});localSt
 function applyTheme(){
  const root=document.documentElement,id=S.branch?.id||'',brand=document.querySelector('.topbrand img'),title=document.querySelector('.top-title b'),sub=document.querySelector('.top-title small'),theme=document.querySelector('meta[name=theme-color]');
  root.dataset.branch=id;
- brand?.classList.remove('individuals-logo','families-logo');
+ brand?.classList.remove('mazaq-logo','individuals-logo','families-logo');
  if(id==='mazaq'){
   root.style.setProperty('--accent','#b51f2e');root.style.setProperty('--dark','#181818');root.style.setProperty('--bg','#f1f1f1');root.style.setProperty('--card','#fff');root.style.setProperty('--ink','#202020');root.style.setProperty('--muted','#666');root.style.setProperty('--line','#d6d6d6');root.style.setProperty('--soft','#f3e8ea');if(theme)theme.content='#b51f2e';
+  if(brand){brand.src='/inventory/mazaq-brand-logo.png?v=1';brand.alt='المذاق الدمشقي';brand.classList.add('mazaq-logo')}if(title)title.textContent='المذاق الدمشقي - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';
  }else if(id==='individuals'){
   root.style.setProperty('--accent','#df9022');root.style.setProperty('--dark','#3b3d3f');root.style.setProperty('--bg','#f2f3f3');root.style.setProperty('--card','#fff');root.style.setProperty('--ink','#3b3d3f');root.style.setProperty('--muted','#717477');root.style.setProperty('--line','#d3d4d5');root.style.setProperty('--soft','#f7efe4');if(theme)theme.content='#3b3d3f';
   if(brand){brand.src='/inventory/individuals-brand-logo.svg?v=1';brand.alt='المشويات الدمشقية';brand.classList.add('individuals-logo')}if(title)title.textContent='المشويات أفراد - تقرير الاستلام الصباحي';if(sub)sub.textContent='تسجيل المواد الواردة';

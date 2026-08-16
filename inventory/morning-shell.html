@@ -30,7 +30,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edf6f6}
 </style>
 </head>
 <body>
-<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=14"></iframe>
+<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=15"></iframe>
 <script>
 (()=>{
  const frame=document.getElementById('app');
@@ -88,13 +88,15 @@ html[data-branch="mazaq"]{--accent:#b51f2e!important;--dark:#181818!important;--
 html[data-branch="mazaq"],html[data-branch="mazaq"] body{background:#f1f1f1!important;color:#202020!important}
 html[data-branch="mazaq"] .btn.primary,html[data-branch="mazaq"] .purpose{background:#b51f2e!important;border-color:#b51f2e!important;color:#fff!important}
 html[data-branch="mazaq"] .hero{border-top-color:#b51f2e!important}
+html[data-branch="mazaq"] .topbrand img.mazaq-logo{width:54px!important;height:54px!important;object-fit:contain!important;max-width:none!important}
+html[data-branch="mazaq"] .top-title{border-right-color:#d6d6d6!important}html[data-branch="mazaq"] .top-title b{color:#181818!important}html[data-branch="mazaq"] .top-title small{color:#b51f2e!important;font-weight:800!important}
 `;
      d.head.appendChild(style);
      const theme=d.querySelector('meta[name="theme-color"]'); if(theme) theme.content='#0f6f78';
      if(!d.getElementById('morning-report-v1-js')){
        const script=d.createElement('script');
        script.id='morning-report-v1-js';
-       script.src='/inventory/morning/morning-report-v1.js?v=10';
+       script.src='/inventory/morning/morning-report-v1.js?v=11';
        script.async=false;
        d.body.appendChild(script);
      }
