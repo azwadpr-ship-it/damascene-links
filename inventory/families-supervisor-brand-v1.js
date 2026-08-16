@@ -49,14 +49,17 @@ function apply(){if(busy)return;busy=true;try{
  document.documentElement.classList.toggle('families-identity',branchView);
  outerBrand();
  q('#familiesBrandStrip')?.remove();
- qa('.families-card-logo').forEach(x=>x.remove());
- qa('.families-branch-card').forEach(x=>x.classList.remove('families-branch-card'));
- if(managerView){
-  qa('#dash .manager-final-row h3,#managerMorningPanel .manager-morning-row h3').filter(el=>(el.textContent||'').trim()==='المشويات عوائل').forEach(el=>{
-   const card=closestCard(el);if(!card)return;card.classList.add('families-branch-card');
-   if(!card.querySelector('.families-card-logo')){const img=document.createElement('img');img.src=LOGO;img.alt='المشويات عوائل';img.className='families-card-logo';card.appendChild(img)}
-  })
+ if(!managerView){
+  qa('.families-card-logo').forEach(x=>x.remove());
+  qa('.families-branch-card').forEach(x=>x.classList.remove('families-branch-card'));
+  return;
  }
+ qa('.families-card-logo').forEach(x=>{if(!x.closest('.manager-final-row,.manager-morning-row'))x.remove()});
+ qa('.families-branch-card').forEach(x=>{if(!x.matches('.manager-final-row,.manager-morning-row'))x.classList.remove('families-branch-card')});
+ qa('#dash .manager-final-row h3,#managerMorningPanel .manager-morning-row h3').filter(el=>(el.textContent||'').trim()==='المشويات عوائل').forEach(el=>{
+  const card=closestCard(el);if(!card)return;card.classList.add('families-branch-card');
+  if(!card.querySelector('.families-card-logo')){const img=document.createElement('img');img.src=LOGO;img.alt='المشويات عوائل';img.className='families-card-logo';card.appendChild(img)}
+ })
 }finally{busy=false}}
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
 new MutationObserver(ms=>{if(ms.some(m=>m.addedNodes?.length||m.removedNodes?.length))schedule()}).observe(document.body,{childList:true,subtree:true});document.addEventListener('click',()=>setTimeout(schedule,0),true);document.addEventListener('change',()=>setTimeout(schedule,0),true);schedule();
