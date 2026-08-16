@@ -1,8 +1,0 @@
-name: Fix morning report brand resolution v78
-on:
-  workflow_dispatch:
-jobs:
-  noop:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo retired
