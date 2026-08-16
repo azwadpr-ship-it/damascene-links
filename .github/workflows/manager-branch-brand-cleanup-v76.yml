@@ -13,45 +13,41 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Clean branch identity collisions
+      - name: Harden manager branch identities
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          def patch_brand(path, branch_label, html_class, card_class, logo_class, strip_id, shell_class, shell_title):
+          def patch_apply(path, branch_label, html_class, card_class, logo_class, strip_id):
               p=Path(path); s=p.read_text()
-              a=s.index('function outerBrand(on){')
-              b=s.index('function closestCard', a)
-              cleanup=f'''function outerBrand(){{\n try{{\n  const pd=window.parent?.document;if(!pd||pd===document)return;\n  pd.documentElement.classList.remove('{shell_class}');\n  pd.getElementById('{shell_title}')?.remove();\n  const img=pd.querySelector('.brandBar img');\n  if(img){{img.src='/inventory/inventory-brands-banner.webp?v=9';img.alt='شعارات مطاعم الدمشقية'}}\n }}catch{{}}\n}}\n'''
-              s=s[:a]+cleanup+s[b:]
               a=s.index('function apply(){')
               b=s.index('function schedule()', a)
-              apply=f'''function apply(){{if(busy)return;busy=true;try{{\n ensureStyle();\n const title=(q('.head h2')?.textContent||'').trim();\n const branchView=title.includes('{branch_label}')&&title!=='لوحة المدير';\n const managerView=title==='لوحة المدير';\n document.documentElement.classList.toggle('{html_class}',branchView);\n outerBrand();\n q('#{strip_id}')?.remove();\n qa('.{logo_class}').forEach(x=>x.remove());\n qa('.{card_class}').forEach(x=>x.classList.remove('{card_class}'));\n if(managerView){{\n  qa('#dash .manager-final-row h3,#managerMorningPanel .manager-morning-row h3').filter(el=>(el.textContent||'').trim()==='{branch_label}').forEach(el=>{{\n   const card=closestCard(el);if(!card)return;card.classList.add('{card_class}');\n   if(!card.querySelector('.{logo_class}')){{const img=document.createElement('img');img.src=LOGO;img.alt='{branch_label}';img.className='{logo_class}';card.appendChild(img)}}\n  }})\n }}\n}}finally{{busy=false}}}}\n'''
+              apply=f'''function apply(){{if(busy)return;busy=true;try{{\n ensureStyle();\n const title=(q('.head h2')?.textContent||'').trim();\n const branchView=title.includes('{branch_label}')&&title!=='لوحة المدير';\n const managerView=title==='لوحة المدير';\n document.documentElement.classList.toggle('{html_class}',branchView);\n outerBrand();\n q('#{strip_id}')?.remove();\n if(!managerView){{\n  qa('.{logo_class}').forEach(x=>x.remove());\n  qa('.{card_class}').forEach(x=>x.classList.remove('{card_class}'));\n  return;\n }}\n qa('.{logo_class}').forEach(x=>{{if(!x.closest('.manager-final-row,.manager-morning-row'))x.remove()}});\n qa('.{card_class}').forEach(x=>{{if(!x.matches('.manager-final-row,.manager-morning-row'))x.classList.remove('{card_class}')}});\n qa('#dash .manager-final-row h3,#managerMorningPanel .manager-morning-row h3').filter(el=>(el.textContent||'').trim()==='{branch_label}').forEach(el=>{{\n  const card=closestCard(el);if(!card)return;card.classList.add('{card_class}');\n  if(!card.querySelector('.{logo_class}')){{const img=document.createElement('img');img.src=LOGO;img.alt='{branch_label}';img.className='{logo_class}';card.appendChild(img)}}\n }})\n}}finally{{busy=false}}}}\n'''
               s=s[:a]+apply+s[b:]
               p.write_text(s)
 
-          patch_brand('inventory/individuals-supervisor-brand-v1.js','المشويات أفراد','individuals-identity','individuals-branch-card','individuals-card-logo','individualsBrandStrip','individuals-shell','individualsShellTitle')
-          patch_brand('inventory/families-supervisor-brand-v1.js','المشويات عوائل','families-identity','families-branch-card','families-card-logo','familiesBrandStrip','families-shell','familiesShellTitle')
+          patch_apply('inventory/individuals-supervisor-brand-v1.js','المشويات أفراد','individuals-identity','individuals-branch-card','individuals-card-logo','individualsBrandStrip')
+          patch_apply('inventory/families-supervisor-brand-v1.js','المشويات عوائل','families-identity','families-branch-card','families-card-logo','familiesBrandStrip')
 
           p=Path('inventory/index.html'); s=p.read_text()
-          s=s.replace('/inventory/individuals-supervisor-brand-v1.js?v=1','/inventory/individuals-supervisor-brand-v1.js?v=2')
-          s=s.replace('/inventory/families-supervisor-brand-v1.js?v=1','/inventory/families-supervisor-brand-v1.js?v=2')
-          if s.count('/inventory/individuals-supervisor-brand-v1.js?v=2') != 2: raise SystemExit('individuals cache-bust count mismatch')
-          if s.count('/inventory/families-supervisor-brand-v1.js?v=2') != 2: raise SystemExit('families cache-bust count mismatch')
+          s=s.replace('/inventory/individuals-supervisor-brand-v1.js?v=2','/inventory/individuals-supervisor-brand-v1.js?v=3')
+          s=s.replace('/inventory/families-supervisor-brand-v1.js?v=2','/inventory/families-supervisor-brand-v1.js?v=3')
+          if s.count('/inventory/individuals-supervisor-brand-v1.js?v=3') != 2: raise SystemExit('individuals v3 cache-bust mismatch')
+          if s.count('/inventory/families-supervisor-brand-v1.js?v=3') != 2: raise SystemExit('families v3 cache-bust mismatch')
           if 'https://damascene-links.vercel.app/inventory/whatsapp-preview.jpg' not in s: raise SystemExit('inventory OG changed unexpectedly')
           p.write_text(s)
 
           for f in ['inventory/individuals-supervisor-brand-v1.js','inventory/families-supervisor-brand-v1.js']:
               x=Path(f).read_text()
-              if "outerBrand();" not in x or "managerView=title==='لوحة المدير'" not in x: raise SystemExit('brand cleanup verification failed '+f)
-          print('manager branch cleanup verification PASS')
+              if "if(!managerView)" not in x or "closest('.manager-final-row,.manager-morning-row')" not in x: raise SystemExit('loop guard missing '+f)
+          print('manager branch identity loop guard PASS')
           PY
-      - name: Commit cleanup
+      - name: Commit hardened cleanup
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add inventory/individuals-supervisor-brand-v1.js inventory/families-supervisor-brand-v1.js inventory/index.html
-          git commit -m 'Clean manager branch identity collisions'
+          git commit -m 'Harden manager branch identity cleanup'
           git push origin main
