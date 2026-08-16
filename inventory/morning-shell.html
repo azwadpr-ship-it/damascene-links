@@ -30,7 +30,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edf6f6}
 </style>
 </head>
 <body>
-<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=15"></iframe>
+<iframe id="app" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning/index.html?inner=16"></iframe>
 <script>
 (()=>{
  const frame=document.getElementById('app');
@@ -60,7 +60,7 @@ html[data-branch="individuals"]{--accent:#df9022!important;--dark:#3b3d3f!import
 html[data-branch="individuals"],html[data-branch="individuals"] body{background:#f2f3f3!important;color:#3b3d3f!important}
 html[data-branch="individuals"] .top{background:rgba(250,250,250,.98)!important;border-bottom-color:#d3d4d5!important}
 html[data-branch="individuals"] .top-title{border-right-color:#d3d4d5!important}html[data-branch="individuals"] .top-title b{color:#3b3d3f!important}html[data-branch="individuals"] .top-title small{color:#8a5d19!important}
-html[data-branch="individuals"] .topbrand img.individuals-logo{width:58px!important;height:58px!important;object-fit:contain!important;max-width:none!important}
+html[data-branch="individuals"] .topbrand img.individuals-logo{width:58px!important;height:58px!important;object-fit:contain!important;max-width:none!important;min-width:58px!important;flex:0 0 58px!important}
 html[data-branch="individuals"] .hero{background:linear-gradient(135deg,#f7efe4,#fff)!important;border-color:#d3d4d5!important;border-top-color:#df9022!important;box-shadow:0 10px 28px rgba(55,57,59,.08)!important}
 html[data-branch="individuals"] .purpose,html[data-branch="individuals"] .btn.primary{background:#df9022!important;border-color:#df9022!important;color:#fff!important}
 html[data-branch="individuals"] .stat,html[data-branch="individuals"] .section,html[data-branch="individuals"] .note-card,html[data-branch="individuals"] .history,html[data-branch="individuals"] .morning-report-actions{border-color:#d3d4d5!important}
@@ -74,7 +74,7 @@ html[data-branch="families"]{--accent:#b1740a!important;--dark:#6b4310!important
 html[data-branch="families"],html[data-branch="families"] body{background:#f8f4ed!important;color:#3d3021!important}
 html[data-branch="families"] .top{background:rgba(255,253,249,.98)!important;border-bottom-color:#e4d3b8!important}
 html[data-branch="families"] .top-title{border-right-color:#e4d3b8!important}html[data-branch="families"] .top-title b{color:#4b351c!important}html[data-branch="families"] .top-title small{color:#7a5a28!important}
-html[data-branch="families"] .topbrand img.families-logo{width:58px!important;height:58px!important;object-fit:contain!important;max-width:none!important;border-radius:7px}
+html[data-branch="families"] .topbrand img.families-logo{width:58px!important;height:58px!important;object-fit:contain!important;max-width:none!important;min-width:58px!important;flex:0 0 58px!important;border-radius:7px}
 html[data-branch="families"] .hero{background:linear-gradient(135deg,#f4eadb,#fffdf9)!important;border-color:#e4d3b8!important;border-top-color:#b1740a!important;box-shadow:0 10px 28px rgba(90,58,18,.08)!important}
 html[data-branch="families"] .purpose,html[data-branch="families"] .btn.primary{background:#b1740a!important;border-color:#b1740a!important;color:#fff!important}
 html[data-branch="families"] .stat,html[data-branch="families"] .section,html[data-branch="families"] .note-card,html[data-branch="families"] .history,html[data-branch="families"] .morning-report-actions{border-color:#e4d3b8!important}
@@ -86,17 +86,50 @@ html[data-branch="families"] .bottom{background:rgba(255,253,249,.98)!important;
 html[data-branch="families"] .toast{background:#5a3b17!important}
 html[data-branch="mazaq"]{--accent:#b51f2e!important;--dark:#181818!important;--bg:#f1f1f1!important;--card:#fff!important;--ink:#202020!important;--muted:#666!important;--line:#d6d6d6!important;--soft:#f3e8ea!important}
 html[data-branch="mazaq"],html[data-branch="mazaq"] body{background:#f1f1f1!important;color:#202020!important}
+html[data-branch="mazaq"] .top{background:rgba(255,255,255,.98)!important;border-bottom-color:#d6d6d6!important;box-shadow:0 2px 14px rgba(0,0,0,.05)!important}
+html[data-branch="mazaq"] .topbrand{flex:1 1 auto!important;min-width:0!important;gap:8px!important;overflow:hidden!important}
+html[data-branch="mazaq"] .topbrand img.mazaq-logo{width:48px!important;height:58px!important;object-fit:contain!important;max-width:none!important;min-width:48px!important;flex:0 0 48px!important}
+html[data-branch="mazaq"] .top-title{min-width:0!important;white-space:normal!important;border-right-color:#d6d6d6!important;padding-right:8px!important}
+html[data-branch="mazaq"] .top-title b{color:#181818!important;line-height:1.35!important}html[data-branch="mazaq"] .top-title small{color:#b51f2e!important;font-weight:800!important}
+html[data-branch="mazaq"] .logout{flex:0 0 auto!important}
 html[data-branch="mazaq"] .btn.primary,html[data-branch="mazaq"] .purpose{background:#b51f2e!important;border-color:#b51f2e!important;color:#fff!important}
-html[data-branch="mazaq"] .hero{border-top-color:#b51f2e!important}
-html[data-branch="mazaq"] .topbrand img.mazaq-logo{width:54px!important;height:54px!important;object-fit:contain!important;max-width:none!important}
-html[data-branch="mazaq"] .top-title{border-right-color:#d6d6d6!important}html[data-branch="mazaq"] .top-title b{color:#181818!important}html[data-branch="mazaq"] .top-title small{color:#b51f2e!important;font-weight:800!important}
+html[data-branch="mazaq"] .hero{background:linear-gradient(135deg,#f3e8ea,#fff)!important;border-color:#d6d6d6!important;border-top-color:#b51f2e!important}
+html[data-branch="mazaq"] .stat,html[data-branch="mazaq"] .section,html[data-branch="mazaq"] .note-card,html[data-branch="mazaq"] .history,html[data-branch="mazaq"] .morning-report-actions{border-color:#d6d6d6!important}
+html[data-branch="mazaq"] .stat strong,html[data-branch="mazaq"] .total b,html[data-branch="mazaq"] .batch-time{color:#b51f2e!important}
+html[data-branch="mazaq"] .section summary{background:linear-gradient(90deg,#f3e8ea,#fff)!important;color:#181818!important}
+html[data-branch="mazaq"] .row{border-bottom-color:#e6e6e6!important}
+html[data-branch="mazaq"] .total{background:#f7eff0!important;border-color:#d6d6d6!important}
+html[data-branch="mazaq"] .history{padding:12px!important}
+html[data-branch="mazaq"] .history h3{color:#181818!important;margin-bottom:10px!important}
+html[data-branch="mazaq"] .batch{border:1px solid #dedede!important;border-radius:11px!important;margin:8px 0!important;padding:0!important;overflow:hidden!important;background:#fff!important}
+html[data-branch="mazaq"] .batch:first-of-type{border-top:1px solid #dedede!important}
+html[data-branch="mazaq"] .batch summary{padding:11px 12px!important;background:#f8f3f4!important;color:#202020!important;align-items:center!important}
+html[data-branch="mazaq"] .batch-items{padding:10px 12px 12px!important;max-height:230px!important;overflow:auto!important;line-height:1.75!important;background:#fff!important}
+html[data-branch="mazaq"] .bottom{background:rgba(255,255,255,.98)!important;border-top-color:#d6d6d6!important;box-shadow:0 -5px 20px rgba(0,0,0,.05)!important}
+html[data-branch="mazaq"] .toast{background:#181818!important}
+@media(max-width:650px){
+html[data-branch="individuals"] .topin,html[data-branch="families"] .topin,html[data-branch="mazaq"] .topin{height:66px!important}
+html[data-branch="individuals"] .topbrand,html[data-branch="families"] .topbrand{flex:1 1 auto!important;min-width:0!important;overflow:hidden!important}
+html[data-branch="individuals"] .top-title,html[data-branch="families"] .top-title{min-width:0!important;white-space:normal!important}
+html[data-branch="individuals"] .topbrand img.individuals-logo,html[data-branch="families"] .topbrand img.families-logo{width:50px!important;height:50px!important;min-width:50px!important;flex-basis:50px!important}
+html[data-branch="mazaq"] .topbrand img.mazaq-logo{width:46px!important;height:56px!important;min-width:46px!important;flex-basis:46px!important}
+html[data-branch="mazaq"] .top-title b{font-size:11.5px!important}
+}
 `;
      d.head.appendChild(style);
-     const theme=d.querySelector('meta[name="theme-color"]'); if(theme) theme.content='#0f6f78';
+     const outerTheme=document.querySelector('meta[name="theme-color"]');
+     const innerTheme=d.querySelector('meta[name="theme-color"]');
+     const syncTheme=()=>{
+       const id=d.documentElement.dataset.branch||'';
+       const color=id==='mazaq'?'#b51f2e':id==='individuals'?'#3b3d3f':id==='families'?'#6b4310':'#0f6f78';
+       if(innerTheme)innerTheme.content=color;if(outerTheme)outerTheme.content=color;
+     };
+     syncTheme();
+     new MutationObserver(syncTheme).observe(d.documentElement,{attributes:true,attributeFilter:['data-branch']});
      if(!d.getElementById('morning-report-v1-js')){
        const script=d.createElement('script');
        script.id='morning-report-v1-js';
-       script.src='/inventory/morning/morning-report-v1.js?v=11';
+       script.src='/inventory/morning/morning-report-v1.js?v=13';
        script.async=false;
        d.body.appendChild(script);
      }
