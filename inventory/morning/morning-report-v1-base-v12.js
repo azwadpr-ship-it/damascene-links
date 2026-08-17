@@ -4,7 +4,7 @@ const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory
 const FAMILY_LOAD_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_load_v1',FAMILY_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indua254anhpcGt2aW9lZ3NrZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgxMjMsImV4cCI6MjEwMjAzNDEyM30.KV_P5zHGaVzRiJ8tD8VkMiPaMKFrw8HHyKwbqUVktZ4';
 const SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot';
 const KEY='inventory_receiving_token';
-const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.svg?v=1';
+const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v88.png?v=1';
 const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';
 const FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';
 let reportTheme={paper:'#f7fbfb',card:'#fbffff',accent:'#0f6f78',dark:'#0a4f57',ink:'#183638',muted:'#63787a',line:'#cfe2e3',soft:'#e5f3f4'},reportLogo=null,reportBranchId='';
