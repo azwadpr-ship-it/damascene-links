@@ -16,28 +16,26 @@ jobs:
           from pathlib import Path
           import re, base64
 
-          # Decode the already-embedded cleaned logo into a real static PNG.
           js=Path('inventory/mazaq-report-logo-v86.js').read_text(encoding='utf-8')
           m=re.search(r"data:image/png;base64,([^']+)", js)
           if not m: raise SystemExit('embedded mazaq logo not found')
-          raw=base64.b64decode(m.group(1))
+          b64=''.join(m.group(1).split())
+          b64 += '=' * (-len(b64) % 4)
+          raw=base64.b64decode(b64)
           if not raw.startswith(b'\x89PNG\r\n\x1a\n'): raise SystemExit('decoded logo is not PNG')
           Path('inventory/mazaq-report-logo-v87.png').write_bytes(raw)
 
-          # Daily report: use static PNG directly, no runtime Base64 dependency.
           p=Path('inventory/report-v32.js')
           s=p.read_text(encoding='utf-8')
           s=re.sub(r"const MAZAQ_REPORT_LOGO=.*?;", "const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.png?v=1';", s, count=1)
           s=s.replace("img.onload=()=>{mazaqReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=MAZAQ_REPORT_LOGO", "img.onload=()=>{mazaqReportLogo=img;resolve(img)};img.onerror=()=>{console.error('MAZAQ_LOGO_LOAD_FAILED',MAZAQ_REPORT_LOGO);resolve(null)};img.src=MAZAQ_REPORT_LOGO")
           p.write_text(s,encoding='utf-8')
 
-          # Morning report: same static source.
           p=Path('inventory/morning/morning-report-v1-base-v12.js')
           s=p.read_text(encoding='utf-8')
           s=re.sub(r"const MAZAQ_REPORT_LOGO=.*?;", "const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.png?v=1';", s, count=1)
           p.write_text(s,encoding='utf-8')
 
-          # Daily loaders: remove embedded JS dependency and bump caches.
           p=Path('inventory/index.html')
           s=p.read_text(encoding='utf-8')
           s=s.replace("addScript(d,'mazaq-report-logo-v86-js','/inventory/mazaq-report-logo-v86.js?v=1');","")
@@ -46,22 +44,17 @@ jobs:
           s=s.replace('/inventory/original.html?v=68','/inventory/original.html?v=69')
           p.write_text(s,encoding='utf-8')
 
-          # Daily generator cache to v73 everywhere.
           for fn in ['inventory/branch-report-stable-v57.js','inventory/historical-share-v85.js']:
               p=Path(fn); s=p.read_text(encoding='utf-8')
               s=re.sub(r'report-v32-v\d+-js','report-v32-v73-js',s)
               s=re.sub(r'/inventory/report-v32\.js\?v=\d+','/inventory/report-v32.js?v=73',s)
               p.write_text(s,encoding='utf-8')
 
-          # Morning wrapper: stop loading Base64 helper; load base directly and bump version.
           p=Path('inventory/morning/morning-report-v1.js')
           s=p.read_text(encoding='utf-8')
           marker="const loadBase=()=>{"
           if marker in s:
               start=s.index(marker)
-              # replace tail loader expression from marker to final document.body.appendChild(l)};
-              old=s[start:]
-              # preserve closing IIFE by crafting replacement from marker onward
               repl="const s=document.createElement('script');s.id='morning-report-base-v12-js';s.src='/inventory/morning/morning-report-v1-base-v12.js?v=7';s.async=false;s.onload=()=>{fireCurrentState();setTimeout(fireCurrentState,120);setTimeout(fireCurrentState,650)};s.onerror=()=>console.error('تعذر تحميل قالب تقرير الاستلام الصباحي الأساسي');document.body.appendChild(s);\n})();\n"
               s=s[:start]+repl
           else:
@@ -73,7 +66,6 @@ jobs:
           s=re.sub(r'morning-report-v1\.js\?v=\d+','morning-report-v1.js?v=15',s)
           p.write_text(s,encoding='utf-8')
 
-          # Sanity checks.
           assert Path('inventory/mazaq-report-logo-v87.png').stat().st_size > 10000
           assert "mazaq-report-logo-v87.png" in Path('inventory/report-v32.js').read_text(encoding='utf-8')
           assert "mazaq-report-logo-v87.png" in Path('inventory/morning/morning-report-v1-base-v12.js').read_text(encoding='utf-8')
