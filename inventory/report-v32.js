@@ -491,8 +491,8 @@ async function make(mode){
  const share=mode===true||mode==='images';
  const pdfOnly=mode==='pdf';
  const r=currentReport();
- const approved=(document.querySelector('.head .muted')?.textContent||'').includes('تم الاعتماد');
- if((share||pdfOnly)&&!approved)return toast('اعتمد التقرير أولًا قبل المشاركة',true);
+ // اعتماد المشاركة يتم التحقق منه مسبقًا من API داخل branch-report-stable-v57.js.
+ // لا نكرر التحقق هنا من نص الواجهة لأنه قد يكون مخفيًا أو قديمًا.
  if(!r.sections.length&&!r.notes)return toast('لا توجد بيانات مدخلة لإنشاء التقرير',true);
  try{
   toast('جاري تجهيز التقرير...');
