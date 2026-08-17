@@ -1,0 +1,63 @@
+name: Temporary Mazaq real PNG v88
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-mazaq-real-png-v88.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode real PNG and wire reports
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, base64
+
+          svg = Path('inventory/mazaq-report-logo-v87.svg').read_text(encoding='utf-8')
+          m = re.search(r'data:image/png;base64,([^\"<]+)', svg)
+          if not m:
+              raise SystemExit('Embedded PNG not found in SVG')
+          raw = base64.b64decode(''.join(m.group(1).split()))
+          if not raw.startswith(b'\x89PNG\r\n\x1a\n'):
+              raise SystemExit('Decoded asset is not PNG')
+          Path('inventory/mazaq-report-logo-v88.png').write_bytes(raw)
+
+          replacements = [
+              ('inventory/report-v32.js', '/inventory/mazaq-report-logo-v87.svg?v=1', '/inventory/mazaq-report-logo-v88.png?v=1'),
+              ('inventory/morning/morning-report-v1-base-v12.js', '/inventory/mazaq-report-logo-v87.svg?v=1', '/inventory/mazaq-report-logo-v88.png?v=1'),
+          ]
+          for fn, old, new in replacements:
+              p=Path(fn); s=p.read_text(encoding='utf-8')
+              if old not in s: raise SystemExit(f'Expected old logo path not found in {fn}')
+              p.write_text(s.replace(old,new),encoding='utf-8')
+
+          p=Path('inventory/branch-report-stable-v57.js')
+          s=p.read_text(encoding='utf-8').replace('report-v32-v74-js','report-v32-v75-js').replace('/inventory/report-v32.js?v=74','/inventory/report-v32.js?v=75')
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/historical-share-v85.js')
+          s=p.read_text(encoding='utf-8').replace('report-v32-v74-js','report-v32-v75-js').replace('/inventory/report-v32.js?v=74','/inventory/report-v32.js?v=75')
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8').replace('/inventory/branch-report-stable-v57.js?v=15','/inventory/branch-report-stable-v57.js?v=16').replace('/inventory/historical-share-v85.js?v=4','/inventory/historical-share-v85.js?v=5').replace('/inventory/original.html?v=70','/inventory/original.html?v=71')
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/morning/morning-report-v1.js')
+          s=p.read_text(encoding='utf-8').replace('/inventory/morning/morning-report-v1-base-v12.js?v=8','/inventory/morning/morning-report-v1-base-v12.js?v=9')
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/morning-shell.html')
+          s=p.read_text(encoding='utf-8').replace('/inventory/morning/morning-report-v1.js?v=16','/inventory/morning/morning-report-v1.js?v=17')
+          p.write_text(s,encoding='utf-8')
+
+          print('PNG bytes:', Path('inventory/mazaq-report-logo-v88.png').stat().st_size)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/mazaq-report-logo-v88.png inventory/report-v32.js inventory/morning/morning-report-v1-base-v12.js inventory/branch-report-stable-v57.js inventory/historical-share-v85.js inventory/index.html inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m "Use real Mazaq PNG in generated reports v88"
+          git push
