@@ -1,0 +1,43 @@
+name: temp-morning-balanced-pages-v95
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-morning-balanced-pages-v95.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Balance morning report pages
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning/morning-report-v1-base-v12.js')
+          s=p.read_text()
+          old="function splitColumns(groups,capacity=16){const cols=[];let col=[];let used=0;const flush=()=>{if(col.length)cols.push(col);col=[];used=0};for(const g of groups){let rows=[...g.rows],first=true;while(rows.length){let rem=capacity-used;if(rem<3){flush();rem=capacity}const take=Math.min(rows.length,rem-1);col.push({type:'section',text:first?g.section:`${g.section} — تابع`});used++;for(const r of rows.splice(0,take)){col.push({type:'row',...r});used++}first=false;if(rows.length)flush()}}flush();return cols}"
+          new="function splitColumns(groups,capacity=16){const cols=[];let col=[];let used=0;const flush=()=>{if(col.length)cols.push(col);col=[];used=0};for(const g of groups){let rows=[...g.rows],first=true;while(rows.length){let rem=capacity-used;if(rem<3){flush();rem=capacity}const take=Math.min(rows.length,rem-1);col.push({type:'section',text:first?g.section:`${g.section} — تابع`});used++;for(const r of rows.splice(0,take)){col.push({type:'row',...r});used++}first=false;if(rows.length)flush()}}flush();return cols}\nfunction balancedColumns(groups){let best=null;for(let capacity=16;capacity<=20;capacity++){const cols=splitColumns(groups,capacity),pages=Math.max(1,Math.ceil(cols.length/2));let imbalance=0,used=0;for(let i=0;i<cols.length;i+=2){const a=cols[i]?.length||0,b=cols[i+1]?.length||0;imbalance+=Math.abs(a-b);used+=a+b}const lastA=cols[(pages-1)*2]?.length||0,lastB=cols[(pages-1)*2+1]?.length||0,orphan=lastB===0?Math.max(0,capacity-lastA):0,score=pages*10000+orphan*100+imbalance*10+(capacity-16);if(!best||score<best.score)best={score,cols,capacity,used}}return best?.cols||splitColumns(groups,16)}"
+          if old not in s:
+              raise SystemExit('splitColumns source not found')
+          s=s.replace(old,new,1)
+          old2="const cols=splitColumns(groups,16),pageCount=Math.max(1,Math.ceil(cols.length/2))"
+          new2="const cols=balancedColumns(groups),pageCount=Math.max(1,Math.ceil(cols.length/2))"
+          if old2 not in s:
+              raise SystemExit('build splitColumns call not found')
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+          assert 'function balancedColumns(groups)' in s
+          assert 'const cols=balancedColumns(groups)' in s
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add inventory/morning/morning-report-v1-base-v12.js
+          git commit -m 'Balance morning report pages dynamically v95'
+          git push origin main
