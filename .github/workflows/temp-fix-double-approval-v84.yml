@@ -1,0 +1,50 @@
+name: Temporary remove duplicate approval gate v84
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-fix-double-approval-v84.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove legacy approval gate and bump caches
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('inventory/report-v32.js')
+          s=p.read_text(encoding='utf-8')
+          old=""" const approved=(document.querySelector('.head .muted')?.textContent||'').includes('تم الاعتماد');
+ if((share||pdfOnly)&&!approved)return toast('اعتمد التقرير أولًا قبل المشاركة',true);
+"""
+          if old not in s:
+              raise SystemExit('legacy approval gate not found')
+          s=s.replace(old,""" // اعتماد المشاركة يتم التحقق منه مسبقًا من API داخل branch-report-stable-v57.js.
+ // لا نكرر التحقق هنا من نص الواجهة لأنه قد يكون مخفيًا أو قديمًا.
+""",1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/branch-report-stable-v57.js')
+          s=p.read_text(encoding='utf-8')
+          if "/inventory/report-v32.js?v=69" not in s:
+              raise SystemExit('report cache marker v69 not found')
+          s=s.replace("report-v32-v69-js","report-v32-v70-js")
+          s=s.replace("/inventory/report-v32.js?v=69","/inventory/report-v32.js?v=70")
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8')
+          if "/inventory/branch-report-stable-v57.js?v=10" not in s:
+              raise SystemExit('stable cache marker v10 not found')
+          s=s.replace("/inventory/branch-report-stable-v57.js?v=10","/inventory/branch-report-stable-v57.js?v=11")
+          s=s.replace("/inventory/original.html?v=65","/inventory/original.html?v=66")
+          p.write_text(s,encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/report-v32.js inventory/branch-report-stable-v57.js inventory/index.html
+          git commit -m "Remove duplicate daily inventory approval gate v84"
+          git push
