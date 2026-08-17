@@ -1,5 +1,5 @@
 (()=>{'use strict';
-if(window.__morningReportWrapperV89)return;window.__morningReportWrapperV89=true;
+if(window.__morningReportWrapperV90)return;window.__morningReportWrapperV90=true;
 const nativeFetch=window.fetch.bind(window),nativeDraw=CanvasRenderingContext2D.prototype.drawImage,cleanCache=new WeakMap();
 function branchKey(branch){const raw=String(branch?.id||branch?.branch_id||'').trim().toLowerCase(),name=String(branch?.name||branch?.branch_name||'').trim();if(raw==='individuals'||raw.includes('individual')||name.includes('أفراد'))return'individuals';if(raw==='families'||raw.includes('famil')||name.includes('عوائل'))return'families';if(raw==='mazaq'||raw.includes('mazaq')||name.includes('المذاق'))return'mazaq';return raw}
 function normalizeBranch(branch){if(!branch)return branch;const k=branchKey(branch);return k?{...branch,id:k}:branch}
@@ -20,7 +20,11 @@ function fireCurrentState(){const st=normalizeState(window.__morningReceivingSta
  const patched="function loadMazaqReportLogo(){return (async()=>{try{const r=await fetch(MAZAQ_REPORT_LOGO,{cache:'no-store'});if(!r.ok)throw new Error('logo '+r.status);const b=await r.blob();if(typeof createImageBitmap==='function')return await createImageBitmap(b);const u=URL.createObjectURL(b);try{return await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=u})}finally{URL.revokeObjectURL(u)}}catch(e){console.error('Mazaq morning logo load failed',e);return null}})()}";
  if(!code.includes(old))throw new Error('لم يتم العثور على محمل شعار المذاق داخل القالب');
  code=code.replace(old,patched);
- (0,eval)(code+'\n//# sourceURL=morning-report-v1-base-v12-runtime-v89.js');
+ const needle="reportLogo=reportBranchId==='mazaq'?await loadMazaqReportLogo():reportBranchId==='individuals'?await loadIndividualsReportLogo():reportBranchId==='families'?await loadFamiliesReportLogo():null;const raw=";
+ const repl="reportLogo=reportBranchId==='mazaq'?await loadMazaqReportLogo():reportBranchId==='individuals'?await loadIndividualsReportLogo():reportBranchId==='families'?await loadFamiliesReportLogo():null;if(reportBranchId==='mazaq'&&!reportLogo)throw new Error('تعذر تحميل شعار المذاق. لم يتم إنشاء التقرير الناقص.');const raw=";
+ if(!code.includes(needle))throw new Error('تعذر تثبيت شرط شعار المذاق داخل القالب');
+ code=code.replace(needle,repl);
+ (0,eval)(code+'\n//# sourceURL=morning-report-v1-base-v12-runtime-v90.js');
  fireCurrentState();setTimeout(fireCurrentState,120);setTimeout(fireCurrentState,650);
 }catch(e){console.error('تعذر تشغيل قالب تقرير الاستلام الصباحي',e)}})();
 })();
