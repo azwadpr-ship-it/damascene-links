@@ -7,7 +7,7 @@ const P={W:1080,H:1920,M:34,BOTTOM:1824,GAP:12,COLS:3,TOP:246,TOP_APP:314};
 P.CW=(P.W-P.M*2-P.GAP*(P.COLS-1))/P.COLS;
 const GCOLS=2,GGAP=18,GCW=(P.W-P.M*2-GGAP)/GCOLS;
 
-const MAZAQ_REPORT_LOGO='/inventory/mazaq-brand-logo.png?v=1';
+const MAZAQ_REPORT_LOGO=window.__MAZAQ_REPORT_LOGO_V86||'/inventory/mazaq-brand-logo.png?v=1';
 const INDIVIDUALS_REPORT_LOGO='/inventory/individuals-brand-logo.svg?v=1';
 const FAMILIES_REPORT_LOGO='/inventory/families-brand-logo.jpg?v=1';
 let mazaqReportLogo=null,mazaqReportLogoLoading=null,individualsReportLogo=null,individualsReportLogoLoading=null,familiesReportLogo=null,familiesReportLogoLoading=null;
