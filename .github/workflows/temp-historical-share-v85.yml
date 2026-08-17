@@ -1,0 +1,57 @@
+name: Temporary historical daily report sharing v85
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-historical-share-v85.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix sharing from latest submitted report
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('inventory/branch-report-stable-v57.js')
+          s=p.read_text(encoding='utf-8')
+          old="function reportDate(){return document.getElementById('rd')?.value||''}"
+          new="""function reportDate(){return document.getElementById('rd')?.value||''}
+function previousDay(iso){try{const d=new Date(iso+'T12:00:00+03:00');d.setDate(d.getDate()-1);return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}catch{return iso}}
+async function loadReportData(date){const branch_id=branchId(),token=localStorage.getItem('inventory_token')||'';if(!branch_id||!date||!token)return null;const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'report_load',branch_id,date})});const d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة التقرير المحفوظ'}));if(!r.ok||d.ok===false)throw new Error(d.error||'تعذر قراءة التقرير المحفوظ');return d.data||null}
+function historicalOverride(d){const groups=new Map(),branch=String(document.querySelector('.head h2')?.textContent||'').trim();for(const item of (d?.items||[])){const v=d.values?.[item.id]||{},title=item.section||'قسم';let sec=groups.get(title);if(!sec){sec={title,type:item.mode==='flow'?'flow':'simple',items:[]};groups.set(title,sec)}if(item.mode==='flow'){if(v.closing===null||v.closing===undefined||v.closing==='')continue;const opening=Number(v.opening||0),incoming=Number(v.incoming||0),closing=Number(v.closing);sec.items.push({name:item.name,opening:String(v.opening??0),incoming:String(v.incoming??0),closing:String(v.closing),sold:String(Math.round((opening+incoming-closing)*1000)/1000),unit:item.unit})}else if(v.value!==null&&v.value!==undefined&&v.value!==''){sec.items.push({name:item.name,value:String(v.value),unit:item.unit})}}return{branch,notes:d?.report?.notes||'',sections:Array.from(groups.values()).filter(x=>x.items.length),reportDate:d?.date||''}}
+"""
+          if old not in s: raise SystemExit('reportDate marker not found')
+          s=s.replace(old,new,1)
+          old2="""if(b.id==='share'||b.id==='pdfShare'){const st=await reportState();const approved=st==='submitted';approvalMarker(approved);if(!approved){addApprovalButton();throw new Error('اعتمد التقرير أولًا قبل المشاركة')}}await loadReport();"""
+          new2="""if(b.id==='share'||b.id==='pdfShare'){const st=await reportState();let approved=st==='submitted';approvalMarker(approved);if(!approved){const prev=previousDay(reportDate()),prevData=await loadReportData(prev);if(prevData?.report?.status==='submitted'){window.__inventoryReportOverride=historicalOverride(prevData);approved=true;approvalMarker(true);notify('سيتم إرسال آخر تقرير معتمد: '+prev)}else{addApprovalButton();throw new Error('اعتمد التقرير أولًا قبل المشاركة')}}}await loadReport();"""
+          if old2 not in s: raise SystemExit('share gate marker not found')
+          s=s.replace(old2,new2,1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/report-v32.js')
+          s=p.read_text(encoding='utf-8')
+          old3="function currentReport(){\n const branch=txt(document.querySelector('.head h2'))||'الفرع',"
+          new3="""function currentReport(){
+ const override=window.__inventoryReportOverride;
+ if(override){window.__inventoryReportOverride=null;return{...override,sections:mergeRegularSodaUnits(override.sections||[])}}
+ const branch=txt(document.querySelector('.head h2'))||'الفرع',"""
+          if old3 not in s: raise SystemExit('currentReport marker not found')
+          s=s.replace(old3,new3,1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/branch-report-stable-v57.js')
+          s=p.read_text(encoding='utf-8').replace('report-v32-v70-js','report-v32-v71-js').replace('/inventory/report-v32.js?v=70','/inventory/report-v32.js?v=71')
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8').replace('/inventory/branch-report-stable-v57.js?v=11','/inventory/branch-report-stable-v57.js?v=12').replace('/inventory/original.html?v=66','/inventory/original.html?v=67')
+          p.write_text(s,encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/branch-report-stable-v57.js inventory/report-v32.js inventory/index.html
+          git commit -m "Allow sharing latest submitted daily report v85"
+          git push
