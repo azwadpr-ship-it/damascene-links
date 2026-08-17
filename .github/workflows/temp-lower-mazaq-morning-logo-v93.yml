@@ -1,0 +1,35 @@
+name: temp-lower-mazaq-morning-logo-v93
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Lower Mazaq morning report logo 8px
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('inventory/morning/morning-report-v1-base-v12.js')
+          s = p.read_text(encoding='utf-8')
+          old = "ctx.drawImage(reportLogo,935,31,72,92)"
+          new = "ctx.drawImage(reportLogo,935,39,72,92)"
+          if old not in s:
+              if new in s:
+                  print('Already patched')
+                  raise SystemExit(0)
+              raise SystemExit('Expected Mazaq logo draw position not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+      - name: Commit patch
+        run: |
+          if git diff --quiet; then echo "No changes"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/morning/morning-report-v1-base-v12.js
+          git commit -m "Lower Mazaq morning report logo slightly v93"
+          git push
