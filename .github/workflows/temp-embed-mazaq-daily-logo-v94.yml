@@ -40,7 +40,7 @@ jobs:
           report = Path('inventory/report-v32.js').read_text(encoding='utf-8')
           stable = Path('inventory/branch-report-stable-v57.js').read_text(encoding='utf-8')
           assert "const MAZAQ_REPORT_LOGO='data:image/png;base64," in report
-          assert 'ctx.drawImage(logo,lx,ly,lw,lh)' in report
+          assert 'c.drawImage(logo,lx,ly,lw,lh)' in report
           assert '/inventory/report-v32.js?v=76' in stable
           assert 'window.__branchReportStableV84' in stable
           print('PASS')
