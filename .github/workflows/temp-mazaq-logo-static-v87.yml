@@ -10,68 +10,67 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Create static PNG and wire reports
+      - name: Create static SVG and wire reports
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re, base64
+          import re
 
           js=Path('inventory/mazaq-report-logo-v86.js').read_text(encoding='utf-8')
           m=re.search(r"data:image/png;base64,([^']+)", js)
           if not m: raise SystemExit('embedded mazaq logo not found')
           b64=''.join(m.group(1).split())
           b64 += '=' * (-len(b64) % 4)
-          raw=base64.b64decode(b64)
-          if not raw.startswith(b'\x89PNG\r\n\x1a\n'): raise SystemExit('decoded logo is not PNG')
-          Path('inventory/mazaq-report-logo-v87.png').write_bytes(raw)
+          svg=f'''<svg xmlns="http://www.w3.org/2000/svg" width="700" height="900" viewBox="0 0 700 900"><image x="0" y="0" width="700" height="900" preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,{b64}"/></svg>'''
+          Path('inventory/mazaq-report-logo-v87.svg').write_text(svg,encoding='utf-8')
 
           p=Path('inventory/report-v32.js')
           s=p.read_text(encoding='utf-8')
-          s=re.sub(r"const MAZAQ_REPORT_LOGO=.*?;", "const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.png?v=1';", s, count=1)
-          s=s.replace("img.onload=()=>{mazaqReportLogo=img;resolve(img)};img.onerror=()=>resolve(null);img.src=MAZAQ_REPORT_LOGO", "img.onload=()=>{mazaqReportLogo=img;resolve(img)};img.onerror=()=>{console.error('MAZAQ_LOGO_LOAD_FAILED',MAZAQ_REPORT_LOGO);resolve(null)};img.src=MAZAQ_REPORT_LOGO")
+          s=re.sub(r"const MAZAQ_REPORT_LOGO=.*?;", "const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.svg?v=1';", s, count=1)
           p.write_text(s,encoding='utf-8')
 
           p=Path('inventory/morning/morning-report-v1-base-v12.js')
           s=p.read_text(encoding='utf-8')
-          s=re.sub(r"const MAZAQ_REPORT_LOGO=.*?;", "const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.png?v=1';", s, count=1)
+          s=re.sub(r"const MAZAQ_REPORT_LOGO=.*?;", "const MAZAQ_REPORT_LOGO='/inventory/mazaq-report-logo-v87.svg?v=1';", s, count=1)
           p.write_text(s,encoding='utf-8')
-
-          p=Path('inventory/index.html')
-          s=p.read_text(encoding='utf-8')
-          s=s.replace("addScript(d,'mazaq-report-logo-v86-js','/inventory/mazaq-report-logo-v86.js?v=1');","")
-          s=s.replace('/inventory/branch-report-stable-v57.js?v=13','/inventory/branch-report-stable-v57.js?v=14')
-          s=s.replace('/inventory/historical-share-v85.js?v=2','/inventory/historical-share-v85.js?v=3')
-          s=s.replace('/inventory/original.html?v=68','/inventory/original.html?v=69')
-          p.write_text(s,encoding='utf-8')
-
-          for fn in ['inventory/branch-report-stable-v57.js','inventory/historical-share-v85.js']:
-              p=Path(fn); s=p.read_text(encoding='utf-8')
-              s=re.sub(r'report-v32-v\d+-js','report-v32-v73-js',s)
-              s=re.sub(r'/inventory/report-v32\.js\?v=\d+','/inventory/report-v32.js?v=73',s)
-              p.write_text(s,encoding='utf-8')
 
           p=Path('inventory/morning/morning-report-v1.js')
           s=p.read_text(encoding='utf-8')
           marker="const loadBase=()=>{"
           if marker in s:
               start=s.index(marker)
-              repl="const s=document.createElement('script');s.id='morning-report-base-v12-js';s.src='/inventory/morning/morning-report-v1-base-v12.js?v=7';s.async=false;s.onload=()=>{fireCurrentState();setTimeout(fireCurrentState,120);setTimeout(fireCurrentState,650)};s.onerror=()=>console.error('تعذر تحميل قالب تقرير الاستلام الصباحي الأساسي');document.body.appendChild(s);\n})();\n"
+              repl="const s=document.createElement('script');s.id='morning-report-base-v12-js';s.src='/inventory/morning/morning-report-v1-base-v12.js?v=8';s.async=false;s.onload=()=>{fireCurrentState();setTimeout(fireCurrentState,120);setTimeout(fireCurrentState,650)};s.onerror=()=>console.error('تعذر تحميل قالب تقرير الاستلام الصباحي الأساسي');document.body.appendChild(s);\n})();\n"
               s=s[:start]+repl
           else:
-              s=s.replace("s.src='/inventory/morning/morning-report-v1-base-v12.js?v=6'","s.src='/inventory/morning/morning-report-v1-base-v12.js?v=7'")
+              s=re.sub(r"morning-report-v1-base-v12\.js\?v=\d+","morning-report-v1-base-v12.js?v=8",s)
           p.write_text(s,encoding='utf-8')
+
+          p=Path('inventory/index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("addScript(d,'mazaq-report-logo-v86-js','/inventory/mazaq-report-logo-v86.js?v=1');","")
+          s=re.sub(r'/inventory/branch-report-stable-v57\.js\?v=\d+','/inventory/branch-report-stable-v57.js?v=15',s)
+          s=re.sub(r'/inventory/historical-share-v85\.js\?v=\d+','/inventory/historical-share-v85.js?v=4',s)
+          s=re.sub(r'/inventory/original\.html\?v=\d+','/inventory/original.html?v=70',s)
+          p.write_text(s,encoding='utf-8')
+
+          for fn in ['inventory/branch-report-stable-v57.js','inventory/historical-share-v85.js']:
+              p=Path(fn); s=p.read_text(encoding='utf-8')
+              s=re.sub(r'report-v32-v\d+-js','report-v32-v74-js',s)
+              s=re.sub(r'/inventory/report-v32\.js\?v=\d+','/inventory/report-v32.js?v=74',s)
+              p.write_text(s,encoding='utf-8')
 
           p=Path('inventory/morning-shell.html')
           s=p.read_text(encoding='utf-8')
-          s=re.sub(r'morning-report-v1\.js\?v=\d+','morning-report-v1.js?v=15',s)
+          s=re.sub(r'morning-report-v1\.js\?v=\d+','morning-report-v1.js?v=16',s)
           p.write_text(s,encoding='utf-8')
 
-          assert Path('inventory/mazaq-report-logo-v87.png').stat().st_size > 10000
-          assert "mazaq-report-logo-v87.png" in Path('inventory/report-v32.js').read_text(encoding='utf-8')
-          assert "mazaq-report-logo-v87.png" in Path('inventory/morning/morning-report-v1-base-v12.js').read_text(encoding='utf-8')
+          assert Path('inventory/mazaq-report-logo-v87.svg').stat().st_size > 10000
+          assert "mazaq-report-logo-v87.svg" in Path('inventory/report-v32.js').read_text(encoding='utf-8')
+          assert "mazaq-report-logo-v87.svg" in Path('inventory/morning/morning-report-v1-base-v12.js').read_text(encoding='utf-8')
+          assert '__MAZAQ_REPORT_LOGO_V86' not in Path('inventory/morning/morning-report-v1.js').read_text(encoding='utf-8')
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add inventory/mazaq-report-logo-v87.png inventory/report-v32.js inventory/index.html inventory/branch-report-stable-v57.js inventory/historical-share-v85.js inventory/morning/morning-report-v1.js inventory/morning/morning-report-v1-base-v12.js inventory/morning-shell.html
-          git commit -m "Use static Mazaq PNG in all report generators v87"
+          git add inventory/mazaq-report-logo-v87.svg inventory/report-v32.js inventory/morning/morning-report-v1-base-v12.js inventory/morning/morning-report-v1.js inventory/index.html inventory/branch-report-stable-v57.js inventory/historical-share-v85.js inventory/morning-shell.html
+          git commit -m "Use static Mazaq SVG in all reports v87"
           git push
