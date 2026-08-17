@@ -1,44 +1,20 @@
 (()=>{'use strict';
-if(window.__branchReportStableV65)return;window.__branchReportStableV65=true;
-let loading=null;
-function loadReport(){
- if(window.__reportV31Loaded)return Promise.resolve();
- if(loading)return loading;
- loading=new Promise((resolve,reject)=>{
-  const old=document.getElementById('report-v32-v69-js');
-  if(old){if(window.__reportV31Loaded){resolve();return}old.addEventListener('load',resolve,{once:true});old.addEventListener('error',()=>reject(new Error('تعذر تحميل قالب التقرير')),{once:true});return}
-  const s=document.createElement('script');s.id='report-v32-v69-js';s.src='/inventory/report-v32.js?v=69';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل قالب التقرير'));document.body.appendChild(s)
- });
- return loading
-}
-function arrangeShareButtons(){
- const share=document.getElementById('share'),pdf=document.getElementById('pdfShare');
- if(!share||!pdf)return;
- if(share.textContent!=='مشاركة كصور')share.textContent='مشاركة كصور';
- if(pdf.textContent!=='مشاركة PDF')pdf.textContent='مشاركة PDF';
- let stack=share.closest('.report-share-stack');
- if(!stack){
-  stack=document.createElement('div');stack.className='report-share-stack';
-  share.parentNode.insertBefore(stack,share);stack.appendChild(share);stack.appendChild(pdf);
- }
- if(!document.getElementById('report-share-stack-v64-css')){
-  const st=document.createElement('style');st.id='report-share-stack-v64-css';
-  st.textContent=`.report-share-stack{display:flex;flex-direction:column;gap:8px;min-width:145px}.report-share-stack .btn{width:100%;min-width:145px;margin:0}@media(max-width:620px){.report-share-stack{width:100%;min-width:0}.report-share-stack .btn{width:100%;min-width:0}}`;
-  document.head.appendChild(st);
- }
-}
-arrangeShareButtons();
-const app=document.getElementById('app');
-if(app){new MutationObserver(()=>arrangeShareButtons()).observe(app,{childList:true})}
-document.addEventListener('click',async e=>{
- const b=e.target.closest?.('#jpg,#share,#pdfShare');if(!b)return;
- if(b.dataset.reportStablePass==='1'){delete b.dataset.reportStablePass;return}
- e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
- const oldText=b.textContent;b.disabled=true;b.textContent='جاري تجهيز التقرير...';
- try{
-  await loadReport();
-  b.disabled=false;b.textContent=oldText;b.dataset.reportStablePass='1';
-  setTimeout(()=>b.click(),0)
- }catch(err){b.disabled=false;b.textContent=oldText;alert(err?.message||'تعذر تحميل التقرير')}
-},true);
+if(window.__branchReportStableV83)return;window.__branchReportStableV83=true;
+const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
+let loading=null,approvalTimer=0,approvalRequest=null;
+function branchId(){const n=String(document.querySelector('.head h2')?.textContent||'').trim();if(n.includes('المشويات أفراد'))return'individuals';if(n.includes('المشويات عوائل'))return'families';if(n.includes('المذاق'))return'mazaq';return''}
+function reportDate(){return document.getElementById('rd')?.value||''}
+function notify(msg){try{const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');clearTimeout(window.__approvalToast);window.__approvalToast=setTimeout(()=>t.classList.remove('show'),3000);return}}catch{}alert(msg)}
+async function reportState(){const branch_id=branchId(),date=reportDate(),token=localStorage.getItem('inventory_token')||'';if(!branch_id||!date||!token)return null;const key=branch_id+'|'+date;if(approvalRequest?.key===key)return approvalRequest.promise;const promise=(async()=>{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'report_load',branch_id,date})});const d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة حالة التقرير'}));if(!r.ok||d.ok===false)throw new Error(d.error||'تعذر التحقق من حالة التقرير');return d.data?.report?.status||null})();approvalRequest={key,promise};try{return await promise}finally{setTimeout(()=>{if(approvalRequest?.key===key)approvalRequest=null},250)}}
+function approvalMarker(on){const muted=document.querySelector('.head .muted');if(!muted)return;let m=muted.querySelector('.report-approved-marker-v83');if(on){if(!m){m=document.createElement('span');m.className='report-approved-marker-v83';m.style.display='none';m.textContent=' تم الاعتماد';muted.appendChild(m)}}else m?.remove()}
+function parseNum(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}
+function collectValues(){const values={};document.querySelectorAll('.ri[data-id]').forEach(inp=>{const id=inp.dataset.id,key=inp.dataset.key;if(!id||!key)return;const v=values[id]||(values[id]={});v[key]=parseNum(inp.value);if(key==='incoming'||key==='closing'){const row=inp.closest('tr'),opening=parseNum(row?.querySelector('.ro')?.textContent);if(v.opening===undefined)v.opening=opening??0}});Object.values(values).forEach(v=>{if('closing'in v||'incoming'in v){const opening=Number(v.opening||0),incoming=Number(v.incoming||0);v.computed=v.closing===null||v.closing===undefined?null:opening+incoming-Number(v.closing)}});return values}
+async function approveCurrent(btn){if(!confirm('اعتماد تقرير اليوم؟'))return;const branch_id=branchId(),date=reportDate(),token=localStorage.getItem('inventory_token')||'';if(!branch_id||!date||!token)return notify('تعذر تحديد التقرير الحالي');btn.disabled=true;const old=btn.textContent;btn.textContent='جاري الاعتماد...';try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'report_save',branch_id,date,values:collectValues(),notes:document.getElementById('notes')?.value||'',submit:true})});const d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(!r.ok||d.ok===false)throw new Error(d.error||'تعذر اعتماد التقرير');approvalMarker(true);notify('تم اعتماد التقرير');setTimeout(()=>location.reload(),450)}catch(e){btn.disabled=false;btn.textContent=old;notify(e.message||'تعذر اعتماد التقرير')}}
+function addApprovalButton(){const bottom=document.querySelector('.bottomin');if(!bottom||document.getElementById('submit')||document.querySelector('.head h2')?.textContent?.includes('لوحة المدير'))return null;const b=document.createElement('button');b.className='btn ok';b.id='submit';b.type='button';b.textContent='اعتماد التقرير';const draft=document.getElementById('draft');draft?.insertAdjacentElement('afterend',b);if(!draft)bottom.prepend(b);b.addEventListener('click',()=>approveCurrent(b));return b}
+async function syncApprovalUi(){clearTimeout(approvalTimer);approvalTimer=setTimeout(async()=>{try{if(!document.querySelector('.bottomin')||!branchId())return;const st=await reportState();approvalMarker(st==='submitted');if(st!=='submitted')addApprovalButton()}catch{}},80)}
+function loadReport(){if(window.__reportV31Loaded)return Promise.resolve();if(loading)return loading;loading=new Promise((resolve,reject)=>{const old=document.getElementById('report-v32-v69-js');if(old){if(window.__reportV31Loaded){resolve();return}old.addEventListener('load',resolve,{once:true});old.addEventListener('error',()=>reject(new Error('تعذر تحميل قالب التقرير')),{once:true});return}const s=document.createElement('script');s.id='report-v32-v69-js';s.src='/inventory/report-v32.js?v=69';s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل قالب التقرير'));document.body.appendChild(s)});return loading}
+function arrangeShareButtons(){const share=document.getElementById('share'),pdf=document.getElementById('pdfShare');if(!share||!pdf)return;if(share.textContent!=='مشاركة كصور')share.textContent='مشاركة كصور';if(pdf.textContent!=='مشاركة PDF')pdf.textContent='مشاركة PDF';let stack=share.closest('.report-share-stack');if(!stack){stack=document.createElement('div');stack.className='report-share-stack';share.parentNode.insertBefore(stack,share);stack.appendChild(share);stack.appendChild(pdf)}if(!document.getElementById('report-share-stack-v64-css')){const st=document.createElement('style');st.id='report-share-stack-v64-css';st.textContent='.report-share-stack{display:flex;flex-direction:column;gap:8px;min-width:145px}.report-share-stack .btn{width:100%;min-width:145px;margin:0}@media(max-width:620px){.report-share-stack{width:100%;min-width:0}.report-share-stack .btn{width:100%;min-width:0}}';document.head.appendChild(st)}}
+function refresh(){arrangeShareButtons();syncApprovalUi()}
+refresh();const app=document.getElementById('app');if(app)new MutationObserver(()=>refresh()).observe(app,{childList:true});document.addEventListener('change',e=>{if(e.target?.id==='rd')syncApprovalUi()},true);
+document.addEventListener('click',async e=>{const b=e.target.closest?.('#jpg,#share,#pdfShare');if(!b)return;if(b.dataset.reportStablePass==='1'){delete b.dataset.reportStablePass;return}e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const oldText=b.textContent;b.disabled=true;b.textContent='جاري تجهيز التقرير...';try{if(b.id==='share'||b.id==='pdfShare'){const st=await reportState();const approved=st==='submitted';approvalMarker(approved);if(!approved){addApprovalButton();throw new Error('اعتمد التقرير أولًا قبل المشاركة')}}await loadReport();b.disabled=false;b.textContent=oldText;b.dataset.reportStablePass='1';setTimeout(()=>b.click(),0)}catch(err){b.disabled=false;b.textContent=oldText;notify(err?.message||'تعذر تجهيز التقرير')}},true);
 })();
