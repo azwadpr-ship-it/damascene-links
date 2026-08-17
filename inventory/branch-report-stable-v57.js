@@ -1,5 +1,5 @@
 (()=>{'use strict';
-if(window.__branchReportStableV84)return;window.__branchReportStableV83=true;
+if(window.__branchReportStableV84)return;window.__branchReportStableV84=true;
 const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory';
 let loading=null,approvalTimer=0,approvalRequest=null;
 function branchId(){const n=String(document.querySelector('.head h2')?.textContent||'').trim();if(n.includes('المشويات أفراد'))return'individuals';if(n.includes('المشويات عوائل'))return'families';if(n.includes('المذاق'))return'mazaq';return''}
