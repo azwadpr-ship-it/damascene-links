@@ -1,0 +1,76 @@
+name: temp-morning-share-autosave-v97
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-morning-share-autosave-v97.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Patch morning share autosave
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # 1) Expose a safe one-shot save for report sharing.
+          p=Path('inventory/morning/index.html')
+          s=p.read_text()
+          anchor="$('#logoutBtn').onclick=()=>signOut(true);\n$('#saveBtn').onclick=async()=>{"
+          insert="""$('#logoutBtn').onclick=()=>signOut(true);\nasync function savePendingDraftForReport(){\n const moved=await ensureCurrentDay(true);\n const entries={};for(const [id,v] of Object.entries(S.draft)){const q=Number(v);if(q>0)entries[id]=q}\n const n=Object.keys(entries).length;if(!n)return false;\n const note=$('#batchNote')?.value.trim()||'';\n const b=$('#saveBtn'),oldText=b?.textContent||'';if(b){b.disabled=true;b.textContent='جاري الحفظ والمشاركة...'}\n try{\n  if(moved)toast('تم تحديث تاريخ الاستلام تلقائيًا إلى اليوم');\n  const d=await api('receiving_post',{date:S.date,entries,note});S.data=await enrichSnapshot(d.data);clearDraft();render();toast('تم حفظ دفعة الاستلام وتجهيز التقرير');return true\n }catch(e){toast(e.message,true);updatePending();throw e}\n finally{const nb=$('#saveBtn');if(nb&&oldText)nb.textContent=oldText;updatePending()}\n}\nwindow.__morningSavePendingDraftForReport=savePendingDraftForReport;\n$('#saveBtn').onclick=async()=>{"""
+          if anchor not in s: raise SystemExit('index save anchor not found')
+          s=s.replace(anchor,insert,1)
+          p.write_text(s)
+
+          # 2) Let report buttons represent pending draft and autosave it before sharing.
+          p=Path('inventory/morning/morning-report-v1-base-v12.js')
+          s=p.read_text()
+          anchor="function reportDate(){return $('#morningReportDate')?.value||visibleDate()}\nlet reportCheckSeq=0;"
+          insert="""function reportDate(){return $('#morningReportDate')?.value||visibleDate()}\nfunction pendingDraftCount(){if(reportDate()!==today())return 0;return Array.from(document.querySelectorAll('.qty[data-id]')).filter(i=>Number(i.value)>0).length}\nasync function savePendingBeforeShare(){if(!pendingDraftCount())return false;const fn=window.__morningSavePendingDraftForReport;if(typeof fn!=='function')throw Error('تعذر حفظ الكميات الجديدة قبل المشاركة');const saved=await fn();if(saved){preparedReport=null;prepareSeq++;await new Promise(r=>setTimeout(r,80))}return !!saved}\nlet reportCheckSeq=0;"""
+          if anchor not in s: raise SystemExit('base reportDate anchor not found')
+          s=s.replace(anchor,insert,1)
+
+          old="const count=(loaded.data?.batches||[]).length,itemCount=reportItemCount(loaded.data),fallback=!count&&itemCount>0,disabled=!count&&!fallback;preparedReport=null;prepareSeq++;if(images)images.disabled=true;if(pdf)pdf.disabled=true;card.classList.toggle('morning-report-empty',disabled);if(disabled){if(hint)hint.textContent=date===today()?'لا توجد دفعات استلام أو جرد محفوظ لهذا اليوم حتى الآن.':`لا توجد بيانات محفوظة بتاريخ ${ddmmyyyy(date)}.`}else if(fallback){if(hint)hint.textContent=`لا توجد دفعات استلام بعد — سيتم إنشاء تقرير حالة صباحية من آخر جرد محفوظ بتاريخ ${loaded.data.inventory_snapshot?.date||''} (${itemCount} صنف).`;prepareReport(date)}else{if(hint)hint.textContent=`جاري تجهيز تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف...`;prepareReport(date)}"
+          new="const count=(loaded.data?.batches||[]).length,itemCount=reportItemCount(loaded.data),fallback=!count&&itemCount>0,pending=pendingDraftCount(),disabled=!count&&!fallback&&!pending;preparedReport=null;prepareSeq++;if(images)images.disabled=true;if(pdf)pdf.disabled=true;card.classList.toggle('morning-report-empty',disabled);if(disabled){if(hint)hint.textContent=date===today()?'لا توجد دفعات استلام أو جرد محفوظ لهذا اليوم حتى الآن.':`لا توجد بيانات محفوظة بتاريخ ${ddmmyyyy(date)}.`}else if(pending){if(images)images.disabled=false;if(pdf)pdf.disabled=false;if(hint)hint.textContent=`${pending} صنف جديد غير محفوظ — عند المشاركة سيتم حفظ الدفعة تلقائيًا ثم إرسال تقرير اليوم الكامل.`}else if(fallback){if(hint)hint.textContent=`لا توجد دفعات استلام بعد — سيتم إنشاء تقرير حالة صباحية من آخر جرد محفوظ بتاريخ ${loaded.data.inventory_snapshot?.date||''} (${itemCount} صنف).`;prepareReport(date)}else{if(hint)hint.textContent=`جاري تجهيز تقرير اليوم الكامل — ${count} دفعة / ${itemCount} صنف...`;prepareReport(date)}"
+          if old not in s: raise SystemExit('refresh state block not found')
+          s=s.replace(old,new,1)
+
+          old="async function share(kind){const box=$('#morningReportActions');if(box?.classList.contains('morning-report-busy'))return;box?.classList.add('morning-report-busy');try{const r=preparedReport&&preparedReport.date===reportDate()?preparedReport:await build(),date=ddmmyyyy(r.date)"
+          new="async function share(kind){const box=$('#morningReportActions');if(box?.classList.contains('morning-report-busy'))return;box?.classList.add('morning-report-busy');try{await savePendingBeforeShare();const r=preparedReport&&preparedReport.date===reportDate()?preparedReport:await build(),date=ddmmyyyy(r.date)"
+          if old not in s: raise SystemExit('share block not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          # 3) Cache bust wrapper + shell/inner.
+          p=Path('inventory/morning/morning-report-v1.js'); s=p.read_text()
+          s=s.replace('if(window.__morningReportWrapperV92)return;window.__morningReportWrapperV92=true;','if(window.__morningReportWrapperV93)return;window.__morningReportWrapperV93=true;',1)
+          s=s.replace("morning-report-v1-base-v12.js?v=9","morning-report-v1-base-v12.js?v=10",1)
+          p.write_text(s)
+
+          p=Path('inventory/morning-shell.html'); s=p.read_text()
+          s=s.replace('index.html?inner=17','index.html?inner=18',1)
+          s=s.replace("morning-report-v1.js?v=17","morning-report-v1.js?v=18",1)
+          p.write_text(s)
+
+          # Verification
+          assert '__morningSavePendingDraftForReport' in Path('inventory/morning/index.html').read_text()
+          base=Path('inventory/morning/morning-report-v1-base-v12.js').read_text()
+          assert 'pendingDraftCount()' in base and 'await savePendingBeforeShare();' in base
+          wrap=Path('inventory/morning/morning-report-v1.js').read_text()
+          assert '__morningReportWrapperV93' in wrap and 'base-v12.js?v=10' in wrap
+          shell=Path('inventory/morning-shell.html').read_text()
+          assert 'index.html?inner=18' in shell and 'morning-report-v1.js?v=18' in shell
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add inventory/morning/index.html inventory/morning/morning-report-v1-base-v12.js inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m 'Auto-save pending morning draft before report sharing v97'
+          git push origin main
