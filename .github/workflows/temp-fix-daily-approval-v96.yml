@@ -1,0 +1,47 @@
+name: temp-fix-daily-approval-v96
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-fix-daily-approval-v96.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fix daily approval button visibility
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/branch-report-stable-v57.js')
+          s=p.read_text()
+          s=s.replace("if(window.__branchReportStableV84)return;window.__branchReportStableV84=true;","if(window.__branchReportStableV85)return;window.__branchReportStableV85=true;",1)
+          old="function addApprovalButton(){const bottom=document.querySelector('.bottomin');if(!bottom||document.getElementById('submit')||document.querySelector('.head h2')?.textContent?.includes('لوحة المدير'))return null;const b=document.createElement('button');b.className='btn ok';b.id='submit';b.type='button';b.textContent='اعتماد التقرير';const draft=document.getElementById('draft');draft?.insertAdjacentElement('afterend',b);if(!draft)bottom.prepend(b);b.addEventListener('click',()=>approveCurrent(b));return b}\nasync function syncApprovalUi(){clearTimeout(approvalTimer);approvalTimer=setTimeout(async()=>{try{if(!document.querySelector('.bottomin')||!branchId())return;const st=await reportState();approvalMarker(st==='submitted');if(st!=='submitted')addApprovalButton()}catch{}},80)}"
+          new="function addApprovalButton(){const bottom=document.querySelector('.bottomin');if(!bottom||document.querySelector('.head h2')?.textContent?.includes('لوحة المدير'))return null;let b=document.getElementById('submit');if(!b){b=document.createElement('button');b.className='btn ok';b.id='submit';b.type='button';b.textContent='اعتماد التقرير';const draft=document.getElementById('draft');draft?.insertAdjacentElement('afterend',b);if(!draft)bottom.prepend(b);b.dataset.stableApproval='1';b.addEventListener('click',()=>approveCurrent(b))}b.hidden=false;b.classList.remove('hidden');b.style.setProperty('display','inline-flex','important');b.style.setProperty('visibility','visible','important');b.style.setProperty('opacity','1','important');b.disabled=false;return b}\nfunction hideApprovalButton(){const b=document.getElementById('submit');if(!b)return;b.style.setProperty('display','none','important');b.hidden=true}\nasync function syncApprovalUi(){clearTimeout(approvalTimer);approvalTimer=setTimeout(async()=>{try{if(!document.querySelector('.bottomin')||!branchId())return;const st=await reportState(),approved=st==='submitted';approvalMarker(approved);if(approved)hideApprovalButton();else addApprovalButton()}catch{}},80)}"
+          if old not in s:
+              raise SystemExit('approval block not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          i=Path('inventory/index.html')
+          x=i.read_text()
+          oldq="/inventory/branch-report-stable-v57.js?v=16"
+          if oldq not in x:
+              raise SystemExit('index stable loader query not found')
+          x=x.replace(oldq,"/inventory/branch-report-stable-v57.js?v=17")
+          i.write_text(x)
+          assert '__branchReportStableV85' in s
+          assert "display','inline-flex','important" in s
+          assert '/inventory/branch-report-stable-v57.js?v=17' in x
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add inventory/branch-report-stable-v57.js inventory/index.html
+          git commit -m 'Fix daily report approval button visibility v96'
+          git push origin main
