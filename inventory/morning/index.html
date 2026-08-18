@@ -135,6 +135,19 @@ async function load(){const d=await api('receiving_load',{date:S.date});S.data=a
 async function bootstrap(){try{const d=await api('bootstrap');S.user=d.user;S.branch=d.branch;S.date=today();applyTheme();$('#loginScreen').classList.add('hidden');$('#appScreen').classList.remove('hidden');await load()}catch(e){toast(e.message,true);signOut(false)}}
 $('#loginForm').onsubmit=async e=>{e.preventDefault();const b=$('#loginBtn'),er=$('#loginError');er.textContent='';b.disabled=true;b.textContent='جاري الدخول...';try{const d=await api('login',{username:$('#username').value.trim(),password:$('#password').value});S.token=d.token;localStorage.setItem(KEY,d.token);await bootstrap()}catch(x){er.textContent=x.message}finally{b.disabled=false;b.textContent='دخول'}};
 $('#logoutBtn').onclick=()=>signOut(true);
+async function savePendingDraftForReport(){
+ const moved=await ensureCurrentDay(true);
+ const entries={};for(const [id,v] of Object.entries(S.draft)){const q=Number(v);if(q>0)entries[id]=q}
+ const n=Object.keys(entries).length;if(!n)return false;
+ const note=$('#batchNote')?.value.trim()||'';
+ const b=$('#saveBtn'),oldText=b?.textContent||'';if(b){b.disabled=true;b.textContent='جاري الحفظ والمشاركة...'}
+ try{
+  if(moved)toast('تم تحديث تاريخ الاستلام تلقائيًا إلى اليوم');
+  const d=await api('receiving_post',{date:S.date,entries,note});S.data=await enrichSnapshot(d.data);clearDraft();render();toast('تم حفظ دفعة الاستلام وتجهيز التقرير');return true
+ }catch(e){toast(e.message,true);updatePending();throw e}
+ finally{const nb=$('#saveBtn');if(nb&&oldText)nb.textContent=oldText;updatePending()}
+}
+window.__morningSavePendingDraftForReport=savePendingDraftForReport;
 $('#saveBtn').onclick=async()=>{
  const b=$('#saveBtn');if(b.disabled)return;
  const note=$('#batchNote')?.value.trim()||'',oldText=b.textContent;
