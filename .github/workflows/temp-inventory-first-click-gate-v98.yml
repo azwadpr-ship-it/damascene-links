@@ -1,0 +1,45 @@
+name: temp-inventory-first-click-gate-v98
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-inventory-first-click-gate-v98.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Gate inventory UI until stable report controls are ready
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/index.html')
+          s=p.read_text()
+          old="""if(h!=='لوحة المدير'){if(!d.getElementById('branch-stable-v42-css')){const l=d.createElement('link');l.id='branch-stable-v42-css';l.rel='stylesheet';l.href='/inventory/branch-stable-v42.css?v=1';d.head.appendChild(l)}addScript(d,'historical-share-v85-js','/inventory/historical-share-v85.js?v=5');addScript(d,'branch-report-stable-v57-js','/inventory/branch-report-stable-v57.js?v=17');addScript(d,'branch-identity-v77-js','/inventory/branch-identity-v77.js?v=1');requestAnimationFrame(revealFrame);return}"""
+          new="""if(h!=='لوحة المدير'){if(!d.getElementById('branch-stable-v42-css')){const l=d.createElement('link');l.id='branch-stable-v42-css';l.rel='stylesheet';l.href='/inventory/branch-stable-v42.css?v=1';d.head.appendChild(l)}addScript(d,'historical-share-v85-js','/inventory/historical-share-v85.js?v=5');addScript(d,'branch-report-stable-v57-js','/inventory/branch-report-stable-v57.js?v=18');addScript(d,'branch-identity-v77-js','/inventory/branch-identity-v77.js?v=1');let stableTries=0;const revealBranchWhenStable=()=>{try{const w=frame.contentWindow;if(w?.__branchReportStableV85){requestAnimationFrame(()=>requestAnimationFrame(revealFrame));return}}catch(e){}if(++stableTries<150)setTimeout(revealBranchWhenStable,20);else revealFrame()};revealBranchWhenStable();return}"""
+          if old not in s: raise SystemExit('branch reveal block not found')
+          s=s.replace(old,new,1)
+          old2="frame.addEventListener('load',()=>{revealFrame();enhanceWhenReady()});"
+          new2="frame.addEventListener('load',()=>{showFrameLoading();enhanceWhenReady()});"
+          if old2 not in s: raise SystemExit('frame load marker not found')
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+
+          # Bump outer page cache path to force the new gate on devices.
+          # The actual inner original stays unchanged; only the parent logic changed.
+          assert "branch-report-stable-v57.js?v=18" in s
+          assert "w?.__branchReportStableV85" in s
+          assert "frame.addEventListener('load',()=>{showFrameLoading();enhanceWhenReady()});" in s
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add inventory/index.html
+          git commit -m 'Gate inventory UI until stable report controls load v98'
+          git push origin main
