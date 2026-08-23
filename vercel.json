@@ -16,6 +16,26 @@
       "permanent": false
     }
   ],
+  "headers": [
+    {
+      "source": "/inventory/morning/morning-report-v101.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/inventory/morning/morning-report-v1.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/inventory/whatsapp-preview.jpg",
