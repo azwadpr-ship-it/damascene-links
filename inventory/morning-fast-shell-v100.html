@@ -13,7 +13,7 @@
 (()=>{'use strict';
  const host=document.getElementById('host');
  let innerDoc=null,innerFrame=null,observer=null,timer=null;
- const fallbackPattern=/تقرير الحالة الصباحية|آخر جرد|سيتم إنشاء تقرير حالة صباحية|لا توجد دفعات استلام بعد|أصناف آخر جرد|تاريخ آخر جرد/;
+ const fallbackPattern=/تقرير الحالة الصباحية|آخر جرد|سيتم إنشاء تقرير حالة صباحية|لا توجد دفعات استلام بعد|أصناف آخر جرد|تاريخ آخر جرد|لا توجد دفعات استلام صباحي محفوظة/;
  function isFallback(){
    const hint=innerDoc?.getElementById('morningReportHint');
    return fallbackPattern.test(String(hint?.textContent||''));
