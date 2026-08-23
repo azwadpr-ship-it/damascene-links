@@ -1,0 +1,51 @@
+name: temp morning historical report v97
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-morning-historical-report-v97.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Patch morning historical report loading
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning/morning-report-v1.js')
+          s=p.read_text()
+          old_guard="if(window.__morningReportWrapperV93)return;window.__morningReportWrapperV93=true;"
+          new_guard="if(window.__morningReportWrapperV94)return;window.__morningReportWrapperV94=true;"
+          if old_guard not in s:
+              raise SystemExit('guard not found')
+          s=s.replace(old_guard,new_guard,1)
+          old='''const newDay="async function loadDay(date){const st=window.__morningReceivingState;if(st&&st.date===date&&st.data)return {ok:true,data:st.data};const loaded=await post('receiving_load',{date});try{loaded.data.inventory_snapshot=await Promise.race([snapshot(date),new Promise(resolve=>setTimeout(()=>resolve(null),2500))])}catch(e){console.error('morning report snapshot',e)}return loaded}";'''
+          new='''const newDay="async function loadDay(date){const st=window.__morningReceivingState;if(st&&st.date===date&&st.data)return {ok:true,data:st.data};const delay=ms=>new Promise(resolve=>setTimeout(()=>resolve(null),ms));const snapP=Promise.race([snapshot(date),delay(4000)]).catch(()=>null);const loadP=Promise.race([post('receiving_load',{date}),delay(4000)]).catch(()=>null);const [snap,loaded]=await Promise.all([snapP,loadP]);if(loaded?.data){loaded.data.inventory_snapshot=snap||loaded.data.inventory_snapshot||null;if((loaded.data.batches||[]).length||!snap?.count)return loaded}if(snap?.count&&st?.data?.items){return {ok:true,data:{branch_id:st.data.branch_id||st.branch?.id||'',date,items:st.data.items,totals:{},batches:[],inventory_snapshot:snap}}}if(loaded?.data)return loaded;throw new Error('تعذر تحميل بيانات التقرير المحفوظ')}";'''
+          if old not in s:
+              raise SystemExit('newDay block not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          p=Path('inventory/morning-shell.html')
+          s=p.read_text()
+          if '/inventory/morning/morning-report-v1.js?v=18' not in s:
+              raise SystemExit('shell report version not found')
+          s=s.replace('/inventory/morning/morning-report-v1.js?v=18','/inventory/morning/morning-report-v1.js?v=19',1)
+          p.write_text(s)
+          PY
+      - name: Verify patch
+        run: |
+          grep -q '__morningReportWrapperV94' inventory/morning/morning-report-v1.js
+          grep -q "const snapP=Promise.race" inventory/morning/morning-report-v1.js
+          grep -q 'morning-report-v1.js?v=19' inventory/morning-shell.html
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m 'Fix historical morning report fallback v97'
+          git push origin main
