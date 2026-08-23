@@ -12,10 +12,9 @@ function fireState(){normalizeState();const s=window.__morningReceivingState;if(
  let code=await r.text();
 
  const oldLogo="function loadMazaqReportLogo(){return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>resolve(null);i.src=MAZAQ_REPORT_LOGO})}";
- const newLogo="function loadMazaqReportLogo(){return nativeMazaqLogo()}";
+ const newLogo="function loadMazaqReportLogo(){return fetch('/inventory/mazaq-report-logo-v88.png?v=1',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('تعذر تحميل شعار المذاق');return r.blob()}).then(b=>new Promise((resolve,reject)=>{const u=URL.createObjectURL(b),i=new Image();i.onload=()=>{URL.revokeObjectURL(u);resolve(i)};i.onerror=()=>{URL.revokeObjectURL(u);reject(Error('تعذر فك شعار المذاق'))};i.src=u}))}";
  if(!code.includes(oldLogo))throw Error('تعذر تثبيت شعار المذاق');
  code=code.replace(oldLogo,newLogo);
- code="const nativeMazaqLogo=()=>fetch(MAZAQ_REPORT_LOGO,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('تعذر تحميل شعار المذاق');return r.blob()}).then(b=>new Promise((resolve,reject)=>{const u=URL.createObjectURL(b),i=new Image();i.onload=()=>{URL.revokeObjectURL(u);resolve(i)};i.onerror=()=>{URL.revokeObjectURL(u);reject(Error('تعذر فك شعار المذاق'))};i.src=u}));\n"+code;
 
  const oldDay="async function loadDay(date){const loaded=await post('receiving_load',{date});try{loaded.data.inventory_snapshot=await snapshot(date)}catch(e){console.error('morning report snapshot',e)}return loaded}";
  const newDay="async function loadDay(date){const st=window.__morningReceivingState;if(st&&st.date===date&&st.data&&(st.data.batches||[]).length)return {ok:true,data:st.data};return await post('receiving_load',{date})}";
