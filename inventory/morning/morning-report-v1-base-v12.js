@@ -34,8 +34,8 @@ function pendingDraftCount(){if(reportDate()!==today())return 0;return Array.fro
 async function savePendingBeforeShare(){if(!pendingDraftCount())return false;const fn=window.__morningSavePendingDraftForReport;if(typeof fn!=='function')throw Error('تعذر حفظ الكميات الجديدة قبل المشاركة');const saved=await fn();if(saved){preparedReport=null;prepareSeq++;await new Promise(r=>setTimeout(r,80))}return !!saved}
 let reportCheckSeq=0;
 let preparedReport=null,prepareSeq=0;
-function sharingNavigator(){try{return window.top?.navigator||navigator}catch{return navigator}}
-function sharingFile(parts,name,opts){try{return new window.top.File(parts,name,opts)}catch{return new File(parts,name,opts)}}
+function sharingNavigator(){return navigator}
+function sharingFile(parts,name,opts){return new File(parts,name,opts)}
 async function prepareReport(date){
  const seq=++prepareSeq;preparedReport=null;
  const images=$('#morningShareImages'),pdf=$('#morningSharePdf'),hint=$('#morningReportHint');
