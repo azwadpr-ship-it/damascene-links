@@ -2,12 +2,12 @@
   "redirects": [
     {
       "source": "/inventory/morning",
-      "destination": "/inventory/morning-fast-shell-v99.html",
+      "destination": "/inventory/morning-fast-shell-v100.html",
       "permanent": false
     },
     {
       "source": "/inventory/morning/",
-      "destination": "/inventory/morning-fast-shell-v99.html",
+      "destination": "/inventory/morning-fast-shell-v100.html",
       "permanent": false
     }
   ],
