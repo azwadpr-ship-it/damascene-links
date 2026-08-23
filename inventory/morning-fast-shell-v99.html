@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f6f78">
+<title>الاستلام الصباحي | مطاعم الدمشقية</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edf6f6}#host{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#edf6f6}</style>
+</head>
+<body>
+<iframe id="host" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning-shell.html?v=99"></iframe>
+<script>
+(()=>{'use strict';
+ const host=document.getElementById('host');
+ let innerDoc=null,innerFrame=null,observer=null,timer=null;
+ function shouldEnable(text){
+   return /جاهز للمشاركة|سيتم إنشاء تقرير حالة صباحية|جاري تجهيز تقرير اليوم الكامل|صنف جديد غير محفوظ/.test(String(text||''));
+ }
+ function sync(){
+   try{
+     if(!innerDoc)return;
+     const card=innerDoc.getElementById('morningReportActions');
+     const hint=innerDoc.getElementById('morningReportHint');
+     const images=innerDoc.getElementById('morningShareImages');
+     const pdf=innerDoc.getElementById('morningSharePdf');
+     if(!card||!hint||!images||!pdf)return;
+     const text=hint.textContent||'';
+     if(shouldEnable(text)){
+       images.disabled=false;
+       pdf.disabled=false;
+       card.classList.remove('morning-report-empty');
+     }
+   }catch(e){console.error('morning instant actions sync',e)}
+ }
+ function bindInner(){
+   try{
+     innerFrame=host.contentDocument?.getElementById('app');
+     if(!innerFrame)return false;
+     const bindDoc=()=>{
+       try{
+         innerDoc=innerFrame.contentDocument;
+         if(!innerDoc)return;
+         observer?.disconnect();
+         observer=new MutationObserver(sync);
+         observer.observe(innerDoc.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['disabled','class']});
+         sync();
+       }catch(e){console.error('morning instant actions bind',e)}
+     };
+     innerFrame.addEventListener('load',bindDoc);
+     bindDoc();
+     return true;
+   }catch{return false}
+ }
+ function start(){
+   clearInterval(timer);
+   let tries=0;
+   timer=setInterval(()=>{tries++;if(bindInner()||tries>80)clearInterval(timer)},100);
+ }
+ host.addEventListener('load',start);
+ start();
+})();
+</script>
+</body>
+</html>
