@@ -6,6 +6,21 @@
       "permanent": false
     },
     {
+      "source": "/inventory/morning-fast-shell-v100.html",
+      "destination": "/inventory/morning-fast-shell-v103.html",
+      "permanent": false
+    },
+    {
+      "source": "/inventory/morning-fast-shell-v102.html",
+      "destination": "/inventory/morning-fast-shell-v103.html",
+      "permanent": false
+    },
+    {
+      "source": "/inventory/morning/index-v102.html",
+      "destination": "/inventory/morning/index-v103.html",
+      "permanent": false
+    },
+    {
       "source": "/inventory/morning",
       "destination": "/inventory/morning-fast-shell-v103.html",
       "permanent": false
