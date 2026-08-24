@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f6f78">
+<title>الاستلام الصباحي | مطاعم الدمشقية</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#edf6f6}#host{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#edf6f6}</style>
+</head>
+<body>
+<iframe id="host" title="الاستلام الصباحي" allow="web-share" src="/inventory/morning-shell.html?v=103"></iframe>
+<script>
+(()=>{'use strict';
+ const host=document.getElementById('host');
+ let innerDoc=null,innerFrame=null,observer=null,timer=null;
+ const fallbackPattern=/تقرير الحالة الصباحية|آخر جرد|سيتم إنشاء تقرير حالة صباحية|لا توجد دفعات استلام بعد|أصناف آخر جرد|تاريخ آخر جرد/;
+ function isFallback(){const hint=innerDoc?.getElementById('morningReportHint');return fallbackPattern.test(String(hint?.textContent||''))}
+ function blockFallback(){try{if(!innerDoc)return;const card=innerDoc.getElementById('morningReportActions'),hint=innerDoc.getElementById('morningReportHint'),images=innerDoc.getElementById('morningShareImages'),pdf=innerDoc.getElementById('morningSharePdf');if(!card||!hint||!images||!pdf)return;if(isFallback()){images.disabled=true;pdf.disabled=true;card.classList.add('morning-report-empty');hint.textContent='لا توجد دفعات استلام صباحي محفوظة لهذا التاريخ. الجرد النهائي لا يُستخدم كتقرير استلام.'}}catch(e){console.error('morning v103 guard',e)}}
+ function instantHint(){try{if(!innerDoc)return;const input=innerDoc.getElementById('morningReportDate'),hint=innerDoc.getElementById('morningReportHint');if(!input||!hint)return;const st=innerFrame?.contentWindow?.__morningReceivingState;if(st?.date===input.value&&st?.data){const count=(st.data.batches||[]).length;if(!count)hint.textContent='لا توجد دفعات استلام صباحي محفوظة لهذا اليوم حتى الآن.'}}catch{}}
+ function installClickGuard(){const hint=innerDoc?.getElementById('morningReportHint');for(const id of ['morningShareImages','morningSharePdf']){const btn=innerDoc?.getElementById(id);if(!btn||btn.dataset.receivingOnlyGuard==='1')continue;btn.dataset.receivingOnlyGuard='1';btn.addEventListener('click',e=>{if(fallbackPattern.test(String(hint?.textContent||''))){e.preventDefault();e.stopImmediatePropagation();blockFallback()}},true)}const input=innerDoc?.getElementById('morningReportDate');if(input&&input.dataset.instantV103!=='1'){input.dataset.instantV103='1';input.addEventListener('change',()=>setTimeout(instantHint,0),true)}for(const id of ['morningToday','morningYesterday']){const b=innerDoc?.getElementById(id);if(b&&b.dataset.instantV103!=='1'){b.dataset.instantV103='1';b.addEventListener('click',()=>setTimeout(instantHint,0),true)}}}
+ function sync(){installClickGuard();blockFallback();instantHint()}
+ function bindPatchedDoc(){try{innerDoc=innerFrame?.contentDocument;if(!innerDoc)return;observer?.disconnect();observer=new MutationObserver(sync);observer.observe(innerDoc.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['disabled','class']});sync()}catch(e){console.error('morning v103 bind',e)}}
+ function bindInner(){try{innerFrame=host.contentDocument?.getElementById('app');if(!innerFrame)return false;if(innerFrame.dataset.v103!=='1'){innerFrame.dataset.v103='1';innerFrame.addEventListener('load',bindPatchedDoc);innerFrame.src='/inventory/morning/index-v103.html?inner=103';return true}innerFrame.addEventListener('load',bindPatchedDoc);bindPatchedDoc();return true}catch{return false}}
+ function start(){clearInterval(timer);let tries=0;timer=setInterval(()=>{tries++;if(bindInner()||tries>80)clearInterval(timer)},80)}
+ host.addEventListener('load',start);start();
+})();
+</script>
+</body>
+</html>
