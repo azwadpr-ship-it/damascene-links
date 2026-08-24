@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>الاستلام الصباحي</title>
+<style>html,body{margin:0;min-height:100%;background:#edf6f6}body{font-family:Tahoma,Arial,sans-serif;color:#183638}.boot{min-height:100vh;display:grid;place-items:center;font-weight:800}.err{padding:24px;color:#9b2836}</style>
+</head>
+<body><div id="boot" class="boot">جاري تحميل الاستلام الصباحي...</div>
+<script>
+(async()=>{'use strict';
+ try{
+  const r=await fetch('/inventory/morning/index.html?source=v102',{cache:'no-store'});
+  if(!r.ok)throw new Error('تعذر تحميل صفحة الاستلام');
+  let html=await r.text();
+
+  const draftPattern=/function loadDraft\(\)\{[\s\S]*?\}\nfunction saveDraft\(\)/;
+  if(!draftPattern.test(html))throw new Error('تعذر تثبيت حماية مسودة الاستلام');
+  html=html.replace(draftPattern,"function loadDraft(){try{S.draft=JSON.parse(localStorage.getItem(draftKey())||'{}')||{}}catch{S.draft={}}}\nfunction saveDraft()");
+
+  const dayPattern=/async function ensureCurrentDay\(migrateDraft=true\)\{[\s\S]*?\}\nasync function syncDateOnResume\(\)/;
+  if(!dayPattern.test(html))throw new Error('تعذر تثبيت تاريخ الاستلام');
+  html=html.replace(dayPattern,"async function ensureCurrentDay(){const now=today();if(!S.date||S.date===now)return false;S.date=now;const d=await api('receiving_load',{date:S.date});S.data=await enrichSnapshot(d.data);loadDraft();render();return true}\nasync function syncDateOnResume()");
+
+  if(html.includes('تم نقل المدخلات غير المحفوظة من أمس إلى اليوم'))throw new Error('بقي منطق نقل مسودة أمس');
+  if(html.includes('receiving_draft_${branchId}_${prevDate}'))throw new Error('بقي مفتاح ترحيل مسودة أمس');
+
+  document.open();
+  document.write(html);
+  document.close();
+ }catch(e){
+  const b=document.getElementById('boot');
+  if(b){b.className='err';b.textContent=e?.message||'تعذر تشغيل الاستلام الصباحي'}
+  console.error('morning index v102',e);
+ }
+})();
+</script></body>
+</html>
