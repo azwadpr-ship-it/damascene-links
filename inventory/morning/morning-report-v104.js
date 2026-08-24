@@ -1,0 +1,29 @@
+(()=>{'use strict';
+if(window.__morningReportLoaderV104)return;window.__morningReportLoaderV104=true;
+(async()=>{try{
+ const r=await fetch('/inventory/morning/morning-report-v101.js?source=104',{cache:'no-store'});if(!r.ok)throw Error('تعذر تحميل نظام تقرير الاستلام');
+ let src=await r.text();
+ const marker="(0,eval)(code+'\\n//# sourceURL=morning-report-runtime-v101.js');";
+ if(!src.includes(marker))throw Error('تعذر تثبيت مشاركة الاستلام V104');
+ const patch=`
+ const navOld="function sharingNavigator(){return navigator}";
+ const navNew="function sharingNavigator(){try{return window.top&&window.top.navigator?window.top.navigator:navigator}catch{return navigator}}";
+ if(!code.includes(navOld))throw Error('تعذر تثبيت نافذة المشاركة العليا');
+ code=code.replace(navOld,navNew);
+ const fileOld="function sharingFile(parts,name,opts){return new File(parts,name,opts)}";
+ const fileNew="function sharingFile(parts,name,opts){try{const F=window.top&&window.top.File?window.top.File:File;return new F(parts,name,opts)}catch{return new File(parts,name,opts)}}";
+ if(!code.includes(fileOld))throw Error('تعذر تثبيت ملفات المشاركة');
+ code=code.replace(fileOld,fileNew);
+ const refreshRe=/async function refreshReportState\\(\\)\\{[\\s\\S]*?\\}\\nfunction addStyle\\(\\)/;
+ if(!refreshRe.test(code))throw Error('تعذر تثبيت جاهزية أزرار التقرير');
+ const refreshNew="async function refreshReportState(){injectActions();const card=$('#morningReportActions');if(!card)return;const date=reportDate(),seq=++reportCheckSeq,hint=$('#morningReportHint'),images=$('#morningShareImages'),pdf=$('#morningSharePdf');if(images)images.disabled=true;if(pdf)pdf.disabled=true;card.classList.add('morning-report-empty');if(hint)hint.textContent='جاري التحقق من دفعات الاستلام الصباحي...';try{const loaded=await loadDay(date);if(seq!==reportCheckSeq)return;const count=(loaded.data?.batches||[]).length,itemCount=reportItemCount(loaded.data),pending=pendingDraftCount();preparedReport=null;prepareSeq++;if(!count){card.classList.add('morning-report-empty');if(hint)hint.textContent=pending?pending+' صنف غير محفوظ — احفظ دفعة الاستلام أولًا لتفعيل المشاركة.':date===today()?'لا توجد دفعات استلام صباحي محفوظة لهذا اليوم حتى الآن.':'لا توجد دفعات استلام صباحي محفوظة بتاريخ '+ddmmyyyy(date)+'.';return}card.classList.remove('morning-report-empty');if(hint)hint.textContent=pending?'يوجد '+pending+' صنف جديد غير محفوظ — التقرير سيشمل الدفعات المحفوظة فقط. جاري تجهيز المشاركة...':'جاري تجهيز تقرير الاستلام الصباحي — '+count+' دفعة / '+itemCount+' صنف...';await prepareReport(date)}catch(e){if(seq!==reportCheckSeq)return;if(hint)hint.textContent=e?.message||'تعذر التحقق من دفعات الاستلام الصباحي'}}\\nfunction addStyle()";
+ code=code.replace(refreshRe,refreshNew);
+ const shareRe=/async function share\\(kind\\)\\{[\\s\\S]*?\\}\\naddStyle\\(\\)/;
+ if(!shareRe.test(code))throw Error('تعذر تثبيت مشاركة التقرير');
+ const shareNew="async function share(kind){const box=$('#morningReportActions');if(box?.classList.contains('morning-report-busy'))return;box?.classList.add('morning-report-busy');try{const r=preparedReport&&preparedReport.date===reportDate()?preparedReport:null;if(!r)throw Error('التقرير ما زال قيد التجهيز. انتظر حتى يتفعل زر المشاركة ثم اضغط مرة واحدة.');const date=ddmmyyyy(r.date),caption='الاستلام الصباحي - '+r.branch+' - '+date,nav=sharingNavigator();if(kind==='images'){const files=r.blobs.map((b,i)=>sharingFile([b],r.branch+' '+date+' '+(i+1)+'.jpg',{type:'image/jpeg'}));if(nav.share){const canImages=!nav.canShare||nav.canShare({files});if(canImages){try{await nav.share({files,text:caption});return}catch(e){if(e?.name==='AbortError')return;console.error('morning image share v104',e)}}}files.forEach(f=>download(f,f.name));alert('تعذر فتح المشاركة المباشرة؛ تم تنزيل صور التقرير.')}else{const pdf=r.pdfBlob;if(!pdf)throw Error('ملف PDF ما زال قيد التجهيز');const file=sharingFile([pdf],r.branch+' '+date+'.pdf',{type:'application/pdf'});if(nav.share){const canPdf=!nav.canShare||nav.canShare({files:[file]});if(canPdf){try{await nav.share({files:[file],title:'تقرير الاستلام الصباحي',text:caption});return}catch(e){if(e?.name==='AbortError')return;console.error('morning pdf share v104',e)}}}download(file,file.name);alert('تعذر فتح المشاركة المباشرة؛ تم تنزيل ملف PDF.')}}catch(e){if(e?.name!=='AbortError')alert(e?.message||'تعذر مشاركة تقرير الاستلام')}finally{box?.classList.remove('morning-report-busy')}}\\naddStyle()";
+ code=code.replace(shareRe,shareNew);
+ (0,eval)(code+'\\n//# sourceURL=morning-report-runtime-v104.js');`;
+ src=src.replace(marker,patch);
+ (0,eval)(src+'\n//# sourceURL=morning-report-loader-v104-inner.js');
+}catch(e){console.error('morning report loader v104',e);const h=document.getElementById('morningReportHint');if(h)h.textContent=e?.message||'تعذر تشغيل تقرير الاستلام'}})();
+})();
