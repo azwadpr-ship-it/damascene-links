@@ -1,0 +1,50 @@
+name: Fix morning Mazaq share logo
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-morning-mazaq-share-logo.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch robust Mazaq report logo loader
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning/morning-report-v1.js')
+          s=p.read_text()
+          old_guard="if(window.__morningReportWrapperV94)return;window.__morningReportWrapperV94=true;"
+          new_guard="if(window.__morningReportWrapperV95)return;window.__morningReportWrapperV95=true;"
+          if old_guard not in s:
+              raise SystemExit('wrapper guard V94 not found')
+          s=s.replace(old_guard,new_guard,1)
+          old="const newLogo=`function loadMazaqReportLogo(){return new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('تعذر فك شعار المذاق'));i.src=${JSON.stringify(MAZAQ_INLINE)}})}`;"
+          new="const newLogo=`async function loadMazaqReportLogo(){const sources=['/inventory/mazaq-brand-logo.png?v=1','/inventory/mazaq-report-logo-v88.png?v=1',${JSON.stringify(MAZAQ_INLINE)}];for(const src of sources){try{const img=await new Promise((resolve,reject)=>{const i=new Image();i.decoding='async';i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('logo'));i.src=src});if(img&&img.naturalWidth>0)return img}catch(e){}}try{const r=await fetch('/inventory/mazaq-brand-logo.png?v=1',{cache:'no-store'});if(r.ok&&typeof createImageBitmap==='function')return await createImageBitmap(await r.blob())}catch(e){}return null}`;"
+          if old not in s:
+              raise SystemExit('old logo override not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          q=Path('inventory/morning-shell.html')
+          t=q.read_text()
+          old_src="script.src='/inventory/morning/morning-report-v1.js?v=19';"
+          new_src="script.src='/inventory/morning/morning-report-v1.js?v=20';"
+          if old_src not in t:
+              raise SystemExit('morning report v19 loader not found')
+          q.write_text(t.replace(old_src,new_src,1))
+          PY
+      - name: Verify patch
+        run: |
+          grep -q '__morningReportWrapperV95' inventory/morning/morning-report-v1.js
+          grep -q "mazaq-brand-logo.png?v=1" inventory/morning/morning-report-v1.js
+          grep -q "morning-report-v1.js?v=20" inventory/morning-shell.html
+      - name: Commit
+        run: |
+          git config user.name 'azwadpr-ship-it'
+          git config user.email 'azwadpr@azwadksa.com'
+          git add inventory/morning/morning-report-v1.js inventory/morning-shell.html
+          git commit -m 'Make Mazaq morning report logo loading resilient'
+          git push
