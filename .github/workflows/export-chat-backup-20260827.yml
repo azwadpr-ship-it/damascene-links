@@ -1,0 +1,22 @@
+name: Export chat backup 20260827
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/export-chat-backup-20260827.yml
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create repository snapshot
+        run: |
+          zip -r damascene-links-complete-backup-2026-08-27.zip . -x '.git/*' 'backups/*.zip'
+      - name: Upload repository snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: damascene-links-complete-backup-2026-08-27
+          path: damascene-links-complete-backup-2026-08-27.zip
+          retention-days: 1
