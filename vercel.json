@@ -2,7 +2,7 @@
   "redirects": [
     {
       "source": "/inventory/morning/morning-report-v1.js",
-      "destination": "/inventory/morning/morning-report-v104.js",
+      "destination": "/inventory/morning/morning-report-v105.js",
       "permanent": false
     },
     {
@@ -32,6 +32,15 @@
     }
   ],
   "headers": [
+    {
+      "source": "/inventory/morning/morning-report-v105.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
     {
       "source": "/inventory/morning/morning-report-v104.js",
       "headers": [
