@@ -1,5 +1,15 @@
 # Morning Receiving Module — Inventory v34
 
+## Permanent resume point — V109 Mazaq report title
+
+- Scope is visual and limited to the generated Mazaq morning receiving report header.
+- The two-line Mazaq header (`المذاق الدمشقي` / `تقرير الاستلام الصباحي`) is replaced at runtime by the single red title `الاستلام الصباحي - المذاق`.
+- Mazaq header font is `700 39px Tahoma,Arial`, right-aligned at the existing header anchor so the complete Arabic title remains inside the unchanged 1080×1920 report canvas.
+- Individuals and Families retain their original report header text and layout; the receiving page, report dimensions, dates, receiver, summary, sections, items, quantities, image generation, and PDF generation are otherwise unchanged.
+- Runtime cache marker is `morning-report-v1.js?v=23`; the inner receiving page remains `inner=21` because its code was not changed.
+- No-write visual verification renders the header at the real 1080×1920 JPEG size and re-renders the derived one-page 540×960-point PDF; the exact Arabic title remains on one line with clear space from the date block and report edge.
+- Production database, Catalog, RLS, Edge Functions, and Day Rollover are unchanged. No receiving batch is created by visual verification.
+
 ## Permanent resume point — V108 Samsung first-paint completion
 
 - Baseline before V108: `b7bc535cd1f929cd8b2a1d00b0bd93c37f02f3a2` (`Render receiving catalog before snapshot`).
