@@ -1,5 +1,24 @@
 # Morning Receiving Module — Inventory v34
 
+## Permanent resume point — V108 Samsung first-paint completion
+
+- Baseline before V108: `b7bc535cd1f929cd8b2a1d00b0bd93c37f02f3a2` (`Render receiving catalog before snapshot`).
+- Production acceptance target after deployment: `TECHNICALLY DEPLOYED / SAMSUNG USER ACCEPTANCE REQUIRED`.
+- Normal acceptance URL: `/inventory/morning-shell.html?v=108`.
+- Samsung diagnostics URL: `/inventory/morning-shell.html?v=108&diag=1`.
+- Cache/runtime markers: inner receiving page `inner=21`; report runtime request `morning-report-v1.js?v=22` (redirected by Vercel to `morning-report-v105.js`).
+- The receiving page captures its original `fetch` before the report runtime can wrap `window.fetch`.
+- Catalog loading has a bounded 10-second timeout covering both the request and JSON body parsing. Timeout or malformed JSON always exits loading and shows a visible retry button.
+- The Catalog loading/error panel uses `.catalog-status`, never `.history`, so the report runtime cannot mistake loading for a completed first render.
+- The report runtime is injected only after a published receiving state confirms that Catalog data exists and the DOM contains the same non-zero number of quantity inputs.
+- Mazaq Snapshot remains a five-second background task. Its success, failure, or timeout cannot block Catalog first paint; a successful background refresh restores the draft quantities, batch note, focused quantity field, and scroll position as far as the browser supports.
+- For the currently rendered date, the report uses `window.__morningReceivingState.data` even when there are zero batches. It does not make another `receiving_load` call.
+- Historical report loads remain supported with an eight-second timeout, same-date request deduplication, and cancellation of a superseded different-date request when supported.
+- Optional `diag=1` is passed from the shell into the iframe and displays only phase names, elapsed time, HTTP status, item/input counts, timeout/error class, and report-injection time. Tokens, usernames, and response bodies are not displayed.
+- Controlled no-write verification covers: 57-item Mazaq render; hung fetch; hung/invalid JSON; Snapshot independence; draft/note/position preservation contract; report injection order; current-date state reuse; historical deduplication/timeout; and unchanged Individuals/Families rendering paths.
+- Production database, Catalog, RLS, and Edge Functions are unchanged by V108. No receiving batch is created by verification.
+- V108 is not functionally accepted until the employee's Samsung device confirms first paint through the V108 URL. Logo/JPG/PDF acceptance and Day Rollover remain open and must not be closed from technical deployment alone.
+
 ## Purpose
 The morning receiving module records every physical item received by each restaurant during the day and preserves an auditable batch history. It is deliberately isolated from evening inventory authentication.
 

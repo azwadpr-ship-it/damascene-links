@@ -38,7 +38,7 @@
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}.stat strong{display:block;color:var(--accent);font-size:20px;margin-bottom:2px}.stat span{font-size:10px;color:var(--muted)}
 .tools{display:flex;gap:8px;align-items:center;margin:12px 0}.search{flex:1;position:relative}.search .input{padding-right:12px}.draft-note{color:var(--muted);font-size:10px;white-space:nowrap}
 .section{background:var(--card);border:1px solid var(--line);border-radius:15px;margin:10px 0;overflow:hidden;box-shadow:0 5px 16px rgba(49,38,22,.04)}.section summary{list-style:none;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(90deg,var(--soft),#fff);cursor:pointer;font-weight:900}.section summary::-webkit-details-marker{display:none}.section summary span:last-child{font-size:11px;color:var(--muted);font-weight:700}.rows{padding:2px 10px 8px}.row{display:grid;grid-template-columns:minmax(0,1fr) 116px 132px;gap:8px;align-items:center;min-height:54px;border-bottom:1px solid #eee5d7}.row:last-child{border-bottom:0}.name{font-weight:800;font-size:13px;min-width:0}.name small{display:block;color:var(--muted);font-weight:600;font-size:10px;margin-top:2px}.total{text-align:center;background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:7px 5px}.total b{color:var(--accent);font-size:15px}.total small{display:block;color:var(--muted);font-size:9px;margin-top:1px}.total i{display:block;color:var(--dark);font-size:9px;font-style:normal;font-weight:800;margin-top:3px}.snapshot-note{margin:10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);color:var(--dark);font-size:11px;line-height:1.65}.snapshot-note b{font-weight:900}.entry{display:flex;align-items:center;gap:5px}.entry input{width:82px;min-width:0;border:1px solid #d9ccb8;border-radius:9px;padding:8px 6px;text-align:center;font-weight:900;font-size:14px;outline:none}.entry input:focus{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}.entry span{font-size:10px;color:var(--muted);white-space:nowrap}
-.note-card,.history{background:var(--card);border:1px solid var(--line);border-radius:15px;margin:12px 0;padding:13px;box-shadow:0 5px 16px rgba(49,38,22,.04)}.note-card label{display:block;font-size:12px;font-weight:900;margin-bottom:6px}.note-card .textarea{min-height:64px;resize:vertical}.history h3{font-size:15px;margin:0 0 9px}.batch{border-top:1px solid var(--line);padding:8px 0}.batch:first-of-type{border-top:0}.batch summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:800}.batch-time{color:var(--accent)}.batch-note{color:var(--muted);font-size:10px;margin:5px 0}.batch-items{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 10px;font-size:10px;color:#51483d}.empty{padding:28px;text-align:center;color:var(--muted);font-size:12px}
+.note-card,.history,.catalog-status{background:var(--card);border:1px solid var(--line);border-radius:15px;margin:12px 0;padding:13px;box-shadow:0 5px 16px rgba(49,38,22,.04)}.note-card label{display:block;font-size:12px;font-weight:900;margin-bottom:6px}.note-card .textarea{min-height:64px;resize:vertical}.history h3{font-size:15px;margin:0 0 9px}.batch{border-top:1px solid var(--line);padding:8px 0}.batch:first-of-type{border-top:0}.batch summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:800}.batch-time{color:var(--accent)}.batch-note{color:var(--muted);font-size:10px;margin:5px 0}.batch-items{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 10px;font-size:10px;color:#51483d}.empty{padding:28px;text-align:center;color:var(--muted);font-size:12px}.catalog-status{text-align:center}.catalog-status .empty{padding-bottom:16px}.catalog-retry{min-width:170px}.diag-panel{position:fixed;z-index:75;top:72px;left:8px;right:8px;direction:rtl;max-height:38vh;overflow:auto;border:1px solid #6c7780;border-radius:10px;background:rgba(18,22,25,.96);color:#eaf7ee;box-shadow:0 10px 30px rgba(0,0,0,.28);font:12px/1.7 Tahoma,Arial,sans-serif}.diag-panel summary{position:sticky;top:0;cursor:pointer;padding:7px 10px;background:#253039;color:#fff;font-weight:900}.diag-panel pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:8px 10px;color:#c9f7d5;font:11px/1.55 Consolas,monospace}
 .bottom{position:fixed;left:0;right:0;bottom:0;z-index:35;background:rgba(255,253,250,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:9px 12px calc(9px + env(safe-area-inset-bottom))}.bottomin{max-width:980px;margin:auto;display:flex;align-items:center;gap:10px}.pending{flex:1}.pending b{display:block;font-size:12px}.pending small{font-size:10px;color:var(--muted)}.save{min-width:180px;height:43px}.toast{position:fixed;left:16px;bottom:88px;z-index:80;background:#2e2a25;color:#fff;border-radius:11px;padding:11px 14px;font-size:12px;opacity:0;transform:translateY(8px);transition:.18s;pointer-events:none;max-width:min(380px,88vw)}.toast.show{opacity:1;transform:none}.toast.bad{background:var(--bad)}
 @media(max-width:650px){.topin{height:58px;padding:0 9px}.topbrand img{width:145px}.top-title{padding-right:7px}.top-title b{font-size:12px}.top-title small{display:none}.shell{padding:10px 9px 105px}.hero{padding:13px}.hero h2{font-size:19px}.purpose{font-size:10px;padding:6px 8px}.stats{gap:6px}.stat{padding:8px 4px}.stat strong{font-size:18px}.row{grid-template-columns:minmax(0,1fr) 92px 108px;gap:5px}.rows{padding-left:7px;padding-right:7px}.name{font-size:12px}.total{padding:6px 2px}.total b{font-size:14px}.entry input{width:65px;padding:7px 3px}.entry span{font-size:9px}.batch-items{grid-template-columns:1fr}.save{min-width:150px}.draft-note{display:none}}
 </style>
@@ -58,9 +58,27 @@
 const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving',SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot',KEY='inventory_receiving_token';
 const FAMILY_LOAD_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_load_v1',FAMILY_POST_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_post_v1',FAMILY_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indua254anhpcGt2aW9lZ3NrZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgxMjMsImV4cCI6MjEwMjAzNDEyM30.KV_P5zHGaVzRiJ8tD8VkMiPaMKFrw8HHyKwbqUVktZ4';
 const S={token:localStorage.getItem(KEY)||'',user:null,branch:null,data:null,date:null,draft:{},query:''};
-const SNAPSHOT_TIMEOUT_MS=5000;
-let dateSyncing=false;
+const APP_FETCH=window.fetch.bind(window),DIAG_MODE=new URLSearchParams(location.search).get('diag')==='1';
+const CATALOG_TIMEOUT_MS=10000,SNAPSHOT_TIMEOUT_MS=5000;
+let dateSyncing=false,catalogLoadSeq=0;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+const diagStarted=performance.now(),diagLines=[];
+function diag(stage,detail=''){
+ if(!DIAG_MODE)return;
+ const elapsed=Math.round(performance.now()-diagStarted),safe=String(detail||'').replace(/bearer\s+\S+/ig,'Bearer [hidden]').replace(/[A-Za-z0-9_-]{32,}/g,'[hidden]').slice(0,180);
+ diagLines.push(`+${elapsed}ms | ${stage}${safe?' | '+safe:''}`);if(diagLines.length>80)diagLines.shift();
+ let panel=$('#morningDiagPanel');if(!panel){panel=document.createElement('details');panel.id='morningDiagPanel';panel.className='diag-panel';panel.open=true;panel.innerHTML='<summary>تشخيص V108 — دون بيانات حساسة</summary><pre id="morningDiagLog"></pre>';document.body.appendChild(panel)}
+ const log=$('#morningDiagLog');if(log)log.textContent=diagLines.join('\n')
+}
+function timeoutError(message){const e=Error(message);e.name='TimeoutError';return e}
+async function requestJson(url,init={},options={}){
+ const {timeoutMs=0,phase='',timeoutMessage='انتهت مهلة الطلب',invalidMessage='تعذر قراءة الرد'}=options,controller=typeof AbortController==='function'?new AbortController():null;
+ let timer=0,timedOut=false;
+ const work=(async()=>{const request={...init};if(controller)request.signal=controller.signal;if(phase)diag(`${phase}:fetch:start`);const r=await APP_FETCH(url,request);if(phase)diag(`${phase}:http`,String(r.status));if(phase)diag(`${phase}:json:start`);let d;try{d=await r.json()}catch{throw Error(invalidMessage)}if(phase)diag(`${phase}:json:done`);return{r,d}})();
+ if(!timeoutMs)return await work;
+ const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{timedOut=true;try{controller?.abort()}catch{}reject(timeoutError(timeoutMessage))},timeoutMs)});
+ try{return await Promise.race([work,timeout])}catch(e){if(timedOut||e?.name==='AbortError')throw timeoutError(timeoutMessage);throw e}finally{clearTimeout(timer)}
+}
 function today(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),o={};p.forEach(x=>o[x.type]=x.value);return`${o.year}-${o.month}-${o.day}`}
 function dateLabel(d){try{return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Riyadh'}).format(new Date(d+'T12:00:00+03:00'))}catch{return d}}
 function fmt(n){const x=Number(n||0);return Number.isInteger(x)?String(x):String(Math.round(x*100)/100)}
@@ -70,17 +88,17 @@ async function api(action,p={}){
  if(S.branch?.id==='families'&&(action==='receiving_load'||action==='receiving_post')){
   const endpoint=action==='receiving_load'?FAMILY_LOAD_RPC:FAMILY_POST_RPC;
   const payload=action==='receiving_load'?{p_token:S.token,p_date:p.date}:{p_token:S.token,p_date:p.date,p_note:p.note||'',p_entries:p.entries||{}};
-  const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',apikey:FAMILY_ANON,authorization:'Bearer '+FAMILY_ANON},body:JSON.stringify(payload)}),d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));
+  const catalog=action==='receiving_load',result=await requestJson(endpoint,{method:'POST',headers:{'content-type':'application/json',apikey:FAMILY_ANON,authorization:'Bearer '+FAMILY_ANON},body:JSON.stringify(payload)},{timeoutMs:catalog?CATALOG_TIMEOUT_MS:0,phase:catalog?'catalog':'',timeoutMessage:'انتهت مهلة تحميل قائمة الأصناف. تحقق من الاتصال ثم أعد المحاولة.',invalidMessage:catalog?'وصل رد غير صالح لقائمة الأصناف. أعد المحاولة.':'تعذر قراءة الرد'}),{r,d}=result;
   if(!r.ok||d.ok===false){const raw=String(d.error||d.message||'حدث خطأ');if(raw.includes('UNAUTHORIZED')){signOut(false);throw Error('انتهت الجلسة، سجّل الدخول من جديد')}if(raw.includes('REPORT_SUBMITTED'))throw Error('تم اعتماد جرد هذا اليوم، لا يمكن تعديل استلامات الصباح بعد الاعتماد');if(raw.includes('ITEM_FORBIDDEN'))throw Error('يوجد صنف غير تابع لهذا المطعم');if(raw.includes('EMPTY_BATCH'))throw Error('أدخل كمية مستلمة واحدة على الأقل');if(raw.includes('INVALID_QTY'))throw Error('إحدى الكميات غير صحيحة');throw Error(raw)}
   return d
  }
- const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify({action,...p})}),d=await r.json().catch(()=>({ok:false,error:'تعذر قراءة الرد'}));if(r.status===401&&action!=='login'){signOut(false);throw Error(d.error||'انتهت الجلسة')}if(!r.ok||d.ok===false)throw Error(d.error||'حدث خطأ');return d
+ const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;const catalog=action==='receiving_load',result=await requestJson(API,{method:'POST',headers:h,body:JSON.stringify({action,...p})},{timeoutMs:catalog?CATALOG_TIMEOUT_MS:0,phase:catalog?'catalog':'',timeoutMessage:'انتهت مهلة تحميل قائمة الأصناف. تحقق من الاتصال ثم أعد المحاولة.',invalidMessage:catalog?'وصل رد غير صالح لقائمة الأصناف. أعد المحاولة.':'تعذر قراءة الرد'}),{r,d}=result;if(r.status===401&&action!=='login'){signOut(false);throw Error(d.error||'انتهت الجلسة')}if(!r.ok||d.ok===false)throw Error(d.error||'حدث خطأ');return d
 }
 async function enrichSnapshot(data){
  if(S.branch?.id!=='mazaq')return data;
  try{
   const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;
-  const r=await fetch(SNAPSHOT_API,{method:'POST',headers:h,body:JSON.stringify({date:S.date})});
+  const r=await APP_FETCH(SNAPSHOT_API,{method:'POST',headers:h,body:JSON.stringify({date:S.date})});
   const d=await r.json().catch(()=>({ok:false}));
   if(r.ok&&d.ok!==false)data.inventory_snapshot=d.data||null;
  }catch(e){console.error('mazaq morning snapshot',e)}
@@ -90,7 +108,7 @@ function draftKey(){return`receiving_draft_${S.branch?.id||S.user?.branch_id||''
 function loadDraft(){try{const currentKey=draftKey(),current=JSON.parse(localStorage.getItem(currentKey)||'{}')||{};if(Object.keys(current).length){S.draft=current;return}const base=new Date((S.date||today())+'T12:00:00+03:00');base.setDate(base.getDate()-1);const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(base),o={};parts.forEach(x=>o[x.type]=x.value);const prevDate=`${o.year}-${o.month}-${o.day}`,branchId=S.branch?.id||S.user?.branch_id||'',prevKey=`receiving_draft_${branchId}_${prevDate}`,prev=JSON.parse(localStorage.getItem(prevKey)||'{}')||{};if(Object.keys(prev).length){S.draft=prev;localStorage.setItem(currentKey,JSON.stringify(prev));localStorage.removeItem(prevKey);setTimeout(()=>toast('تم نقل المدخلات غير المحفوظة من أمس إلى اليوم'),50)}else S.draft={}}catch{S.draft={}}}
 function saveDraft(){localStorage.setItem(draftKey(),JSON.stringify(S.draft));updatePending()}
 function clearDraft(){localStorage.removeItem(draftKey());S.draft={}}
-function publishState(){const state={date:S.date,user:S.user,branch:S.branch,data:S.data};window.__morningReceivingState=state;window.dispatchEvent(new CustomEvent('morning-receiving-state',{detail:state}))}
+function publishState(){const itemFieldCount=document.querySelectorAll('.qty[data-id]').length,catalogRendered=!!(S.data&&Array.isArray(S.data.items)&&S.data.items.length&&itemFieldCount===S.data.items.length),state={date:S.date,user:S.user,branch:S.branch,data:S.data,catalogRendered,itemFieldCount};window.__morningReceivingState=state;window.dispatchEvent(new CustomEvent('morning-receiving-state',{detail:state}))}
 async function ensureCurrentDay(migrateDraft=true){const now=today();if(!S.date||S.date===now)return false;const oldKey=draftKey(),draft={...S.draft};S.date=now;if(migrateDraft&&Object.keys(draft).length){localStorage.removeItem(oldKey);S.draft=draft;localStorage.setItem(draftKey(),JSON.stringify(S.draft))}else S.draft={};const d=await api('receiving_load',{date:S.date});S.data=await enrichSnapshot(d.data);render();return true}
 async function syncDateOnResume(){if(dateSyncing||!S.token||!S.user||S.date===today())return;dateSyncing=true;try{const moved=await ensureCurrentDay(true);if(moved)toast('تم الانتقال تلقائيًا إلى استلامات اليوم')}catch(e){toast(e.message,true)}finally{dateSyncing=false}}
 function signOut(call=true){if(call&&S.token)api('logout').catch(()=>{});localStorage.removeItem(KEY);S.token='';S.user=null;S.branch=null;S.data=null;$('#appScreen').classList.add('hidden');$('#loginScreen').classList.remove('hidden')}
@@ -132,30 +150,31 @@ const history=(d.batches||[]).slice(0,8).map((b,idx)=>`<details class="batch"><s
 $('#content').innerHTML=`<section class="hero"><div class="hero-row"><div><h2>${esc(S.branch?.name||'')}</h2><div class="date">${esc(S.date)} · ${esc(dateLabel(S.date))}</div></div><span class="purpose">استلامات اليوم</span></div><div class="stats"><div class="stat"><strong>${st.batches}</strong><span>دفعات محفوظة</span></div><div class="stat"><strong>${st.items}</strong><span>أصناف استُلمت</span></div><div class="stat"><strong>${st.last}</strong><span>آخر استلام</span></div></div></section>${S.branch?.id==='mazaq'&&d.inventory_snapshot?.count?`<div class="snapshot-note"><b>آخر جرد محفوظ:</b> ${esc(d.inventory_snapshot.date)} · ${d.inventory_snapshot.count} صنف. الأرقام داخل البطاقات هي رصيد الجرد المحفوظ، وخانة الإدخال مخصصة للاستلام الجديد فقط.</div>`:''}<div class="tools"><div class="search"><input id="search" class="input" placeholder="بحث عن صنف..." value="${esc(S.query)}"></div><span class="draft-note">تُحفظ المدخلات غير المرسلة تلقائيًا على الجهاز</span></div><div id="sections">${secs||'<div class="empty">لا توجد أصناف مطابقة</div>'}</div><section class="note-card"><label>ملاحظة على هذه الدفعة <span style="color:var(--muted);font-weight:600">(اختياري)</span></label><textarea id="batchNote" class="textarea" placeholder="مثال: توريد الخضار الصباحي"></textarea></section><section class="history"><h3>دفعات اليوم</h3>${history||'<div class="empty">لم يتم تسجيل أي دفعة حتى الآن</div>'}</section>`;
 $('#search').oninput=e=>{S.query=e.target.value.trim();render()};document.querySelectorAll('.qty').forEach(inp=>inp.oninput=()=>{const v=inp.value;if(v===''||Number(v)<=0)delete S.draft[inp.dataset.id];else S.draft[inp.dataset.id]=v;saveDraft()});updatePending();publishState()}
 function updatePending(){const vals=Object.values(S.draft).map(Number).filter(x=>x>0),n=vals.length;$('#pendingTitle').textContent=n?`${n} صنف جاهز للحفظ`:'لا توجد كميات جديدة';$('#pendingSub').textContent=n?'سيتم إضافتها إلى إجمالي استلامات اليوم':'أدخل الكمية المستلمة الآن فقط';$('#saveBtn').disabled=!n}
-function renderCatalogStatus(message,bad=false){$('#content').innerHTML=`<section class="history"><div class="empty"${bad?' style="color:var(--bad);font-weight:800"':''}>${esc(message)}</div></section>`}
+function renderCatalogStatus(message,bad=false,retry=false){$('#content').innerHTML=`<section class="catalog-status" aria-live="polite"><div class="empty"${bad?' style="color:var(--bad);font-weight:800"':''}>${esc(message)}</div>${retry?'<button type="button" id="catalogRetry" class="btn primary catalog-retry">إعادة المحاولة</button>':''}</section>`;if(retry&&$('#catalogRetry'))$('#catalogRetry').onclick=()=>load()}
+function captureInteractionState(){const active=document.activeElement,qty=active?.classList?.contains('qty')?active:null;return{note:$('#batchNote')?.value||'',scrollX:window.scrollX,scrollY:window.scrollY,itemId:qty?.dataset?.id||'',selectionStart:qty?.selectionStart,selectionEnd:qty?.selectionEnd}}
+function restoreInteractionState(view){if($('#batchNote'))$('#batchNote').value=view.note||'';requestAnimationFrame(()=>{window.scrollTo(view.scrollX||0,view.scrollY||0);if(!view.itemId)return;const input=Array.from(document.querySelectorAll('.qty[data-id]')).find(x=>x.dataset.id===view.itemId);if(!input)return;try{input.focus({preventScroll:true})}catch{input.focus()}try{if(view.selectionStart!==null&&view.selectionStart!==undefined)input.setSelectionRange(view.selectionStart,view.selectionEnd)}catch{}})}
 async function refreshMazaqSnapshot(data,date){
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),SNAPSHOT_TIMEOUT_MS);
  try{
   const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;
-  const r=await fetch(SNAPSHOT_API,{method:'POST',headers:h,body:JSON.stringify({date}),signal:controller.signal});
-  const d=await r.json().catch(()=>({ok:false}));
+  const {r,d}=await requestJson(SNAPSHOT_API,{method:'POST',headers:h,body:JSON.stringify({date})},{timeoutMs:SNAPSHOT_TIMEOUT_MS,phase:DIAG_MODE?'snapshot':'',timeoutMessage:'انتهت مهلة تحميل آخر جرد',invalidMessage:'تعذر قراءة آخر جرد'});
   if(!r.ok||d.ok===false)throw Error(d.error||'تعذر تحميل آخر جرد');
   if(S.branch?.id!=='mazaq'||S.date!==date||S.data!==data)return;
-  const note=$('#batchNote')?.value||'';
-  data.inventory_snapshot=d.data||null;render();
-  if($('#batchNote'))$('#batchNote').value=note
- }catch(e){console.error(e.name==='AbortError'?'mazaq morning snapshot timeout':'mazaq morning snapshot',e)}finally{clearTimeout(timer)}
+  const view=captureInteractionState();data.inventory_snapshot=d.data||null;render();restoreInteractionState(view);diag('snapshot:render:done','inputs='+document.querySelectorAll('.qty[data-id]').length)
+ }catch(e){diag(e?.name==='TimeoutError'?'snapshot:timeout':'snapshot:error',e?.name||'Error');console.error(e?.name==='TimeoutError'?'mazaq morning snapshot timeout':'mazaq morning snapshot',e)}
 }
 async function load(){
+ const seq=++catalogLoadSeq;
  renderCatalogStatus('جاري تحميل الأصناف...');
  try{
   const d=await api('receiving_load',{date:S.date}),data=d?.data;
+  if(seq!==catalogLoadSeq)return;
   if(!data||!Array.isArray(data.items)||!data.items.length)throw Error('لم تصل قائمة أصناف صالحة من المصدر');
-  S.data=data;loadDraft();render();
+  diag('catalog:items','count='+data.items.length);S.data=data;loadDraft();render();
+  const fieldCount=document.querySelectorAll('.qty[data-id]').length;if(fieldCount!==data.items.length)throw Error(`اكتمل الرد لكن تعذر رسم جميع الأصناف (${fieldCount}/${data.items.length})`);diag('catalog:render:done','inputs='+fieldCount);
   if(S.branch?.id==='mazaq')refreshMazaqSnapshot(data,S.date)
- }catch(e){S.data=null;renderCatalogStatus(`تعذر تحميل قائمة الأصناف: ${e.message||'حدث خطأ غير معروف'}`,true);toast('تعذر تحميل قائمة الأصناف',true)}
+ }catch(e){if(seq!==catalogLoadSeq)return;S.data=null;const timedOut=e?.name==='TimeoutError';diag(timedOut?'catalog:timeout':'catalog:error',e?.message||e?.name||'Error');renderCatalogStatus(`تعذر تحميل قائمة الأصناف: ${e.message||'حدث خطأ غير معروف'}`,true,true);toast(timedOut?'انتهت مهلة تحميل الأصناف':'تعذر تحميل قائمة الأصناف',true)}
 }
-async function bootstrap(){try{const d=await api('bootstrap');S.user=d.user;S.branch=d.branch;S.date=today();applyTheme();$('#loginScreen').classList.add('hidden');$('#appScreen').classList.remove('hidden');await load()}catch(e){toast(e.message,true);signOut(false)}}
+async function bootstrap(){diag('session:start');try{const d=await api('bootstrap');S.user=d.user;S.branch=d.branch;S.date=today();diag('session:ready','branch='+String(S.branch?.id||''));applyTheme();$('#loginScreen').classList.add('hidden');$('#appScreen').classList.remove('hidden');await load()}catch(e){diag('session:error',e?.name||'Error');toast(e.message,true);signOut(false)}}
 $('#loginForm').onsubmit=async e=>{e.preventDefault();const b=$('#loginBtn'),er=$('#loginError');er.textContent='';b.disabled=true;b.textContent='جاري الدخول...';try{const d=await api('login',{username:$('#username').value.trim(),password:$('#password').value});S.token=d.token;localStorage.setItem(KEY,d.token);await bootstrap()}catch(x){er.textContent=x.message}finally{b.disabled=false;b.textContent='دخول'}};
 $('#logoutBtn').onclick=()=>signOut(true);
 async function savePendingDraftForReport(){
@@ -188,6 +207,9 @@ $('#saveBtn').onclick=async()=>{
 };
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncDateOnResume()});
 window.addEventListener('focus',syncDateOnResume);
+window.addEventListener('morning-report-runtime-injected',()=>diag('report:runtime:injected'));
+window.addEventListener('error',e=>diag('error',e?.error?.name||'Error'));
+window.addEventListener('unhandledrejection',e=>diag('unhandledrejection',e?.reason?.name||'Promise rejection'));
 if(S.token)bootstrap();
 })();
 </script>
