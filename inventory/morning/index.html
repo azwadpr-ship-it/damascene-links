@@ -58,6 +58,7 @@
 const API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-receiving',SNAPSHOT_API='https://wnknxjxipkvioegskefd.supabase.co/functions/v1/daily-inventory-morning-snapshot',KEY='inventory_receiving_token';
 const FAMILY_LOAD_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_load_v1',FAMILY_POST_RPC='https://wnknxjxipkvioegskefd.supabase.co/rest/v1/rpc/inventory_family_morning_post_v1',FAMILY_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indua254anhpcGt2aW9lZ3NrZWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgxMjMsImV4cCI6MjEwMjAzNDEyM30.KV_P5zHGaVzRiJ8tD8VkMiPaMKFrw8HHyKwbqUVktZ4';
 const S={token:localStorage.getItem(KEY)||'',user:null,branch:null,data:null,date:null,draft:{},query:''};
+const SNAPSHOT_TIMEOUT_MS=5000;
 let dateSyncing=false;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
 function today(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),o={};p.forEach(x=>o[x.type]=x.value);return`${o.year}-${o.month}-${o.day}`}
@@ -131,7 +132,29 @@ const history=(d.batches||[]).slice(0,8).map((b,idx)=>`<details class="batch"><s
 $('#content').innerHTML=`<section class="hero"><div class="hero-row"><div><h2>${esc(S.branch?.name||'')}</h2><div class="date">${esc(S.date)} · ${esc(dateLabel(S.date))}</div></div><span class="purpose">استلامات اليوم</span></div><div class="stats"><div class="stat"><strong>${st.batches}</strong><span>دفعات محفوظة</span></div><div class="stat"><strong>${st.items}</strong><span>أصناف استُلمت</span></div><div class="stat"><strong>${st.last}</strong><span>آخر استلام</span></div></div></section>${S.branch?.id==='mazaq'&&d.inventory_snapshot?.count?`<div class="snapshot-note"><b>آخر جرد محفوظ:</b> ${esc(d.inventory_snapshot.date)} · ${d.inventory_snapshot.count} صنف. الأرقام داخل البطاقات هي رصيد الجرد المحفوظ، وخانة الإدخال مخصصة للاستلام الجديد فقط.</div>`:''}<div class="tools"><div class="search"><input id="search" class="input" placeholder="بحث عن صنف..." value="${esc(S.query)}"></div><span class="draft-note">تُحفظ المدخلات غير المرسلة تلقائيًا على الجهاز</span></div><div id="sections">${secs||'<div class="empty">لا توجد أصناف مطابقة</div>'}</div><section class="note-card"><label>ملاحظة على هذه الدفعة <span style="color:var(--muted);font-weight:600">(اختياري)</span></label><textarea id="batchNote" class="textarea" placeholder="مثال: توريد الخضار الصباحي"></textarea></section><section class="history"><h3>دفعات اليوم</h3>${history||'<div class="empty">لم يتم تسجيل أي دفعة حتى الآن</div>'}</section>`;
 $('#search').oninput=e=>{S.query=e.target.value.trim();render()};document.querySelectorAll('.qty').forEach(inp=>inp.oninput=()=>{const v=inp.value;if(v===''||Number(v)<=0)delete S.draft[inp.dataset.id];else S.draft[inp.dataset.id]=v;saveDraft()});updatePending();publishState()}
 function updatePending(){const vals=Object.values(S.draft).map(Number).filter(x=>x>0),n=vals.length;$('#pendingTitle').textContent=n?`${n} صنف جاهز للحفظ`:'لا توجد كميات جديدة';$('#pendingSub').textContent=n?'سيتم إضافتها إلى إجمالي استلامات اليوم':'أدخل الكمية المستلمة الآن فقط';$('#saveBtn').disabled=!n}
-async function load(){const d=await api('receiving_load',{date:S.date});S.data=await enrichSnapshot(d.data);loadDraft();render()}
+function renderCatalogStatus(message,bad=false){$('#content').innerHTML=`<section class="history"><div class="empty"${bad?' style="color:var(--bad);font-weight:800"':''}>${esc(message)}</div></section>`}
+async function refreshMazaqSnapshot(data,date){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),SNAPSHOT_TIMEOUT_MS);
+ try{
+  const h={'content-type':'application/json'};if(S.token)h.authorization='Bearer '+S.token;
+  const r=await fetch(SNAPSHOT_API,{method:'POST',headers:h,body:JSON.stringify({date}),signal:controller.signal});
+  const d=await r.json().catch(()=>({ok:false}));
+  if(!r.ok||d.ok===false)throw Error(d.error||'تعذر تحميل آخر جرد');
+  if(S.branch?.id!=='mazaq'||S.date!==date||S.data!==data)return;
+  const note=$('#batchNote')?.value||'';
+  data.inventory_snapshot=d.data||null;render();
+  if($('#batchNote'))$('#batchNote').value=note
+ }catch(e){console.error(e.name==='AbortError'?'mazaq morning snapshot timeout':'mazaq morning snapshot',e)}finally{clearTimeout(timer)}
+}
+async function load(){
+ renderCatalogStatus('جاري تحميل الأصناف...');
+ try{
+  const d=await api('receiving_load',{date:S.date}),data=d?.data;
+  if(!data||!Array.isArray(data.items)||!data.items.length)throw Error('لم تصل قائمة أصناف صالحة من المصدر');
+  S.data=data;loadDraft();render();
+  if(S.branch?.id==='mazaq')refreshMazaqSnapshot(data,S.date)
+ }catch(e){S.data=null;renderCatalogStatus(`تعذر تحميل قائمة الأصناف: ${e.message||'حدث خطأ غير معروف'}`,true);toast('تعذر تحميل قائمة الأصناف',true)}
+}
 async function bootstrap(){try{const d=await api('bootstrap');S.user=d.user;S.branch=d.branch;S.date=today();applyTheme();$('#loginScreen').classList.add('hidden');$('#appScreen').classList.remove('hidden');await load()}catch(e){toast(e.message,true);signOut(false)}}
 $('#loginForm').onsubmit=async e=>{e.preventDefault();const b=$('#loginBtn'),er=$('#loginError');er.textContent='';b.disabled=true;b.textContent='جاري الدخول...';try{const d=await api('login',{username:$('#username').value.trim(),password:$('#password').value});S.token=d.token;localStorage.setItem(KEY,d.token);await bootstrap()}catch(x){er.textContent=x.message}finally{b.disabled=false;b.textContent='دخول'}};
 $('#logoutBtn').onclick=()=>signOut(true);
