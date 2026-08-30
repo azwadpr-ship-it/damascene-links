@@ -1,0 +1,39 @@
+name: one-shot morning cache bust v106
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-morning-cache-bust-v106.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Patch morning shell cache keys
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('inventory/morning-shell.html')
+          s=p.read_text()
+          a="/inventory/morning/index.html?inner=18"
+          b="/inventory/morning/index.html?inner=19"
+          c="/inventory/morning/morning-report-v1.js?v=20"
+          d="/inventory/morning/morning-report-v1.js?v=21"
+          if a not in s: raise SystemExit('inner=18 marker not found')
+          if c not in s: raise SystemExit('report v20 marker not found')
+          s=s.replace(a,b,1).replace(c,d,1)
+          p.write_text(s)
+          PY
+          grep -F '/inventory/morning/index.html?inner=19' inventory/morning-shell.html
+          grep -F '/inventory/morning/morning-report-v1.js?v=21' inventory/morning-shell.html
+      - name: Commit cache bust and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add inventory/morning-shell.html
+          git rm .github/workflows/one-shot-morning-cache-bust-v106.yml
+          git commit -m "Force fresh morning receiving runtime v106"
+          git push
